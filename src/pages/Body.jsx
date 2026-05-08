@@ -301,14 +301,17 @@ export default function Body() {
       {/* Goals */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <SectionDivider label={t('body.goals.title')} />
+          <div className="flex items-center gap-2">
+            <SectionDivider label={t('body.goals.title')} />
+            <span className="text-xs text-zinc-400 flex-shrink-0">(máximo 3)</span>
+          </div>
           <button onClick={addGoal} className="btn-primary ml-4 flex-shrink-0">
-            <Plus size={14} />{t('spirit.goals.add')}
+            {t('spirit.goals.add')}
           </button>
         </div>
         {goals.length === 0
           ? <div className="spirit-card p-10 text-center"><p className="text-zinc-400 text-sm">{t('spirit.goals.noGoals')}</p></div>
-          : <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          : <div className="grid grid-cols-1 gap-3">
               {goals.map(goal => <GoalCard key={goal.id} goal={goal} tasks={tasks} onSave={saveGoalFields} onDelete={deleteGoal} onAddTask={addTask} onUpdateTask={updateTask} onDeleteTask={deleteTask} t={t} />)}
             </div>
         }
@@ -319,7 +322,7 @@ export default function Body() {
         <div className="flex items-center justify-between">
           <SectionDivider label={t('body.routine.title')} />
           <button onClick={addRoutine} className="btn-primary ml-4 flex-shrink-0">
-            <Plus size={14} />{t('spirit.routine.add')}
+            {t('spirit.routine.add')}
           </button>
         </div>
         {routines.length === 0

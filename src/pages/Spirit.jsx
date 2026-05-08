@@ -470,9 +470,12 @@ export default function Spirit() {
       {/* ── GOALS ── */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <SectionDivider label={t('spirit.goals.title')} />
+          <div className="flex items-center gap-2">
+            <SectionDivider label={t('spirit.goals.title')} />
+            <span className="text-xs text-zinc-400 flex-shrink-0">(máximo 3)</span>
+          </div>
           <button onClick={addGoal} className="btn-primary ml-4 flex-shrink-0">
-            <Plus size={14} /> {t('spirit.goals.add')}
+            {t('spirit.goals.add')}
           </button>
         </div>
 
@@ -481,7 +484,7 @@ export default function Spirit() {
             <p className="text-zinc-400 text-sm">{t('spirit.goals.noGoals')}</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3">
             {goals.map(goal => (
               <GoalCard
                 key={goal.id}
@@ -504,7 +507,7 @@ export default function Spirit() {
         <div className="flex items-center justify-between">
           <SectionDivider label={t('spirit.routine.title')} />
           <button onClick={addRoutine} className="btn-primary ml-4 flex-shrink-0">
-            <Plus size={14} /> {t('spirit.routine.add')}
+            {t('spirit.routine.add')}
           </button>
         </div>
 
