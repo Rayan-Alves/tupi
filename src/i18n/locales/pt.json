@@ -1,0 +1,230 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "spirit": "Espírito",
+    "mind": "Mente",
+    "body": "Corpo",
+    "projects": "Projetos",
+    "jornada": "Jornada",
+    "profile": "Perfil"
+  },
+  "common": {
+    "saving": "Salvando…",
+    "saved": "Salvo",
+    "delete": "Excluir",
+    "add": "Adicionar",
+    "cancel": "Cancelar",
+    "logout": "Sair",
+    "language": "Idioma",
+    "comingSoon": "Em breve",
+    "loading": "Carregando…"
+  },
+  "auth": {
+    "welcome": "Bem-vindo ao Art",
+    "subtitle": "Seu dashboard de vida",
+    "email": "E-mail",
+    "password": "Senha",
+    "signIn": "Entrar",
+    "signUp": "Criar conta",
+    "noAccount": "Não tem conta?",
+    "hasAccount": "Já tem conta?",
+    "checkEmail": "Confira seu e-mail para confirmar o cadastro.",
+    "error": "Ops, algo deu errado. Tente novamente."
+  },
+  "dashboard": {
+    "greeting_morning": "Bom dia",
+    "greeting_afternoon": "Boa tarde",
+    "greeting_evening": "Boa noite",
+    "today": "Hoje",
+    "completed": "Concluídas",
+    "tabs": { "month": "Mês", "week": "Semana", "day": "Dia" },
+    "day": {
+      "todoList": "Lista de Tarefas",
+      "routine": "Rotina",
+      "activities": "Atividades",
+      "mainGoal": "Objetivo Principal"
+    },
+    "week": {
+      "howStart": "Como inicio essa semana?",
+      "howStartPlaceholder": "Como você está chegando nessa semana...",
+      "howEnd": "Como pretendo finalizar essa semana?",
+      "howEndPlaceholder": "O que quer ter conquistado ao final...",
+      "tasks": "Tarefas da Semana",
+      "noTasks": "Nenhuma tarefa. Adicione a primeira!",
+      "taskPlaceholder": "Descreva a tarefa..."
+    },
+    "month": {
+      "howStart": "Como inicio esse mês?",
+      "howStartPlaceholder": "Intenção, energia, contexto do início do mês...",
+      "howEnd": "Como pretendo finalizar esse mês?",
+      "howEndPlaceholder": "O que quer ter realizado ao final...",
+      "goal": "Objetivo",
+      "goalPlaceholder": "Qual é o seu objetivo do mês?",
+      "why": "Por quê?",
+      "whyPlaceholder": "Qual é o propósito por trás deste objetivo?",
+      "noGoals": "Nenhum objetivo ainda.",
+      "tasks": "Tarefas",
+      "taskWhat": "O que?",
+      "taskWhen": "Quando?",
+      "taskWhatPlaceholder": "Descreva a tarefa...",
+      "noItems": "Nada adicionado ainda.",
+      "events": "Eventos do Mês",
+      "eventPlaceholder": "Nome do evento...",
+      "birthdays": "Aniversários",
+      "birthdayPlaceholder": "Nome da pessoa...",
+      "reading": "Para Ler & Assistir",
+      "addRead": "Ler",
+      "addWatch": "Assistir",
+      "typeRead": "Ler",
+      "typeWatch": "Ver",
+      "readingPlaceholder": "Título..."
+    }
+  },
+  "profile": {
+    "title": "Perfil",
+    "subtitle": "Suas informações pessoais",
+    "clickToChange": "Clique na foto para alterar",
+    "personal": "Dados pessoais",
+    "fullNamePlaceholder": "Seu nome completo",
+    "bioPlaceholder": "Uma frase sobre você…",
+    "email": "E-mail",
+    "birthDate": "Data de nascimento",
+    "gender": "Gênero",
+    "genderPlaceholder": "Como você se identifica (opcional)",
+    "country": "País",
+    "countryPlaceholder": "Selecione o país…",
+    "state": "Estado",
+    "statePlaceholder": "Selecione o estado…",
+    "city": "Cidade",
+    "cityPlaceholder": "Selecione a cidade…",
+    "occupation": "Ocupação / Profissão",
+    "occupationPlaceholder": "Ex: Designer, Empreendedor…"
+  },
+  "spirit": {
+    "title": "Espírito",
+    "subtitle": "Explore o seu mundo interior",
+    "identity": "Identidade",
+    "whoAmI": {
+      "label": "Quem sou eu?",
+      "placeholder": "Escreva livremente sobre quem você é — seus traços, sua essência, o que te define…"
+    },
+    "values": {
+      "label": "Quais são meus valores pessoais?",
+      "placeholder": "Liste ou escreva sobre os valores que guiam suas decisões e sua vida…"
+    },
+    "direction": "Direção",
+    "whereIAm": {
+      "label": "Onde estou?",
+      "placeholder": "Como você está agora — emocional, espiritualmente, na vida…"
+    },
+    "whereIWantToGo": {
+      "label": "Para onde quero ir!",
+      "placeholder": "Sua visão, seus sonhos, onde quer chegar…"
+    },
+    "goals": {
+      "title": "Meus Objetivos",
+      "add": "+ Adicionar objetivo",
+      "goalTitle": "Nome do objetivo",
+      "why": "Por quê?",
+      "whyPlaceholder": "Qual é o propósito por trás deste objetivo?",
+      "how": "Como?",
+      "howPlaceholder": "Qual é a sua estratégia para alcançá-lo?",
+      "whatNeeded": "O que preciso?",
+      "whatNeededPlaceholder": "Recursos, habilidades, apoio…",
+      "reflection": "Como foi completar este objetivo?",
+      "reflectionPlaceholder": "Reflita sobre a jornada e o que aprendeu…",
+      "delete": "Remover objetivo",
+      "noGoals": "Nenhum objetivo ainda. Adicione o primeiro!"
+    },
+    "tasks": {
+      "title": "Tarefas",
+      "add": "+ Tarefa",
+      "placeholder": "Descreva a tarefa…",
+      "startDate": "Início",
+      "endDate": "Fim",
+      "repeat": "Repetir",
+      "days": {
+        "mon": "Seg",
+        "tue": "Ter",
+        "wed": "Qua",
+        "thu": "Qui",
+        "fri": "Sex",
+        "sat": "Sáb",
+        "sun": "Dom"
+      }
+    },
+    "routine": {
+      "title": "Rotina Espiritual",
+      "add": "+ Rotina",
+      "whatPlaceholder": "Ex: Meditação, oração, journaling…",
+      "startTime": "Início",
+      "endTime": "Fim",
+      "noRoutines": "Nenhuma rotina ainda. Adicione a primeira!"
+    }
+  },
+  "mind": {
+    "title": "Mente",
+    "subtitle": "Explore o seu mundo mental",
+    "selfThought": {
+      "label": "O que penso sobre mim mesmo",
+      "placeholder": "Escreva livremente sobre como você se vê, suas crenças, sua narrativa interna…"
+    },
+    "sabotage": {
+      "label": "Pensamentos que me sabotam",
+      "placeholder": "Quais pensamentos limitantes aparecem com frequência…"
+    },
+    "turnGold": {
+      "label": "Transformar em ouro",
+      "placeholder": "Como posso ressignificar esses pensamentos em algo positivo…"
+    },
+    "skills": {
+      "label": "Habilidades que quero aprender",
+      "placeholder": "Liste as habilidades que deseja desenvolver…"
+    },
+    "tips": {
+      "label": "Dicas que quero aprender",
+      "placeholder": "Conteúdos, técnicas, aprendizados que quer buscar…"
+    },
+    "goals": { "title": "Meus 3 Principais Objetivos Pessoais" },
+    "routine": {
+      "title": "Rotina Mental",
+      "noRoutines": "Nenhuma rotina mental ainda. Adicione a primeira!"
+    }
+  },
+  "projects": {
+    "gardenTitle": "Jardim de Projetos",
+    "gardenSubtitle": "{{count}} projeto(s) · {{pct}}% concluído",
+    "emptyHint": "Nenhum projeto ainda. Clique em + para plantar o primeiro.",
+    "newProject": "Novo projeto",
+    "backToGarden": "Voltar ao jardim",
+    "questionsTitle": "Perguntas do Projeto",
+    "activitiesTitle": "Atividades",
+    "question": "Pergunta",
+    "answerPlaceholder": "Escreva aqui…",
+    "addQuestion": "Adicionar pergunta",
+    "deleteQuestion": "Remover pergunta",
+    "addActivity": "Novo pré-projeto",
+    "deleteActivity": "Remover atividade",
+    "taskPlaceholder": "Descreva a tarefa…",
+    "taskDate": "Data limite",
+    "addTask": "Nova tarefa",
+    "deleteTask": "Remover tarefa",
+    "toggleTask": "Marcar como concluída"
+  },
+  "body": {
+    "title": "Corpo",
+    "subtitle": "Cuide de si com gentileza",
+    "kindness": {
+      "label": "Trate-se com gentileza",
+      "placeholder": "O que você está fazendo para cuidar do seu corpo e bem-estar…"
+    },
+    "examCheck": { "title": "Controle de Exames" },
+    "lastExam": "Último exame",
+    "nextExam": "Próximo exame",
+    "goals": { "title": "Meus 3 Principais Objetivos Pessoais" },
+    "routine": {
+      "title": "Atividades & Rotina Corporal",
+      "noRoutines": "Nenhuma atividade ainda. Adicione a primeira!"
+    }
+  }
+}

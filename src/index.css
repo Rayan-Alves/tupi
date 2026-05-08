@@ -1,0 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply text-zinc-900 antialiased;
+    background-color: #F5F0E8;
+    font-family: 'Courier New', Courier, monospace;
+  }
+  * { @apply outline-none; }
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-zinc-300 rounded-full; }
+}
+
+@layer components {
+  .auto-textarea {
+    @apply w-full resize-none bg-transparent border-0 border-b border-zinc-200 transition-colors duration-200 text-[15px] text-zinc-800 placeholder-zinc-400 py-2 px-0 leading-relaxed;
+    overflow: hidden;
+    box-sizing: border-box;
+    min-height: 2.5rem;
+  }
+  .auto-textarea:focus {
+    border-color: #C4A882;
+  }
+
+  .field-label {
+    @apply block text-[11px] font-semibold uppercase tracking-[0.1em] text-zinc-400 mb-2;
+  }
+
+  .spirit-card {
+    @apply bg-white rounded-2xl border border-zinc-100 shadow-card;
+  }
+
+  .goal-card {
+    @apply bg-white rounded-2xl border border-zinc-100 shadow-card overflow-hidden;
+    border-left: 4px solid #1B3A5C;
+  }
+
+  .pill-day {
+    @apply text-[11px] font-bold w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-all duration-150 select-none;
+  }
+
+  .pill-day-on {
+    background-color: #C4A882;
+    @apply text-white;
+  }
+  .pill-day-off { @apply bg-zinc-100 text-zinc-500 hover:bg-zinc-200; }
+
+  .btn-primary {
+    @apply flex items-center gap-2 px-4 py-2 text-white text-sm font-semibold rounded-xl transition-all duration-150 shadow-sm hover:shadow-md;
+    background-color: #1B3A5C;
+  }
+  .btn-primary:hover {
+    background-color: #152e4a;
+  }
+
+  .btn-ghost {
+    @apply flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100 rounded-lg transition-all duration-150;
+  }
+
+  .btn-danger {
+    @apply flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-150;
+    color: #A83228;
+  }
+  .btn-danger:hover {
+    color: #8a2820;
+    background-color: #fef2f2;
+  }
+
+  .section-divider {
+    @apply flex items-center gap-3 mb-6;
+  }
+
+  .section-divider-line {
+    @apply flex-1 h-px bg-zinc-200;
+  }
+
+  .section-divider-label {
+    @apply text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-400;
+  }
+
+  .input-inline {
+    @apply w-full bg-transparent border-0 text-[15px] font-semibold text-zinc-800 placeholder-zinc-400 focus:ring-0 p-0;
+  }
+
+  .date-input {
+    @apply text-[12px] border border-zinc-200 rounded-lg px-2 py-1 text-zinc-600 bg-white focus:ring-0 transition-colors cursor-pointer;
+  }
+  .date-input:focus {
+    border-color: #C4A882;
+  }
+
+  .save-badge {
+    @apply text-[11px] font-medium text-emerald-500 flex items-center gap-1 transition-opacity duration-300;
+  }
+}

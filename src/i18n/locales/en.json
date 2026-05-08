@@ -1,0 +1,230 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "spirit": "Spirit",
+    "mind": "Mind",
+    "body": "Body",
+    "projects": "Projects",
+    "jornada": "Journey",
+    "profile": "Profile"
+  },
+  "common": {
+    "saving": "Saving…",
+    "saved": "Saved",
+    "delete": "Delete",
+    "add": "Add",
+    "cancel": "Cancel",
+    "logout": "Sign out",
+    "language": "Language",
+    "comingSoon": "Coming soon",
+    "loading": "Loading…"
+  },
+  "auth": {
+    "welcome": "Welcome to Art",
+    "subtitle": "Your life dashboard",
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Sign in",
+    "signUp": "Create account",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "checkEmail": "Check your email to confirm your account.",
+    "error": "Something went wrong. Please try again."
+  },
+  "dashboard": {
+    "greeting_morning": "Good morning",
+    "greeting_afternoon": "Good afternoon",
+    "greeting_evening": "Good evening",
+    "today": "Today",
+    "completed": "Completed",
+    "tabs": { "month": "Month", "week": "Week", "day": "Day" },
+    "day": {
+      "todoList": "To Do List",
+      "routine": "Routine",
+      "activities": "Activities",
+      "mainGoal": "Main Goal"
+    },
+    "week": {
+      "howStart": "How do I start this week?",
+      "howStartPlaceholder": "How are you entering this week...",
+      "howEnd": "How do I intend to finish this week?",
+      "howEndPlaceholder": "What do you want to have achieved...",
+      "tasks": "Weekly Tasks",
+      "noTasks": "No tasks yet. Add your first!",
+      "taskPlaceholder": "Describe the task..."
+    },
+    "month": {
+      "howStart": "How do I start this month?",
+      "howStartPlaceholder": "Intention, energy, context for the beginning of the month...",
+      "howEnd": "How do I intend to finish this month?",
+      "howEndPlaceholder": "What do you want to have accomplished by the end...",
+      "goal": "Goal",
+      "goalPlaceholder": "What is your goal for this month?",
+      "why": "Why?",
+      "whyPlaceholder": "What is the purpose behind this goal?",
+      "noGoals": "No goals yet.",
+      "tasks": "Tasks",
+      "taskWhat": "What?",
+      "taskWhen": "When?",
+      "taskWhatPlaceholder": "Describe the task...",
+      "noItems": "Nothing added yet.",
+      "events": "Month Events",
+      "eventPlaceholder": "Event name...",
+      "birthdays": "Birthdays",
+      "birthdayPlaceholder": "Person's name...",
+      "reading": "To Read & Watch",
+      "addRead": "Read",
+      "addWatch": "Watch",
+      "typeRead": "Read",
+      "typeWatch": "Watch",
+      "readingPlaceholder": "Title..."
+    }
+  },
+  "profile": {
+    "title": "Profile",
+    "subtitle": "Your personal information",
+    "clickToChange": "Click photo to change",
+    "personal": "Personal details",
+    "fullNamePlaceholder": "Your full name",
+    "bioPlaceholder": "One sentence about you…",
+    "email": "Email",
+    "birthDate": "Date of birth",
+    "gender": "Gender",
+    "genderPlaceholder": "How you identify (optional)",
+    "country": "Country",
+    "countryPlaceholder": "Select a country…",
+    "state": "State / Province",
+    "statePlaceholder": "Select a state…",
+    "city": "City",
+    "cityPlaceholder": "Select a city…",
+    "occupation": "Occupation",
+    "occupationPlaceholder": "E.g. Designer, Entrepreneur…"
+  },
+  "spirit": {
+    "title": "Spirit",
+    "subtitle": "Explore your inner world",
+    "identity": "Identity",
+    "whoAmI": {
+      "label": "Who am I?",
+      "placeholder": "Write freely about who you are — your traits, your essence, what defines you…"
+    },
+    "values": {
+      "label": "What are my personal values?",
+      "placeholder": "List or write about the values that guide your decisions and your life…"
+    },
+    "direction": "Direction",
+    "whereIAm": {
+      "label": "Where am I?",
+      "placeholder": "How are you right now — emotionally, spiritually, in life…"
+    },
+    "whereIWantToGo": {
+      "label": "Where I wanna go!",
+      "placeholder": "Your vision, your dreams, where you want to be…"
+    },
+    "goals": {
+      "title": "My Goals",
+      "add": "+ Add goal",
+      "goalTitle": "Goal title",
+      "why": "Why?",
+      "whyPlaceholder": "What is the purpose behind this goal?",
+      "how": "How?",
+      "howPlaceholder": "What is your strategy to achieve it?",
+      "whatNeeded": "What do I need?",
+      "whatNeededPlaceholder": "Resources, skills, support…",
+      "reflection": "How was it to finish this goal?",
+      "reflectionPlaceholder": "Reflect on the journey and what you learned…",
+      "delete": "Delete goal",
+      "noGoals": "No goals yet. Add your first one!"
+    },
+    "tasks": {
+      "title": "Tasks",
+      "add": "+ Task",
+      "placeholder": "Describe the task…",
+      "startDate": "Start",
+      "endDate": "End",
+      "repeat": "Repeat",
+      "days": {
+        "mon": "Mon",
+        "tue": "Tue",
+        "wed": "Wed",
+        "thu": "Thu",
+        "fri": "Fri",
+        "sat": "Sat",
+        "sun": "Sun"
+      }
+    },
+    "routine": {
+      "title": "Spiritual Routine",
+      "add": "+ Routine",
+      "whatPlaceholder": "E.g. Meditation, prayer, journaling…",
+      "startTime": "Start",
+      "endTime": "End",
+      "noRoutines": "No routines yet. Add your first one!"
+    }
+  },
+  "mind": {
+    "title": "Mind",
+    "subtitle": "Explore your mental world",
+    "selfThought": {
+      "label": "What I think about myself",
+      "placeholder": "Write freely about how you see yourself, your beliefs, your inner narrative…"
+    },
+    "sabotage": {
+      "label": "Thoughts that sabotage me",
+      "placeholder": "Which limiting thoughts come up frequently…"
+    },
+    "turnGold": {
+      "label": "Turn it into Gold",
+      "placeholder": "How can I reframe these thoughts into something positive…"
+    },
+    "skills": {
+      "label": "Skills I want to learn",
+      "placeholder": "List the skills you want to develop…"
+    },
+    "tips": {
+      "label": "Tips I want to learn",
+      "placeholder": "Content, techniques, learnings you want to pursue…"
+    },
+    "goals": { "title": "My 3 Main Personal Goals" },
+    "routine": {
+      "title": "Mental Routine",
+      "noRoutines": "No mental routines yet. Add your first!"
+    }
+  },
+  "projects": {
+    "gardenTitle": "Project Garden",
+    "gardenSubtitle": "{{count}} project(s) · {{pct}}% complete",
+    "emptyHint": "No projects yet. Click + to plant your first one.",
+    "newProject": "New project",
+    "backToGarden": "Back to garden",
+    "questionsTitle": "Project Questions",
+    "activitiesTitle": "Activities",
+    "question": "Question",
+    "answerPlaceholder": "Write here…",
+    "addQuestion": "Add question",
+    "deleteQuestion": "Remove question",
+    "addActivity": "New pre-project",
+    "deleteActivity": "Remove activity",
+    "taskPlaceholder": "Describe the task…",
+    "taskDate": "Due date",
+    "addTask": "New task",
+    "deleteTask": "Remove task",
+    "toggleTask": "Mark as complete"
+  },
+  "body": {
+    "title": "Body",
+    "subtitle": "Treat yourself with kindness",
+    "kindness": {
+      "label": "Treat yourself with kindness",
+      "placeholder": "What are you doing to take care of your body and well-being…"
+    },
+    "examCheck": { "title": "Exam Control" },
+    "lastExam": "Last exam",
+    "nextExam": "Next exam",
+    "goals": { "title": "My 3 Main Personal Goals" },
+    "routine": {
+      "title": "Activities & Body Routine",
+      "noRoutines": "No activities yet. Add your first!"
+    }
+  }
+}
