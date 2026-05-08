@@ -222,7 +222,7 @@ function GoalCard({ goal, tasks, onSave, onDelete, onAddTask, onUpdateTask, onDe
   }
 
   return (
-    <div className={`goal-card transition-all duration-200 ${open ? 'md:col-span-2' : ''}`}>
+    <div className="goal-card transition-all duration-200">
       {/* Header */}
       <div
         className="flex items-center gap-2 px-4 py-3 cursor-pointer hover:bg-zinc-50 transition-colors"
@@ -470,36 +470,28 @@ export default function Spirit() {
       {/* ── GOALS ── */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <SectionDivider label={t('spirit.goals.title')} />
-            <span className="text-xs text-zinc-400 flex-shrink-0">(máximo 3)</span>
-          </div>
-          <button onClick={addGoal} className="btn-primary ml-4 flex-shrink-0">
-            {t('spirit.goals.add')}
-          </button>
+          <SectionDivider label={t('spirit.goals.title')} />
+          {goals.length < 3 && (
+            <button onClick={addGoal} className="btn-primary ml-4 flex-shrink-0">
+              {t('spirit.goals.add')}
+            </button>
+          )}
         </div>
-
-        {goals.length === 0 ? (
-          <div className="spirit-card p-10 text-center">
-            <p className="text-zinc-400 text-sm">{t('spirit.goals.noGoals')}</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-3">
-            {goals.map(goal => (
-              <GoalCard
-                key={goal.id}
-                goal={goal}
-                tasks={tasks}
-                onSave={saveGoalFields}
-                onDelete={deleteGoal}
-                onAddTask={addTask}
-                onUpdateTask={updateTask}
-                onDeleteTask={deleteTask}
-                t={t}
-              />
-            ))}
-          </div>
-        )}
+        <div className="grid grid-cols-1 gap-3">
+          {goals.map(goal => (
+            <GoalCard
+              key={goal.id}
+              goal={goal}
+              tasks={tasks}
+              onSave={saveGoalFields}
+              onDelete={deleteGoal}
+              onAddTask={addTask}
+              onUpdateTask={updateTask}
+              onDeleteTask={deleteTask}
+              t={t}
+            />
+          ))}
+        </div>
       </section>
 
       {/* ── ROUTINE ── */}

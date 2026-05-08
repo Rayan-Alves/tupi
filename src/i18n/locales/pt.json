@@ -185,7 +185,7 @@
       "label": "Dicas que quero aprender",
       "placeholder": "Conteúdos, técnicas, aprendizados que quer buscar…"
     },
-    "goals": { "title": "Meus 3 Principais Objetivos Pessoais" },
+    "goals": { "title": "Meus Objetivos" },
     "routine": {
       "title": "Rotina Mental",
       "noRoutines": "Nenhuma rotina mental ainda. Adicione a primeira!"
@@ -221,7 +221,7 @@
     "examCheck": { "title": "Controle de Exames" },
     "lastExam": "Último exame",
     "nextExam": "Próximo exame",
-    "goals": { "title": "Meus 3 Principais Objetivos Pessoais" },
+    "goals": { "title": "Meus Objetivos" },
     "routine": {
       "title": "Atividades & Rotina Corporal",
       "noRoutines": "Nenhuma atividade ainda. Adicione a primeira!"
