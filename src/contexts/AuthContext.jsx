@@ -33,11 +33,7 @@ export function AuthProvider({ children }) {
 
   async function signUp(email, password) {
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { emailRedirectTo: window.location.origin }
-      })
+      const { error } = await supabase.auth.signUp({ email, password })
       return { error }
     } catch (e) {
       return { error: { message: e?.message || String(e) || 'Network error' } }
