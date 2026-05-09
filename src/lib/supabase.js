@@ -1,13 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 
-const url = import.meta.env.VITE_SUPABASE_URL
-const key = import.meta.env.VITE_SUPABASE_ANON_KEY
-
-if (!url || !key) {
-  console.warn('[Art] Supabase not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to .env')
-}
-
 export const supabase = createClient(
-  url || 'https://placeholder.supabase.co',
-  key || 'placeholder',
+  import.meta.env.VITE_SUPABASE_URL || 'https://cvsoubcucolcvizysnje.supabase.co',
+  import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2c291YmN1Y29sY3ZpenlzbmplIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5OTQ0MjYsImV4cCI6MjA5MzU3MDQyNn0.e5d7utfxZtXdk1uupmH-Kc2rjBOGI9imAKQDB_ryen4',
 )
