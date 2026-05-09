@@ -23,7 +23,7 @@ export default function Register() {
     setLoading(true)
     const { error: err } = await signUp(email, password)
     setLoading(false)
-    if (err) { setError(t('auth.error')); return }
+    if (err) { setError(err.message || t('auth.error')); return }
     setSuccess(true)
   }
 
