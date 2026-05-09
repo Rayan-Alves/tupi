@@ -29,7 +29,9 @@
     "noAccount": "¿No tienes cuenta?",
     "hasAccount": "¿Ya tienes cuenta?",
     "checkEmail": "Revisa tu correo para confirmar tu cuenta.",
-    "error": "Algo salió mal. Inténtalo de nuevo."
+    "error": "Algo salió mal. Inténtalo de nuevo.",
+    "inviteCode": "Código de invitación",
+    "invalidInviteCode": "Código de invitación inválido."
   },
   "dashboard": {
     "greeting_morning": "Buenos días",

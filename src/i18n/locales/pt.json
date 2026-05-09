@@ -29,7 +29,9 @@
     "noAccount": "Não tem conta?",
     "hasAccount": "Já tem conta?",
     "checkEmail": "Confira seu e-mail para confirmar o cadastro.",
-    "error": "Ops, algo deu errado. Tente novamente."
+    "error": "Ops, algo deu errado. Tente novamente.",
+    "inviteCode": "Código de convite",
+    "invalidInviteCode": "Código de convite inválido."
   },
   "dashboard": {
     "greeting_morning": "Bom dia",

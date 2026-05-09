@@ -6,6 +6,7 @@ import { Globe } from 'lucide-react'
 import i18n from '../../i18n'
 
 const LANGS = [{ code: 'pt', label: 'PT' }, { code: 'en', label: 'EN' }, { code: 'es', label: 'ES' }]
+const INVITE_CODE = 'Tupialltheway'
 
 export default function Register() {
   const { t } = useTranslation()
@@ -13,6 +14,7 @@ export default function Register() {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [inviteCode, setInviteCode] = useState('')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -20,6 +22,10 @@ export default function Register() {
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
+    if (inviteCode !== INVITE_CODE) {
+      setError(t('auth.invalidInviteCode'))
+      return
+    }
     setLoading(true)
     const { error: err } = await signUp(email, password)
     setLoading(false)
@@ -93,6 +99,16 @@ export default function Register() {
                     onChange={e => setPassword(e.target.value)}
                     required
                     minLength={6}
+                    className="w-full border border-zinc-200 rounded-xl px-4 py-2.5 text-sm text-zinc-800 placeholder-zinc-400 focus:border-tabatinga focus:ring-1 focus:ring-tabatinga/20 transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="field-label">{t('auth.inviteCode')}</label>
+                  <input
+                    type="text"
+                    value={inviteCode}
+                    onChange={e => setInviteCode(e.target.value)}
+                    required
                     className="w-full border border-zinc-200 rounded-xl px-4 py-2.5 text-sm text-zinc-800 placeholder-zinc-400 focus:border-tabatinga focus:ring-1 focus:ring-tabatinga/20 transition-all"
                   />
                 </div>
