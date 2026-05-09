@@ -23,7 +23,7 @@ export default function Login() {
     setLoading(true)
     const { error: err } = await signIn(email, password)
     setLoading(false)
-    if (err) { setError(err.message || t('auth.error')); return }
+    if (err) { setError(err.message || err.status || JSON.stringify(err)); return }
     setShowIntro(true)
   }
 
