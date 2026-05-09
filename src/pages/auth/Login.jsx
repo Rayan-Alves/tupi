@@ -23,7 +23,13 @@ export default function Login() {
     setLoading(true)
     const { error: err } = await signIn(email, password)
     setLoading(false)
-    if (err) { setError(err.message || err.status || JSON.stringify(err)); return }
+    if (err) {
+      const msg = err.message || err.status || err.code || err.error_description
+      const full = JSON.stringify(err, Object.getOwnPropertyNames(err))
+      setError(msg || full || 'Unknown error — check console')
+      console.error('signIn error:', err)
+      return
+    }
     setShowIntro(true)
   }
 

@@ -23,17 +23,25 @@ export function AuthProvider({ children }) {
   }, [])
 
   async function signIn(email, password) {
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    return { error }
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      return { error }
+    } catch (e) {
+      return { error: { message: e?.message || String(e) || 'Network error' } }
+    }
   }
 
   async function signUp(email, password) {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { emailRedirectTo: window.location.origin }
-    })
-    return { error }
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: window.location.origin }
+      })
+      return { error }
+    } catch (e) {
+      return { error: { message: e?.message || String(e) || 'Network error' } }
+    }
   }
 
   async function signOut() {

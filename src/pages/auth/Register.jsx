@@ -23,7 +23,13 @@ export default function Register() {
     setLoading(true)
     const { error: err } = await signUp(email, password)
     setLoading(false)
-    if (err) { setError(JSON.stringify(err, Object.getOwnPropertyNames(err)) || 'error'); return }
+    if (err) {
+      const msg = err.message || err.status || err.code || err.error_description
+      const full = JSON.stringify(err, Object.getOwnPropertyNames(err))
+      setError(msg || full || 'Unknown error — check console')
+      console.error('signUp error:', err)
+      return
+    }
     setSuccess(true)
   }
 
