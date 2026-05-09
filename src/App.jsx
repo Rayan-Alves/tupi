@@ -11,16 +11,24 @@ import Profile from './pages/Profile'
 import Projects from './pages/Projects'
 import Jornada from './pages/Jornada'
 
+function LoadingScreen() {
+  return (
+    <div className="min-h-screen bg-[#F5F0E8] flex items-center justify-center">
+      <img src="/tupi-logo.png" alt="TUPI" className="w-48 h-auto animate-pulse" />
+    </div>
+  )
+}
+
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
-  if (loading) return null
+  if (loading) return <LoadingScreen />
   if (!user) return <Navigate to="/login" replace />
   return children
 }
 
 function GuestRoute({ children }) {
   const { user, loading } = useAuth()
-  if (loading) return null
+  if (loading) return <LoadingScreen />
   if (user) return <Navigate to="/dashboard" replace />
   return children
 }
