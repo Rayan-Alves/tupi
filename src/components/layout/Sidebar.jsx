@@ -100,7 +100,7 @@ export default function Sidebar() {
                 </div>
             }
             <span className="text-[12px] text-zinc-500 group-hover:text-zinc-300 truncate transition-colors">
-              {profile.full_name || user?.email}
+              {profile.full_name || 'Perfil'}
             </span>
           </NavLink>
           <button
