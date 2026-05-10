@@ -1,7 +1,117 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Plus, Trash2, ChevronDown, ChevronRight, Check, Sparkles, Save } from 'lucide-react'
+import { Plus, Trash2, ChevronDown, ChevronRight, Check, Sparkles, Save, X } from 'lucide-react'
 import { useSpirit } from '../hooks/useSpirit'
+
+function ValueCard({ card, presets, onSave, onDelete, t }) {
+  const [selected, setSelected] = useState(card.selected || '')
+  const [custom, setCustom]     = useState(card.custom || '')
+  const [meaning, setMeaning]   = useState(card.meaning || '')
+  const [status, setStatus]     = useState('clean')
+  const textRef = useRef(null)
+
+  useEffect(() => {
+    setSelected(card.selected || '')
+    setCustom(card.custom || '')
+    setMeaning(card.meaning || '')
+    setStatus('clean')
+  }, [card.id])
+
+  useLayoutEffect(() => {
+    const el = textRef.current
+    if (!el) return
+    el.style.height = '1px'
+    el.style.height = el.scrollHeight + 'px'
+  })
+
+  function mark(val) {
+    setSelected(val)
+    if (val !== '__custom__') setCustom('')
+    setStatus('dirty')
+  }
+
+  async function handleSave() {
+    setStatus('saving')
+    await onSave(card.id, { selected, custom, meaning })
+    setStatus('saved')
+    setTimeout(() => setStatus('clean'), 2500)
+  }
+
+  const saveStyles = {
+    clean:  'bg-zinc-100 text-zinc-400 cursor-default',
+    dirty:  'bg-spirit hover:bg-[#152e4a] text-white shadow-sm cursor-pointer',
+    saving: 'bg-[#3a6490] text-white cursor-wait',
+    saved:  'bg-emerald-500 text-white cursor-default',
+  }
+  const saveLabels = { clean: t('common.saved'), dirty: t('common.saving').replace('…','') || 'Save', saving: t('common.saving'), saved: '✓ ' + t('common.saved') }
+
+  return (
+    <div className="spirit-card p-4 flex flex-col gap-3 relative">
+      <button onClick={() => onDelete(card.id)} className="absolute top-3 right-3 text-zinc-300 hover:text-red-400 transition-colors">
+        <X size={13} />
+      </button>
+
+      {/* Preset list */}
+      <div className="space-y-1 max-h-52 overflow-y-auto pr-1">
+        {presets.map(v => (
+          <label key={v} className="flex items-center gap-2 cursor-pointer group">
+            <span className={`w-4 h-4 rounded flex-shrink-0 border-2 flex items-center justify-center transition-all ${
+              selected === v ? 'bg-spirit border-spirit' : 'border-zinc-300 group-hover:border-[#3a6490]'
+            }`} onClick={() => mark(v)}>
+              {selected === v && <Check size={9} className="text-white" />}
+            </span>
+            <span className={`text-sm transition-colors ${selected === v ? 'text-spirit font-semibold' : 'text-zinc-600'}`}
+              onClick={() => mark(v)}>
+              {v}
+            </span>
+          </label>
+        ))}
+        {/* Custom blank */}
+        <label className="flex items-center gap-2 cursor-pointer group">
+          <span className={`w-4 h-4 rounded flex-shrink-0 border-2 flex items-center justify-center transition-all ${
+            selected === '__custom__' ? 'bg-spirit border-spirit' : 'border-zinc-300 group-hover:border-[#3a6490]'
+          }`} onClick={() => mark('__custom__')}>
+            {selected === '__custom__' && <Check size={9} className="text-white" />}
+          </span>
+          <input
+            type="text"
+            value={custom}
+            onChange={e => { setCustom(e.target.value); setSelected('__custom__'); setStatus('dirty') }}
+            placeholder={t('spirit.values.customPlaceholder')}
+            className="flex-1 bg-transparent text-sm text-zinc-700 placeholder-zinc-400 border-0 border-b border-zinc-200 focus:border-spirit focus:ring-0 p-0 pb-0.5"
+          />
+        </label>
+      </div>
+
+      {/* Divider */}
+      <div className="border-t border-zinc-100" />
+
+      {/* Meaning */}
+      <div>
+        <label className="field-label mb-1">{t('spirit.values.meaning')}</label>
+        <textarea
+          ref={textRef}
+          value={meaning}
+          onChange={e => { setMeaning(e.target.value); setStatus('dirty') }}
+          placeholder={t('spirit.values.meaningPlaceholder')}
+          rows={1}
+          className="auto-textarea"
+        />
+      </div>
+
+      {/* Save */}
+      <div className="flex justify-end">
+        <button
+          onClick={status === 'dirty' ? handleSave : undefined}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${saveStyles[status]}`}
+        >
+          <Save size={11} />
+          {status === 'dirty' ? 'Salvar' : status === 'saving' ? t('common.saving') : status === 'saved' ? '✓ Salvo' : 'Salvo'}
+        </button>
+      </div>
+    </div>
+  )
+}
 
 const WEEK_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 
@@ -391,8 +501,13 @@ function RoutineItem({ routine, onSaveField, onDelete, t }) {
   )
 }
 
+function parseValues(raw) {
+  if (!raw) return []
+  try { return JSON.parse(raw) } catch { return [] }
+}
+
 export default function Spirit() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const {
     profile, saveProfileField,
     goals, addGoal, saveGoalFields, deleteGoal,
@@ -400,6 +515,33 @@ export default function Spirit() {
     routines, addRoutine, saveRoutineField, deleteRoutine,
     loading,
   } = useSpirit()
+
+  const [valueCards, setValueCards] = useState([])
+
+  useEffect(() => {
+    setValueCards(parseValues(profile.values))
+  }, [profile.values])
+
+  const presets = t('spirit.values.presets', { returnObjects: true }) || []
+
+  function addValueCard() {
+    const newCard = { id: Date.now().toString(), selected: '', custom: '', meaning: '' }
+    const next = [...valueCards, newCard]
+    setValueCards(next)
+    saveProfileField('values', JSON.stringify(next))
+  }
+
+  async function saveValueCard(id, data) {
+    const next = valueCards.map(c => c.id === id ? { ...c, ...data } : c)
+    setValueCards(next)
+    await saveProfileField('values', JSON.stringify(next))
+  }
+
+  function deleteValueCard(id) {
+    const next = valueCards.filter(c => c.id !== id)
+    setValueCards(next)
+    saveProfileField('values', JSON.stringify(next))
+  }
 
   if (loading) {
     return (
@@ -433,13 +575,32 @@ export default function Spirit() {
           />
         </div>
 
-        <div className="spirit-card p-6">
-          <label className="field-label">{t('spirit.values.label')}</label>
-          <SaveableTextarea
-            initialValue={profile.values}
-            onSave={val => saveProfileField('values', val)}
-            placeholder={t('spirit.values.placeholder')}
-          />
+        {/* Values grid */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <span className="field-label text-sm font-semibold text-zinc-600">{t('spirit.values.label')}</span>
+            <button onClick={addValueCard} className="btn-primary flex-shrink-0">
+              {t('spirit.values.add')}
+            </button>
+          </div>
+          {valueCards.length === 0 ? (
+            <div className="spirit-card p-8 text-center text-zinc-400 text-sm">
+              {t('spirit.values.add')} para começar
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {valueCards.map(card => (
+                <ValueCard
+                  key={card.id}
+                  card={card}
+                  presets={presets}
+                  onSave={saveValueCard}
+                  onDelete={deleteValueCard}
+                  t={t}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

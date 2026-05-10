@@ -112,7 +112,11 @@
     },
     "values": {
       "label": "¿Cuáles son mis valores personales?",
-      "placeholder": "Enumera o escribe sobre los valores que guían tus decisiones y tu vida…"
+      "add": "+ Valor",
+      "meaning": "¿Qué representa este valor para mí?",
+      "meaningPlaceholder": "Describe lo que este valor significa en tu vida…",
+      "customPlaceholder": "Escribe tu propio valor…",
+      "presets": ["Familia","Salud","Libertad","Amor","Crecimiento","Espiritualidad","Creatividad","Honestidad","Valentía","Compasión","Disciplina","Aventura","Impacto","Comunidad","Sabiduría","Fe","Integridad","Alegría","Gratitud","Presencia"]
     },
     "direction": "Dirección",
     "whereIAm": {
