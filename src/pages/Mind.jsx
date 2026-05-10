@@ -2,6 +2,10 @@ import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react
 import { useTranslation } from 'react-i18next'
 import { Plus, Trash2, ChevronDown, ChevronRight, Check, Brain, Save } from 'lucide-react'
 import { useMind } from '../hooks/useMind'
+import { useMentalPattern } from '../hooks/useMentalPattern'
+import MentalPatternTab from '../components/mental-pattern/MentalPatternTab'
+import MentalPatternExercise from '../components/mental-pattern/MentalPatternExercise'
+import MentalPatternSaved from '../components/mental-pattern/MentalPatternSaved'
 
 const WEEK_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 
@@ -247,6 +251,27 @@ function RoutineItem({ routine, onSaveField, onDelete, t }) {
 export default function Mind() {
   const { t } = useTranslation()
   const { profile, saveProfileField, goals, addGoal, saveGoalFields, deleteGoal, tasks, addTask, updateTask, deleteTask, routines, addRoutine, saveRoutineField, deleteRoutine, loading } = useMind()
+  const { patterns, addPattern, savePattern, deletePattern } = useMentalPattern()
+
+  // 'list' | 'exercise' | 'saved'
+  const [mpView, setMpView] = useState('list')
+  const [activePattern, setActivePattern] = useState(null)
+
+  async function handleNewPattern() {
+    const p = await addPattern()
+    if (p) { setActivePattern(p); setMpView('exercise') }
+  }
+
+  function handleEditPattern(p) {
+    setActivePattern(p)
+    setMpView(p.pos_belief ? 'saved' : 'exercise')
+  }
+
+  async function handleSavePattern(id, fields) {
+    await savePattern(id, fields)
+    setActivePattern(prev => ({ ...prev, ...fields }))
+    setMpView('saved')
+  }
 
   if (loading) return <div className="flex items-center justify-center h-64 text-zinc-400 text-sm">{t('common.loading')}</div>
 
@@ -268,18 +293,37 @@ export default function Mind() {
         </div>
       </section>
 
-      {/* Sabotage x Turn to Gold */}
-      <section>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="spirit-card p-6">
-            <label className="field-label">{t('mind.sabotage.label')}</label>
-            <SaveableTextarea initialValue={profile.sabotage} onSave={v => saveProfileField('sabotage', v)} placeholder={t('mind.sabotage.placeholder')} />
-          </div>
-          <div className="spirit-card p-6 border-l-4 border-l-blue-400">
-            <label className="field-label">{t('mind.turnGold.label')}</label>
-            <SaveableTextarea initialValue={profile.turn_gold} onSave={v => saveProfileField('turn_gold', v)} placeholder={t('mind.turnGold.placeholder')} />
-          </div>
-        </div>
+      {/* Padrão Mental */}
+      <section className="space-y-4">
+        {mpView === 'list' && (
+          <>
+            <div className="flex items-center justify-between">
+              <SectionDivider label="Padrão Mental" />
+              <button onClick={handleNewPattern} className="btn-primary ml-4 flex-shrink-0">
+                +
+              </button>
+            </div>
+            <MentalPatternTab
+              patterns={patterns}
+              onNew={handleNewPattern}
+              onEdit={handleEditPattern}
+              onDelete={deletePattern}
+            />
+          </>
+        )}
+        {mpView === 'exercise' && activePattern && (
+          <MentalPatternExercise
+            pattern={activePattern}
+            onSave={handleSavePattern}
+            onBack={() => setMpView('list')}
+          />
+        )}
+        {mpView === 'saved' && activePattern && (
+          <MentalPatternSaved
+            pattern={activePattern}
+            onBack={() => setMpView('list')}
+          />
+        )}
       </section>
 
       {/* Skills x Tips */}
