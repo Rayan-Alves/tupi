@@ -130,7 +130,6 @@ export default function Profile() {
   const [avatarUrl, setAvatarUrl] = useState(null)
   const [avatarFile, setAvatarFile] = useState(null)
   const [status, setStatus] = useState('clean')
-  const [saveError, setSaveError] = useState('')
 
   const stateOptions = form.country_code
     ? State.getStatesOfCountry(form.country_code).map(s => ({ value: s.isoCode, label: s.name, name: s.name }))
@@ -194,22 +193,16 @@ export default function Profile() {
 
   async function handleSave() {
     setStatus('saving')
-    setSaveError('')
     let avatar_url = profile.avatar_url || null
     if (avatarFile) {
       const url = await uploadAvatar(avatarFile)
       if (url) { avatar_url = url; setAvatarUrl(url) }
     }
     const { country_code, state_code, ...fields } = form
-    const { ok, error } = await saveProfile({ ...fields, avatar_url })
+    await saveProfile({ ...fields, avatar_url })
     setAvatarFile(null)
-    if (ok) {
-      setStatus('saved')
-      setTimeout(() => setStatus('clean'), 2500)
-    } else {
-      setStatus('dirty')
-      setSaveError(error?.message || JSON.stringify(error) || 'Erro ao salvar')
-    }
+    setStatus('saved')
+    setTimeout(() => setStatus('clean'), 2500)
   }
 
   if (loading) return <div className="text-sm text-zinc-400 p-6">{t('common.loading')}</div>
@@ -306,11 +299,6 @@ export default function Profile() {
         </div>
       </div>
 
-      {saveError && (
-        <div className="bg-red-50 text-red-600 text-sm rounded-xl px-4 py-3 border border-red-100">
-          {saveError}
-        </div>
-      )}
       <div className="flex justify-end pb-8">
         <SaveButton status={status} onClick={handleSave} />
       </div>
