@@ -112,9 +112,11 @@
     },
     "values": {
       "label": "What are my personal values?",
-      "add": "+ Value",
+      "add": "+",
       "meaning": "What does this value represent to me?",
       "meaningPlaceholder": "Describe what this value means in your life…",
+      "selectPlaceholder": "Select a value…",
+      "customOption": "Other (write your own)",
       "customPlaceholder": "Write your own value…",
       "presets": ["Family","Health","Freedom","Love","Growth","Spirituality","Creativity","Honesty","Courage","Compassion","Discipline","Adventure","Impact","Community","Wisdom","Faith","Integrity","Joy","Gratitude","Presence"]
     },

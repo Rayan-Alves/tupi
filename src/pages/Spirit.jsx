@@ -51,37 +51,30 @@ function ValueCard({ card, presets, onSave, onDelete, t }) {
         <X size={13} />
       </button>
 
-      {/* Preset list */}
-      <div className="space-y-1 max-h-52 overflow-y-auto pr-1">
+      {/* Dropdown */}
+      <select
+        value={selected}
+        onChange={e => mark(e.target.value)}
+        className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm text-zinc-800 focus:border-spirit focus:ring-1 focus:ring-spirit/20 transition-all bg-white pr-8"
+      >
+        <option value="">{t('spirit.values.selectPlaceholder')}</option>
         {presets.map(v => (
-          <label key={v} className="flex items-center gap-2 cursor-pointer group">
-            <span className={`w-4 h-4 rounded flex-shrink-0 border-2 flex items-center justify-center transition-all ${
-              selected === v ? 'bg-spirit border-spirit' : 'border-zinc-300 group-hover:border-[#3a6490]'
-            }`} onClick={() => mark(v)}>
-              {selected === v && <Check size={9} className="text-white" />}
-            </span>
-            <span className={`text-sm transition-colors ${selected === v ? 'text-spirit font-semibold' : 'text-zinc-600'}`}
-              onClick={() => mark(v)}>
-              {v}
-            </span>
-          </label>
+          <option key={v} value={v}>{v}</option>
         ))}
-        {/* Custom blank */}
-        <label className="flex items-center gap-2 cursor-pointer group">
-          <span className={`w-4 h-4 rounded flex-shrink-0 border-2 flex items-center justify-center transition-all ${
-            selected === '__custom__' ? 'bg-spirit border-spirit' : 'border-zinc-300 group-hover:border-[#3a6490]'
-          }`} onClick={() => mark('__custom__')}>
-            {selected === '__custom__' && <Check size={9} className="text-white" />}
-          </span>
-          <input
-            type="text"
-            value={custom}
-            onChange={e => { setCustom(e.target.value); setSelected('__custom__'); setStatus('dirty') }}
-            placeholder={t('spirit.values.customPlaceholder')}
-            className="flex-1 bg-transparent text-sm text-zinc-700 placeholder-zinc-400 border-0 border-b border-zinc-200 focus:border-spirit focus:ring-0 p-0 pb-0.5"
-          />
-        </label>
-      </div>
+        <option value="__custom__">{t('spirit.values.customOption')}</option>
+      </select>
+
+      {/* Custom input shown when "other" selected */}
+      {selected === '__custom__' && (
+        <input
+          type="text"
+          value={custom}
+          onChange={e => { setCustom(e.target.value); setStatus('dirty') }}
+          placeholder={t('spirit.values.customPlaceholder')}
+          className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm text-zinc-800 placeholder-zinc-400 focus:border-spirit focus:ring-1 focus:ring-spirit/20 transition-all"
+          autoFocus
+        />
+      )}
 
       {/* Divider */}
       <div className="border-t border-zinc-100" />
@@ -519,7 +512,16 @@ export default function Spirit() {
   const [valueCards, setValueCards] = useState([])
 
   useEffect(() => {
-    setValueCards(parseValues(profile.values))
+    const saved = parseValues(profile.values)
+    if (saved.length > 0) {
+      setValueCards(saved)
+    } else {
+      setValueCards([
+        { id: '1', selected: '', custom: '', meaning: '' },
+        { id: '2', selected: '', custom: '', meaning: '' },
+        { id: '3', selected: '', custom: '', meaning: '' },
+      ])
+    }
   }, [profile.values])
 
   const presets = t('spirit.values.presets', { returnObjects: true }) || []
@@ -583,24 +585,18 @@ export default function Spirit() {
               {t('spirit.values.add')}
             </button>
           </div>
-          {valueCards.length === 0 ? (
-            <div className="spirit-card p-8 text-center text-zinc-400 text-sm">
-              {t('spirit.values.add')} para começar
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {valueCards.map(card => (
-                <ValueCard
-                  key={card.id}
-                  card={card}
-                  presets={presets}
-                  onSave={saveValueCard}
-                  onDelete={deleteValueCard}
-                  t={t}
-                />
-              ))}
-            </div>
-          )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {valueCards.map(card => (
+              <ValueCard
+                key={card.id}
+                card={card}
+                presets={presets}
+                onSave={saveValueCard}
+                onDelete={deleteValueCard}
+                t={t}
+              />
+            ))}
+          </div>
         </div>
       </section>
 
