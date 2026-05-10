@@ -25,7 +25,7 @@ export function useProfile() {
       .from('user_profiles')
       .upsert({ id: user.id, ...fields, updated_at: new Date().toISOString() })
     if (!error) setProfile(p => ({ ...p, ...fields }))
-    return !error
+    return { ok: !error, error }
   }
 
   async function uploadAvatar(file) {
