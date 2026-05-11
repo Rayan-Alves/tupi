@@ -2,39 +2,10 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 
-const CSS = `
-.mp-root{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-  --clay:#C4A882;--amb:#C8841A;--navy:#2D3F5A;--neb:#F5F0E8}
-.mp-root *{box-sizing:border-box}
-.mp-list-hdr{display:flex !important;align-items:center;justify-content:space-between;margin-bottom:0.75rem}
-.mp-list-label{font-size:11px;letter-spacing:0.18em;color:#a1a1aa}
-.mp-add{width:44px;height:44px;border-radius:14px;background:var(--navy) !important;color:white !important;border:none !important;
-  font-size:24px;cursor:pointer !important;display:flex !important;align-items:center;justify-content:center;
-  transition:all .2s;flex-shrink:0;line-height:1;pointer-events:auto !important;position:relative;z-index:10}
-.mp-add:hover{background:#1E2D42 !important;transform:scale(0.96)}
-.mp-empty{font-size:13px;color:#a1a1aa;font-style:italic;padding:3rem 0;text-align:center}
-.mp-card{border:0.5px solid var(--clay);border-radius:16px;overflow:hidden;margin-bottom:10px;
-  cursor:pointer;transition:border-color .2s;background:#fff}
-.mp-card:hover{border-color:var(--amb)}
-.mp-card-inner{padding:14px 16px;background:#FDF6EC}
-.mp-card-lbl{font-size:10px;letter-spacing:0.08em;color:#854F0B;margin-bottom:4px}
-.mp-card-text{font-size:14px;font-weight:500;color:#633806;line-height:1.4}
-`
-
-export default function MentalPatternTab({ table = 'mental_patterns', label = 'PADRÃO MENTAL', createPath = '/padrao-mental' }) {
+export default function MentalPatternTab({ table = 'mental_patterns', label = 'PADRÃO MENTAL', createPath = '/padrao-mental', onAdd, onSelect }) {
   const { user } = useAuth()
   const [patterns, setPatterns] = useState([])
   const [loading,  setLoading]  = useState(true)
-
-  useEffect(() => {
-    const id = 'mp-list-styles'
-    if (!document.getElementById(id)) {
-      const el = document.createElement('style')
-      el.id = id; el.textContent = CSS
-      document.head.appendChild(el)
-    }
-    return () => document.getElementById(id)?.remove()
-  }, [])
 
   useEffect(() => {
     if (!user) return
@@ -45,21 +16,46 @@ export default function MentalPatternTab({ table = 'mental_patterns', label = 'P
 
   if (loading) return null
 
+  const S = {
+    root: { fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" },
+    hdr:  { display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'0.75rem' },
+    lbl:  { fontSize:'11px', letterSpacing:'0.18em', color:'#a1a1aa' },
+    btn:  { width:'44px', height:'44px', borderRadius:'14px', background:'#2D3F5A', color:'white',
+            border:'none', fontSize:'24px', cursor:'pointer', display:'flex', alignItems:'center',
+            justifyContent:'center', flexShrink:0, lineHeight:1, textDecoration:'none' },
+    empty:{ fontSize:'13px', color:'#a1a1aa', fontStyle:'italic', padding:'3rem 0', textAlign:'center' },
+    card: { border:'0.5px solid #C4A882', borderRadius:'16px', overflow:'hidden', marginBottom:'10px',
+            cursor:'pointer', background:'#fff' },
+    inner:{ padding:'14px 16px', background:'#FDF6EC' },
+    clbl: { fontSize:'10px', letterSpacing:'0.08em', color:'#854F0B', marginBottom:'4px' },
+    ctxt: { fontSize:'14px', fontWeight:500, color:'#633806', lineHeight:1.4 },
+  }
+
   return (
-    <div className="mp-root">
-      <div className="mp-list-hdr">
-        <span className="mp-list-label">{label}</span>
-        <button type="button" className="mp-add" onClick={() => { window.location.href = createPath }} aria-label="adicionar">+</button>
+    <div style={S.root}>
+      <div style={S.hdr}>
+        <span style={S.lbl}>{label}</span>
+        {onAdd
+          ? <button type="button" onClick={onAdd} style={S.btn} aria-label="adicionar">+</button>
+          : <a href={createPath} style={S.btn} aria-label="adicionar">+</a>
+        }
       </div>
       {patterns.length === 0
-        ? <div className="mp-empty">clique em + para trabalhar sua primeira crença</div>
+        ? <div style={S.empty}>clique em + para trabalhar sua primeira crença</div>
         : patterns.map(p => (
-            <div key={p.id} className="mp-card" onClick={() => { window.location.href = `${createPath}?id=${p.id}` }}>
-              <div className="mp-card-inner">
-                <div className="mp-card-lbl">POLO POSITIVO</div>
-                <div className="mp-card-text">{p.pos_belief}</div>
-              </div>
-            </div>
+            onSelect
+              ? <div key={p.id} onClick={() => onSelect(p.id)} style={{...S.card, cursor:'pointer'}}>
+                  <div style={S.inner}>
+                    <div style={S.clbl}>POLO POSITIVO</div>
+                    <div style={S.ctxt}>{p.pos_belief}</div>
+                  </div>
+                </div>
+              : <a key={p.id} href={`${createPath}?id=${p.id}`} style={{...S.card, display:'block', textDecoration:'none'}}>
+                  <div style={S.inner}>
+                    <div style={S.clbl}>POLO POSITIVO</div>
+                    <div style={S.ctxt}>{p.pos_belief}</div>
+                  </div>
+                </a>
           ))
       }
     </div>

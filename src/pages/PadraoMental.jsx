@@ -119,9 +119,10 @@ function toFlat(b) {
   }
 }
 
-export default function PadraoMental({ table = 'mental_patterns' }) {
+export default function PadraoMental({ table = 'mental_patterns', onBack, initEditId, embedded = false }) {
   const [params] = useSearchParams()
-  const editId = params.get('id')
+  const editId = initEditId !== undefined ? initEditId : params.get('id')
+  const goBack = () => onBack ? onBack() : (window.location.href = '/mind')
   const { user } = useAuth()
 
   const [allPatterns, setAllPatterns] = useState([])
@@ -220,16 +221,27 @@ export default function PadraoMental({ table = 'mental_patterns' }) {
   const beliefs     = allPatterns.map(toB)
   const prevBeliefs = editingId ? beliefs.filter(b => b.id !== editingId) : beliefs
 
-  if (view === 'saved' && savedB) return (
-    <div className="pm-page" style={{minHeight:'100vh',background:'#F5F0E8',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif'}}>
+  function inlineEdit(b) {
+    setForm({ n1:b.neg.belief, n2:b.neg.causes, n3:b.neg.feeling, n4:b.neg.result,
+               p1:b.pos.action, p2:b.pos.feeling, p3:b.pos.impact, p4:b.pos.belief })
+    setVis({ nf2:true, nf3:true, nf4:true, pf1:true, pf2:true, pf3:true })
+    setNegLocked(false); setP4Enabled(true); setShowSave(true)
+    setEditingId(b.id); setView('exercise')
+    setTimeout(() => Object.values(ta.current).forEach(el => {
+      if (el) { el.style.height='auto'; el.style.height=el.scrollHeight+'px' }
+    }), 80)
+  }
+
+  if (view === 'saved' && savedB) {
+    const inner = (
       <div className="pm-inner">
         <div className="pm-hdr">
           <span className="pm-sv-title">Crença salva</span>
-          <button className="pm-back" onClick={() => window.location.href='/mind'}>← voltar</button>
+          <button className="pm-back" onClick={goBack}>← voltar</button>
         </div>
         <div className="pm-sv">
           <button className="pm-sv-edit" aria-label="editar"
-            onClick={() => window.location.href='/padrao-mental?id='+savedB.id}>✎</button>
+            onClick={() => onBack ? inlineEdit(savedB) : (window.location.href='/padrao-mental?id='+savedB.id)}>✎</button>
           <div className="pm-sv-poles" onClick={() => setExpanded(e => !e)}>
             <div className="pm-sv-neg">
               <div className="pm-sv-plbl">POLO NEGATIVO</div>
@@ -261,15 +273,16 @@ export default function PadraoMental({ table = 'mental_patterns' }) {
           </div>
         </div>
       </div>
-    </div>
-  )
+    )
+    if (embedded) return inner
+    return <div className="pm-page" style={{minHeight:'100vh',background:'#F5F0E8',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif'}}>{inner}</div>
+  }
 
-  return (
-    <div className="pm-page" style={{minHeight:'100vh',background:'#F5F0E8',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif'}}>
+  const exerciseInner = (
       <div className="pm-inner">
         <div className="pm-hdr">
           <span className="pm-title">{editingId ? 'Editando crença' : 'Nova crença'}</span>
-          <button className="pm-back" onClick={() => window.location.href='/mind'}>← voltar</button>
+          <button className="pm-back" onClick={goBack}>← voltar</button>
         </div>
         <div className={`pm-banner${editingId ? ' on' : ''}`}>editando crença — salve para atualizar</div>
         <div className="pm-quote">
@@ -290,8 +303,8 @@ export default function PadraoMental({ table = 'mental_patterns' }) {
           </div>
         )}
         <div className="pm-pol">
-          <div className="pm-sides">
-            <div className="pm-side">
+          <div className="pm-sides" style={{display:'flex',flexDirection:'row',minHeight:'300px'}}>
+            <div className="pm-side" style={{flex:1,display:'flex',flexDirection:'column',position:'relative',minWidth:0}}>
               <div className="pm-phdr pm-phdr-pos">
                 <div className="pm-sign pm-sp">+</div>
                 <textarea className="pm-hta pm-hta-pos"
@@ -321,8 +334,8 @@ export default function PadraoMental({ table = 'mental_patterns' }) {
                 <div className="pm-lcklbl">complete o polo negativo primeiro</div>
               </div>
             </div>
-            <div className="pm-div"><div className="pm-divc">◎</div></div>
-            <div className="pm-side">
+            <div className="pm-div" style={{width:'1px',background:'#C4A882',flexShrink:0,position:'relative',display:'flex',alignItems:'center',justifyContent:'center'}}><div className="pm-divc">◎</div></div>
+            <div className="pm-side" style={{flex:1,display:'flex',flexDirection:'column',position:'relative',minWidth:0}}>
               <div className="pm-phdr pm-phdr-neg">
                 <div className="pm-sign pm-sn">−</div>
                 <textarea className="pm-hta pm-hta-neg"
@@ -354,6 +367,8 @@ export default function PadraoMental({ table = 'mental_patterns' }) {
           </div>
         </div>
       </div>
-    </div>
   )
+
+  if (embedded) return exerciseInner
+  return <div className="pm-page" style={{minHeight:'100vh',background:'#F5F0E8',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif'}}>{exerciseInner}</div>
 }
