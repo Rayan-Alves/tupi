@@ -2,10 +2,9 @@ import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react
 import { useTranslation } from 'react-i18next'
 import { Plus, Trash2, ChevronDown, ChevronRight, Check, Brain, Save } from 'lucide-react'
 import { useMind } from '../hooks/useMind'
-import { useMentalPattern } from '../hooks/useMentalPattern'
+import { usePensamentos } from '../hooks/usePensamentos'
 import MentalPatternTab from '../components/mental-pattern/MentalPatternTab'
-import MentalPatternExercise from '../components/mental-pattern/MentalPatternExercise'
-import MentalPatternSaved from '../components/mental-pattern/MentalPatternSaved'
+import PensamentoView from '../components/mind/PensamentoView'
 
 const WEEK_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 
@@ -251,29 +250,27 @@ function RoutineItem({ routine, onSaveField, onDelete, t }) {
 export default function Mind() {
   const { t } = useTranslation()
   const { profile, saveProfileField, goals, addGoal, saveGoalFields, deleteGoal, tasks, addTask, updateTask, deleteTask, routines, addRoutine, saveRoutineField, deleteRoutine, loading } = useMind()
-  const { patterns, addPattern, savePattern, deletePattern } = useMentalPattern()
+  const { pensamentos, addPensamento, savePensamento, deletePensamento } = usePensamentos()
+  const [openPensamento, setOpenPensamento] = useState(null)
 
-  // 'list' | 'exercise' | 'saved'
-  const [mpView, setMpView] = useState('list')
-  const [activePattern, setActivePattern] = useState(null)
-
-  async function handleNewPattern() {
-    const p = await addPattern()
-    if (p) { setActivePattern(p); setMpView('exercise') }
-  }
-
-  function handleEditPattern(p) {
-    setActivePattern(p)
-    setMpView(p.pos_belief ? 'saved' : 'exercise')
-  }
-
-  async function handleSavePattern(id, fields) {
-    await savePattern(id, fields)
-    setActivePattern(prev => ({ ...prev, ...fields }))
-    setMpView('saved')
+  async function handleAddPensamento() {
+    const novo = await addPensamento()
+    if (novo) setOpenPensamento(novo)
   }
 
   if (loading) return <div className="flex items-center justify-center h-64 text-zinc-400 text-sm">{t('common.loading')}</div>
+
+  if (openPensamento !== null) {
+    const current = pensamentos.find(p => p.id === openPensamento.id) || openPensamento
+    return (
+      <PensamentoView
+        pensamento={current}
+        onBack={() => setOpenPensamento(null)}
+        onSave={savePensamento}
+        onDelete={deletePensamento}
+      />
+    )
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-10 space-y-10">
@@ -294,36 +291,17 @@ export default function Mind() {
       </section>
 
       {/* Padrão Mental */}
-      <section className="space-y-4">
-        {mpView === 'list' && (
-          <>
-            <div className="flex items-center justify-between">
-              <SectionDivider label="Padrão Mental" />
-              <button onClick={handleNewPattern} className="btn-primary ml-4 flex-shrink-0">
-                +
-              </button>
-            </div>
-            <MentalPatternTab
-              patterns={patterns}
-              onNew={handleNewPattern}
-              onEdit={handleEditPattern}
-              onDelete={deletePattern}
-            />
-          </>
-        )}
-        {mpView === 'exercise' && activePattern && (
-          <MentalPatternExercise
-            pattern={activePattern}
-            onSave={handleSavePattern}
-            onBack={() => setMpView('list')}
-          />
-        )}
-        {mpView === 'saved' && activePattern && (
-          <MentalPatternSaved
-            pattern={activePattern}
-            onBack={() => setMpView('list')}
-          />
-        )}
+      <section>
+        <MentalPatternTab />
+      </section>
+
+      {/* Padrão Mental 2 */}
+      <section>
+        <MentalPatternTab
+          table="mental_patterns_2"
+          label="PADRÃO MENTAL 2"
+          createPath="/padrao-mental-2"
+        />
       </section>
 
       {/* Skills x Tips */}
@@ -338,6 +316,36 @@ export default function Mind() {
             <SaveableTextarea initialValue={profile.tips} onSave={v => saveProfileField('tips', v)} placeholder={t('mind.tips.placeholder')} />
           </div>
         </div>
+      </section>
+
+      {/* Pensamentos */}
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] font-semibold tracking-[0.18em] text-zinc-400">PENSAMENTOS</span>
+          <button
+            type="button"
+            onClick={handleAddPensamento}
+            aria-label="novo pensamento"
+            className="w-[44px] h-[44px] rounded-[14px] bg-[#2D3F5A] hover:bg-[#1E2D42] text-white flex items-center justify-center text-2xl leading-none transition-all active:scale-95"
+          >
+            +
+          </button>
+        </div>
+        {pensamentos.length === 0
+          ? <p className="text-sm text-zinc-400 italic py-4 text-center">clique em + para registrar seu primeiro pensamento</p>
+          : <div className="space-y-2">
+              {pensamentos.map(p => (
+                <div
+                  key={p.id}
+                  onClick={() => setOpenPensamento(p)}
+                  className="bg-white border border-zinc-100 rounded-2xl px-4 py-3 cursor-pointer hover:border-zinc-200 hover:shadow-sm transition-all"
+                >
+                  <p className="text-sm font-medium text-zinc-800 truncate">{p.title || <span className="text-zinc-400 italic font-normal">sem título</span>}</p>
+                  {p.body && <p className="text-xs text-zinc-400 mt-0.5 line-clamp-1">{p.body}</p>}
+                </div>
+              ))}
+            </div>
+        }
       </section>
 
       {/* Goals */}

@@ -1,52 +1,67 @@
-import { Trash2, Pencil } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../contexts/AuthContext'
 
-export default function MentalPatternTab({ patterns, onNew, onEdit, onDelete }) {
+const CSS = `
+.mp-root{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --clay:#C4A882;--amb:#C8841A;--navy:#2D3F5A;--neb:#F5F0E8}
+.mp-root *{box-sizing:border-box}
+.mp-list-hdr{display:flex !important;align-items:center;justify-content:space-between;margin-bottom:0.75rem}
+.mp-list-label{font-size:11px;letter-spacing:0.18em;color:#a1a1aa}
+.mp-add{width:44px;height:44px;border-radius:14px;background:var(--navy) !important;color:white !important;border:none !important;
+  font-size:24px;cursor:pointer !important;display:flex !important;align-items:center;justify-content:center;
+  transition:all .2s;flex-shrink:0;line-height:1;pointer-events:auto !important;position:relative;z-index:10}
+.mp-add:hover{background:#1E2D42 !important;transform:scale(0.96)}
+.mp-empty{font-size:13px;color:#a1a1aa;font-style:italic;padding:3rem 0;text-align:center}
+.mp-card{border:0.5px solid var(--clay);border-radius:16px;overflow:hidden;margin-bottom:10px;
+  cursor:pointer;transition:border-color .2s;background:#fff}
+.mp-card:hover{border-color:var(--amb)}
+.mp-card-inner{padding:14px 16px;background:#FDF6EC}
+.mp-card-lbl{font-size:10px;letter-spacing:0.08em;color:#854F0B;margin-bottom:4px}
+.mp-card-text{font-size:14px;font-weight:500;color:#633806;line-height:1.4}
+`
+
+export default function MentalPatternTab({ table = 'mental_patterns', label = 'PADRÃO MENTAL', createPath = '/padrao-mental' }) {
+  const { user } = useAuth()
+  const [patterns, setPatterns] = useState([])
+  const [loading,  setLoading]  = useState(true)
+
+  useEffect(() => {
+    const id = 'mp-list-styles'
+    if (!document.getElementById(id)) {
+      const el = document.createElement('style')
+      el.id = id; el.textContent = CSS
+      document.head.appendChild(el)
+    }
+    return () => document.getElementById(id)?.remove()
+  }, [])
+
+  useEffect(() => {
+    if (!user) return
+    supabase.from(table).select('*')
+      .eq('user_id', user.id).order('created_at', { ascending: false })
+      .then(({ data }) => { if (data) setPatterns(data); setLoading(false) })
+  }, [user?.id, table])
+
+  if (loading) return null
+
   return (
-    <div className="space-y-3">
-      {patterns.length === 0 ? (
-        <div className="py-16 text-center">
-          <p className="text-zinc-400 text-sm italic">
-            clique em + para trabalhar sua primeira crença
-          </p>
-        </div>
-      ) : (
-        patterns.map(p => (
-          <div
-            key={p.id}
-            className="group flex items-center justify-between gap-3 bg-white border border-zinc-100 rounded-2xl px-5 py-4 shadow-card hover:border-zinc-200 transition-all cursor-pointer"
-            onClick={() => onEdit(p)}
-          >
-            <div className="min-w-0">
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-400 mb-0.5">
-                Nova crença
-              </p>
-              <p className="text-sm font-medium text-zinc-800 truncate">
-                {p.pos_belief || <span className="text-zinc-400 italic">em andamento…</span>}
-              </p>
-              {p.neg_belief && (
-                <p className="text-[11px] text-zinc-400 truncate mt-0.5 line-through">
-                  {p.neg_belief}
-                </p>
-              )}
+    <div className="mp-root">
+      <div className="mp-list-hdr">
+        <span className="mp-list-label">{label}</span>
+        <button type="button" className="mp-add" onClick={() => { window.location.href = createPath }} aria-label="adicionar">+</button>
+      </div>
+      {patterns.length === 0
+        ? <div className="mp-empty">clique em + para trabalhar sua primeira crença</div>
+        : patterns.map(p => (
+            <div key={p.id} className="mp-card" onClick={() => { window.location.href = `${createPath}?id=${p.id}` }}>
+              <div className="mp-card-inner">
+                <div className="mp-card-lbl">POLO POSITIVO</div>
+                <div className="mp-card-text">{p.pos_belief}</div>
+              </div>
             </div>
-
-            <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button
-                onClick={e => { e.stopPropagation(); onEdit(p) }}
-                className="p-1.5 rounded-lg text-zinc-400 hover:text-[#C8841A] hover:bg-[#C8841A]/10 transition-all"
-              >
-                <Pencil size={13} />
-              </button>
-              <button
-                onClick={e => { e.stopPropagation(); onDelete(p.id) }}
-                className="p-1.5 rounded-lg text-zinc-400 hover:text-red-500 hover:bg-red-50 transition-all"
-              >
-                <Trash2 size={13} />
-              </button>
-            </div>
-          </div>
-        ))
-      )}
+          ))
+      }
     </div>
   )
 }

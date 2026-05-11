@@ -10,6 +10,7 @@ import Body from './pages/Body'
 import Profile from './pages/Profile'
 import Projects from './pages/Projects'
 import Jornada from './pages/Jornada'
+import PadraoMental from './pages/PadraoMental'
 
 function LoadingScreen() {
   return (
@@ -40,7 +41,9 @@ export default function App() {
         <Routes>
           <Route path="/login"    element={<GuestRoute><Login /></GuestRoute>} />
           <Route path="/register" element={<GuestRoute><Register /></GuestRoute>} />
-          <Route path="/jornada"  element={<Jornada />} />
+          <Route path="/jornada"       element={<Jornada />} />
+          <Route path="/padrao-mental"   element={<ProtectedRoute><PadraoMental /></ProtectedRoute>} />
+          <Route path="/padrao-mental-2" element={<ProtectedRoute><PadraoMental table="mental_patterns_2" /></ProtectedRoute>} />
 
           <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<Navigate to="/dashboard" replace />} />
