@@ -310,9 +310,9 @@ export default function PadraoMental({ table = 'mental_patterns', onBack, initEd
                 <textarea className="pm-hta pm-hta-pos"
                   ref={el => { ta.current['p4']=el }} value={form.p4} rows={1}
                   placeholder="reescreva em positivo..." disabled={!p4Enabled}
-                  onChange={e => chg('p4', e.target.value)}
+                  onChange={e => { chg('p4', e.target.value); if(e.target.value.trim()) setShowSave(true) }}
                   onBlur={e => { if(e.target.value.trim()) setShowSave(true) }}
-                  onKeyDown={e => { if(e.key==='Enter'){e.preventDefault();if(e.target.value.trim())setShowSave(true)} }}
+                  onKeyDown={e => { if(e.key==='Enter'){e.preventDefault();if(e.target.value.trim()){ setShowSave(true); save() }} }}
                 />
               </div>
               <div className="pm-pbody">
@@ -362,8 +362,8 @@ export default function PadraoMental({ table = 'mental_patterns', onBack, initEd
               </div>
             </div>
           </div>
-          <div className={`pm-saverow${showSave?' on':''}`}>
-            <button className="pm-savebtn" onClick={save}>{editingId?'atualizar crença':'salvar crença'}</button>
+          <div style={{padding:'12px 14px',borderTop:'0.5px solid #C4A882',display:'flex',justifyContent:'flex-end',background:'#fff',opacity:showSave?1:0,pointerEvents:showSave?'auto':'none',transition:'opacity .4s'}}>
+            <button className="pm-savebtn" onClick={save} style={{background:'#1A3A1F',color:'white',border:'none',borderRadius:'20px',padding:'7px 20px',fontSize:'12px',fontFamily:'inherit',cursor:'pointer',letterSpacing:'0.04em'}}>{editingId?'atualizar crença':'salvar crença'}</button>
           </div>
         </div>
       </div>
