@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 
-export default function MentalPatternTab({ table = 'mental_patterns', label = 'PADRÃO MENTAL', createPath = '/padrao-mental', onAdd, onSelect }) {
+export default function MentalPatternTab({ table = 'mental_patterns', label = 'PADRÃO MENTAL', createPath = '/padrao-mental', onAdd, onSelect, onDelete }) {
   const { user } = useAuth()
   const [patterns, setPatterns] = useState([])
   const [loading,  setLoading]  = useState(true)
@@ -13,6 +13,14 @@ export default function MentalPatternTab({ table = 'mental_patterns', label = 'P
       .eq('user_id', user.id).order('created_at', { ascending: false })
       .then(({ data }) => { if (data) setPatterns(data); setLoading(false) })
   }, [user?.id, table])
+
+  async function handleDelete(e, id) {
+    e.stopPropagation()
+    e.preventDefault()
+    await supabase.from(table).delete().eq('id', id).eq('user_id', user.id)
+    setPatterns(p => p.filter(x => x.id !== id))
+    onDelete?.(id)
+  }
 
   if (loading) return null
 
@@ -42,21 +50,31 @@ export default function MentalPatternTab({ table = 'mental_patterns', label = 'P
       </div>
       {patterns.length === 0
         ? <div style={S.empty}>clique em + para trabalhar sua primeira crença</div>
-        : patterns.map(p => (
-            onSelect
-              ? <div key={p.id} onClick={() => onSelect(p.id)} style={{...S.card, cursor:'pointer'}}>
-                  <div style={S.inner}>
+        : patterns.map(p => {
+            const cardContent = (
+              <div style={S.inner}>
+                <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'8px'}}>
+                  <div style={{flex:1,minWidth:0}}>
                     <div style={S.clbl}>POLO POSITIVO</div>
                     <div style={S.ctxt}>{p.pos_belief}</div>
                   </div>
+                  <button
+                    onClick={e => handleDelete(e, p.id)}
+                    style={{flexShrink:0,width:'28px',height:'28px',borderRadius:'8px',
+                      background:'#fee2e2',border:'none',color:'#ef4444',
+                      fontSize:'14px',cursor:'pointer',display:'flex',alignItems:'center',
+                      justifyContent:'center',lineHeight:1,marginTop:'0px',transition:'all .2s'}}
+                    onMouseEnter={e => { e.currentTarget.style.background='#fecaca' }}
+                    onMouseLeave={e => { e.currentTarget.style.background='#fee2e2' }}
+                    aria-label="excluir"
+                  >🗑</button>
                 </div>
-              : <a key={p.id} href={`${createPath}?id=${p.id}`} style={{...S.card, display:'block', textDecoration:'none'}}>
-                  <div style={S.inner}>
-                    <div style={S.clbl}>POLO POSITIVO</div>
-                    <div style={S.ctxt}>{p.pos_belief}</div>
-                  </div>
-                </a>
-          ))
+              </div>
+            )
+            return onSelect
+              ? <div key={p.id} onClick={() => onSelect(p.id)} style={{...S.card, cursor:'pointer'}}>{cardContent}</div>
+              : <a key={p.id} href={`${createPath}?id=${p.id}`} style={{...S.card, display:'block', textDecoration:'none'}}>{cardContent}</a>
+          })
       }
     </div>
   )

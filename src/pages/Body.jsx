@@ -1,7 +1,9 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Plus, Trash2, ChevronDown, ChevronRight, Check, Dumbbell, Save, CalendarDays } from 'lucide-react'
+import { Plus, Trash2, ChevronDown, ChevronRight, Check, Dumbbell, Save, CalendarDays, Sparkles } from 'lucide-react'
 import { useBody } from '../hooks/useBody'
+import { supabase } from '../lib/supabase'
+import { useAuth } from '../contexts/AuthContext'
 
 const WEEK_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 
@@ -244,6 +246,110 @@ function RoutineItem({ routine, onSaveField, onDelete, t }) {
   )
 }
 
+function AffirmationsSection() {
+  const { user } = useAuth()
+  const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(true)
+  const refs = useRef({})
+
+  useEffect(() => {
+    if (!user) return
+    supabase.from('body_affirmations').select('*')
+      .eq('user_id', user.id).order('sort_order')
+      .then(({ data }) => { if (data) setItems(data); setLoading(false) })
+  }, [user?.id])
+
+  async function add() {
+    const order = items.length
+    const { data } = await supabase.from('body_affirmations')
+      .insert({ user_id: user.id, text: '', sort_order: order })
+      .select().single()
+    if (data) {
+      setItems(prev => [...prev, data])
+      setTimeout(() => refs.current[data.id]?.focus(), 80)
+    }
+  }
+
+  async function update(id, text) {
+    setItems(prev => prev.map(a => a.id === id ? { ...a, text } : a))
+    await supabase.from('body_affirmations').update({ text }).eq('id', id).eq('user_id', user.id)
+  }
+
+  async function remove(id) {
+    setItems(prev => prev.filter(a => a.id !== id))
+    await supabase.from('body_affirmations').delete().eq('id', id).eq('user_id', user.id)
+  }
+
+  if (loading) return null
+
+  return (
+    <section>
+      <div className="rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%)', border: '1px solid #FED7AA' }}>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Sparkles size={16} style={{ color: '#D97706' }} />
+            <span className="text-[11px] font-semibold tracking-[0.18em]" style={{ color: '#92400E' }}>AFIRMAÇÕES POSITIVAS</span>
+          </div>
+          <button onClick={add}
+            className="flex items-center justify-center rounded-xl text-white transition-all"
+            style={{ width: '36px', height: '36px', background: '#D97706', fontSize: '20px', lineHeight: 1, flexShrink: 0 }}
+            onMouseEnter={e => e.currentTarget.style.background = '#B45309'}
+            onMouseLeave={e => e.currentTarget.style.background = '#D97706'}
+            aria-label="adicionar afirmação">+</button>
+        </div>
+
+        {items.length === 0 ? (
+          <p className="text-[13px] italic text-center py-4" style={{ color: '#B45309' }}>
+            clique em + para escrever sua primeira afirmação ✨
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {items.map(a => (
+              <AffirmationRow key={a.id} item={a} inputRef={el => { refs.current[a.id] = el }}
+                onUpdate={update} onRemove={remove} onEnter={add} />
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  )
+}
+
+function AffirmationRow({ item, inputRef, onUpdate, onRemove, onEnter }) {
+  const [text, setText] = useState(item.text || '')
+  const dirty = useRef(false)
+  useEffect(() => { setText(item.text || '') }, [item.id])
+
+  function flush() {
+    if (dirty.current) { onUpdate(item.id, text.trim()); dirty.current = false }
+  }
+  function handleKeyDown(e) {
+    if (e.key === 'Enter') { e.preventDefault(); flush(); onEnter() }
+    if (e.key === 'Backspace' && !text) { e.preventDefault(); onRemove(item.id) }
+  }
+
+  return (
+    <div className="group flex items-center gap-3 px-4 py-3 rounded-xl bg-white/70 hover:bg-white border" style={{ borderColor: '#FDE3C7' }}>
+      <span className="flex-shrink-0" style={{ color: '#D97706', fontSize: '14px' }}>❝</span>
+      <input ref={inputRef} value={text}
+        onChange={e => { setText(e.target.value); dirty.current = true }}
+        onBlur={flush}
+        onKeyDown={handleKeyDown}
+        placeholder="Eu sou..."
+        className="flex-1 bg-transparent border-0 focus:ring-0 p-0 text-sm italic"
+        style={{ color: '#7C2D12' }} />
+      <button onClick={() => onRemove(item.id)}
+        className="opacity-0 group-hover:opacity-100 transition-all p-1"
+        style={{ color: '#FCA5A5' }}
+        onMouseEnter={e => e.currentTarget.style.color = '#EF4444'}
+        onMouseLeave={e => e.currentTarget.style.color = '#FCA5A5'}
+        aria-label="excluir">
+        <Trash2 size={13} />
+      </button>
+    </div>
+  )
+}
+
 export default function Body() {
   const { t } = useTranslation()
   const { profile, saveProfileField, goals, addGoal, saveGoalFields, deleteGoal, tasks, addTask, updateTask, deleteTask, routines, addRoutine, saveRoutineField, deleteRoutine, loading } = useBody()
@@ -267,6 +373,9 @@ export default function Body() {
           <SaveableTextarea initialValue={profile.kindness} onSave={v => saveProfileField('kindness', v)} placeholder={t('body.kindness.placeholder')} />
         </div>
       </section>
+
+      {/* Positive affirmations */}
+      <AffirmationsSection />
 
       {/* Last exam check */}
       <section>

@@ -265,6 +265,7 @@ export default function Mind() {
         table="pensamentos"
         onBack={handlePensamentoBack}
         initEditId={pensamentoView.editId}
+        startSaved={!!pensamentoView.startSaved}
         embedded
       />
     )
@@ -290,15 +291,12 @@ export default function Mind() {
 
       {/* Padrão Mental */}
       <section>
-        <MentalPatternTab />
-      </section>
-
-      {/* Padrão Mental 2 */}
-      <section>
         <MentalPatternTab
-          table="mental_patterns_2"
-          label="PADRÃO MENTAL 2"
-          createPath="/padrao-mental-2"
+          key={pensamentoKey}
+          table="pensamentos"
+          label="PADRÃO MENTAL"
+          onAdd={() => setPensamentoView({ editId: null })}
+          onSelect={(id) => setPensamentoView({ editId: id, startSaved: true })}
         />
       </section>
 
@@ -314,17 +312,6 @@ export default function Mind() {
             <SaveableTextarea initialValue={profile.tips} onSave={v => saveProfileField('tips', v)} placeholder={t('mind.tips.placeholder')} />
           </div>
         </div>
-      </section>
-
-      {/* Pensamentos */}
-      <section>
-        <MentalPatternTab
-          key={pensamentoKey}
-          table="pensamentos"
-          label="PENSAMENTOS"
-          onAdd={() => setPensamentoView({ editId: null })}
-          onSelect={(id) => setPensamentoView({ editId: id })}
-        />
       </section>
 
       {/* Goals */}

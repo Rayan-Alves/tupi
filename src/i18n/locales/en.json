@@ -106,6 +106,37 @@
     "title": "Spirit",
     "subtitle": "Explore your inner world",
     "identity": "Identity",
+    "portals": {
+      "past": "Past",
+      "present": "Who I am",
+      "life": "Life unfolding",
+      "comingSoon": "coming soon"
+    },
+    "past": {
+      "title": "Past",
+      "subtitle": "Your stories and reflections",
+      "back": "Back",
+      "untitled": "Untitled",
+      "delete": "Delete",
+      "deleteConfirm": "Delete this document?",
+      "collapse": "close",
+      "hidePrompt": "Hide this prompt",
+      "newDocument": "New document",
+      "titlePlaceholder": "Title",
+      "subtitlePlaceholder": "Add a subtitle...",
+      "writeHere": "Start writing...",
+      "enterToOpen": "Press Enter to create",
+      "clickToStart": "click to start",
+      "saved": "Saved",
+      "saving": "Saving...",
+      "notFound": "Document not found",
+      "timeAgo": { "now": "just now" },
+      "prompts": {
+        "1": "Write freely about your stories and/or specific moments from your past — no rules, your way.",
+        "2": "What feelings from this story do you still carry with you (good or bad)? What effects, symptoms, reflections — or anything else — still resonate in the present? In what way?\n\nExpress them however you see fit.",
+        "3": "Do you feel it's time to let go of these feelings? It can be all of them, just one, or maybe none — that's okay, honor your time. You can always come back here.\n\nIf you have any to release, thank them for what they taught you, but it's time to let them go. Holding on only creates resentment and entrapment."
+      }
+    },
     "whoAmI": {
       "label": "Who am I?",
       "placeholder": "Write freely about who you are — your traits, your essence, what defines you…"
@@ -200,24 +231,83 @@
     }
   },
   "projects": {
-    "gardenTitle": "Project Garden",
-    "gardenSubtitle": "{{count}} project(s) · {{pct}}% complete",
-    "emptyHint": "No projects yet. Click + to plant your first one.",
-    "newProject": "New project",
-    "backToGarden": "Back to garden",
-    "questionsTitle": "Project Questions",
-    "activitiesTitle": "Activities",
-    "question": "Question",
-    "answerPlaceholder": "Write here…",
-    "addQuestion": "+",
-    "deleteQuestion": "Remove question",
-    "addActivity": "+",
-    "deleteActivity": "Remove activity",
-    "taskPlaceholder": "Describe the task…",
-    "taskDate": "Due date",
-    "addTask": "+",
-    "deleteTask": "Remove task",
-    "toggleTask": "Mark as complete"
+    "title": "Projects",
+    "loading": "loading...",
+    "count_one": "{{count}} project",
+    "count_other": "{{count}} projects",
+    "view": { "kanban": "Kanban", "list": "List" },
+    "newProject": "+ New project",
+    "noProjects": "No projects yet — click \"+ New project\" to start.",
+    "noProjectsKanban": "Switch to Kanban to create the first one.",
+    "untitled": "(untitled)",
+    "stages": {
+      "soil": "Prepare the Soil",
+      "plant": "Plant",
+      "water": "Water & Grow",
+      "harvest": "Harvest"
+    },
+    "soil": {
+      "why": "WHY",
+      "success": "SUCCESS",
+      "doubleClickHint": "double-click to complete"
+    },
+    "tasks": {
+      "addHint": "double-click to add tasks",
+      "more": "+{{count}} more",
+      "placeholder": "describe the task...",
+      "addTask": "add task",
+      "deadline": "deadline:",
+      "start": "start:",
+      "end": "end:",
+      "singleDate": "single date (no repetition):"
+    },
+    "card": {
+      "delete": "delete",
+      "harvested": "🌾 Completed",
+      "blockedHint": "Complete all tasks first",
+      "advanceTo": "Advance to {{stage}}"
+    },
+    "form": {
+      "name": "Project name...",
+      "why": "what's the motivation...",
+      "success": "how will I know it worked...",
+      "addInfo": "Add + info",
+      "cancel": "close"
+    },
+    "modal": {
+      "namePlaceholder": "Project name...",
+      "deleteConfirm": "Delete project?",
+      "delete": "delete",
+      "save": "Save",
+      "saving": "saving…",
+      "saved": "🎉 saved!",
+      "savedShort": "saved ✓",
+      "descriptions": {
+        "soil": "General project info — what, why, how, and when.",
+        "plant": "Pre-project: tasks that must happen BEFORE the project starts.",
+        "water": "Project activities — actions, routines, and recurring tasks.",
+        "harvest": "Wrap-up: final activities and reflection on the project."
+      },
+      "fields": {
+        "idea": "IDEA / OBJECTIVE",
+        "ideaPh": "What's the project idea?",
+        "why": "WHY",
+        "whyPh": "Why is this project important?",
+        "success": "SUCCESS",
+        "successPh": "How will you know it succeeded?",
+        "how": "HOW",
+        "howPh": "How will you carry it out?",
+        "start": "START",
+        "end": "END",
+        "finalActivities": "FINAL ACTIVITIES",
+        "reflection": "FINAL REFLECTION",
+        "reflectionPh": "Write freely about this project — learnings, results, next steps..."
+      },
+      "noPeriodWarning": "⚠ Set the project period in \"Prepare the Soil\" to calculate the total",
+      "usingTaskDates": "using activity dates",
+      "usingProjectDates": "using project dates"
+    },
+    "list": { "projectHeader": "PROJECT" }
   },
   "body": {
     "title": "Body",

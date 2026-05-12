@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react'
+import { ArrowLeft, Pencil, ChevronDown, ChevronUp } from 'lucide-react'
 
 const NEG_LABELS = [
-  { key: 'neg_belief',  label: 'Crença limitante' },
+  { key: 'neg_belief',  label: 'Crença' },
   { key: 'neg_causes',  label: 'Causas' },
   { key: 'neg_feeling', label: 'Sentimento' },
   { key: 'neg_result',  label: 'Resultado' },
@@ -10,76 +10,104 @@ const NEG_LABELS = [
 
 const POS_LABELS = [
   { key: 'pos_action',  label: 'Ação' },
-  { key: 'pos_feeling', label: 'Novo sentimento' },
+  { key: 'pos_feeling', label: 'Sentimento' },
   { key: 'pos_impact',  label: 'Impacto' },
   { key: 'pos_belief',  label: 'Nova crença' },
 ]
 
-export default function MentalPatternSaved({ pattern, onBack }) {
+export default function MentalPatternSaved({ pattern, onBack, onEdit }) {
   const [expanded, setExpanded] = useState(false)
 
   return (
-    <div className="space-y-6">
-      <button
-        onClick={onBack}
-        className="flex items-center gap-1.5 text-zinc-400 hover:text-zinc-700 text-sm transition-colors"
-      >
-        <ArrowLeft size={14} /> Voltar para lista
-      </button>
+    <div className="space-y-5">
 
-      {/* Confirmação */}
-      <div className="bg-white border border-emerald-100 rounded-2xl shadow-card p-8 text-center space-y-3">
-        <div className="text-4xl">✨</div>
-        <h2 className="font-display text-2xl font-semibold text-zinc-900">
-          Padrão registrado
-        </h2>
-        <p className="text-sm text-zinc-500 max-w-xs mx-auto">
-          Você deu um passo importante. Sua nova crença foi salva.
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-1.5 text-zinc-400 hover:text-zinc-700 text-sm transition-colors"
+        >
+          <ArrowLeft size={14} /> voltar
+        </button>
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+          Padrão Mental
         </p>
-        <div className="mt-4 bg-[#C8841A]/8 border border-[#C8841A]/20 rounded-xl px-6 py-4">
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-[#C8841A] mb-1">
-            Nova crença
-          </p>
-          <p className="text-base font-medium text-zinc-800">
-            {pattern.pos_belief}
-          </p>
-        </div>
       </div>
 
-      {/* Expansão — ver detalhes */}
-      <button
-        onClick={() => setExpanded(e => !e)}
-        className="w-full flex items-center justify-center gap-2 text-sm text-zinc-400 hover:text-zinc-600 transition-colors py-2"
-      >
-        {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-        {expanded ? 'Ocultar detalhes' : 'Ver detalhes completos'}
-      </button>
+      {/* Title */}
+      <div className="text-center pb-1">
+        <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-400">Crença salva</p>
+        <p className="text-xl font-semibold text-zinc-800 mt-1 max-w-xs mx-auto">
+          {pattern.pos_belief}
+        </p>
+      </div>
 
-      {expanded && (
-        <div className="space-y-4">
+      {/* Two-column card */}
+      <div className="bg-white border border-zinc-100 rounded-2xl shadow-card overflow-hidden">
+        <div className="grid grid-cols-2 divide-x divide-zinc-100">
           {/* Polo Negativo */}
-          <div className="bg-white border border-zinc-100 rounded-2xl shadow-card p-6 space-y-4">
+          <div className="bg-zinc-50 p-5 space-y-1">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400 mb-3">
+              Polo Negativo
+            </p>
+            <p className="text-sm text-zinc-600 leading-relaxed">
+              {pattern.neg_belief || <span className="text-zinc-300 italic">—</span>}
+            </p>
+          </div>
+
+          {/* Polo Positivo */}
+          <div className="bg-[#fdf8f0] p-5 space-y-1 relative">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-[#C8841A]">
+                Polo Positivo
+              </p>
+              {onEdit && (
+                <button
+                  onClick={() => onEdit(pattern)}
+                  className="p-1 rounded-lg text-[#C8841A]/50 hover:text-[#C8841A] hover:bg-[#C8841A]/10 transition-all"
+                >
+                  <Pencil size={12} />
+                </button>
+              )}
+            </div>
+            <p className="text-sm text-zinc-700 leading-relaxed">
+              {pattern.pos_belief || <span className="text-zinc-300 italic">—</span>}
+            </p>
+          </div>
+        </div>
+
+        {/* Expandable row */}
+        <button
+          onClick={() => setExpanded(e => !e)}
+          className="w-full flex items-center justify-center gap-2 py-3 border-t border-zinc-100 text-[11px] text-zinc-400 hover:text-zinc-600 hover:bg-zinc-50 transition-all"
+        >
+          {expanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+          {expanded ? 'ocultar detalhes' : 'toque para ver o exercício completo'}
+        </button>
+      </div>
+
+      {/* Expanded details */}
+      {expanded && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Polo Negativo details */}
+          <div className="bg-white border border-zinc-100 rounded-2xl shadow-card p-5 space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-zinc-100">
               <div className="w-2 h-2 rounded-full bg-zinc-400" />
-              <h3 className="text-[11px] font-semibold uppercase tracking-widest text-zinc-400">
-                Polo Negativo
-              </h3>
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-400">Polo Negativo</p>
             </div>
             {NEG_LABELS.map(({ key, label }) => pattern[key] && (
               <div key={key}>
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400 mb-0.5">{label}</p>
-                <p className="text-sm text-zinc-700">{pattern[key]}</p>
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-300 mb-0.5">{label}</p>
+                <p className="text-sm text-zinc-600">{pattern[key]}</p>
               </div>
             ))}
           </div>
 
-          {/* Polo Positivo */}
-          <div className="bg-white border border-[#C8841A]/20 rounded-2xl shadow-card p-6 space-y-4">
-            <div className="flex items-center gap-2 pb-2 border-b border-zinc-100">
+          {/* Polo Positivo details */}
+          <div className="bg-[#fdf8f0] border border-[#C8841A]/20 rounded-2xl p-5 space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b border-[#C8841A]/15">
               <div className="w-2 h-2 rounded-full bg-[#C8841A]" />
-              <h3 className="text-[11px] font-semibold uppercase tracking-widest text-[#C8841A]">
-                Polo Positivo
-              </h3>
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-[#C8841A]">Polo Positivo</p>
             </div>
             {POS_LABELS.map(({ key, label }) => pattern[key] && (
               <div key={key}>

@@ -119,7 +119,7 @@ function toFlat(b) {
   }
 }
 
-export default function PadraoMental({ table = 'mental_patterns', onBack, initEditId, embedded = false }) {
+export default function PadraoMental({ table = 'mental_patterns', onBack, initEditId, embedded = false, startSaved = false }) {
   const [params] = useSearchParams()
   const editId = initEditId !== undefined ? initEditId : params.get('id')
   const goBack = () => onBack ? onBack() : (window.location.href = '/mind')
@@ -136,6 +136,7 @@ export default function PadraoMental({ table = 'mental_patterns', onBack, initEd
   const [showSave,  setShowSave]  = useState(false)
   const [expanded,  setExpanded]  = useState(false)
   const ta = useRef({})
+  const clickTimer = useRef(null)
 
   // inject CSS
   useEffect(() => {
@@ -160,13 +161,17 @@ export default function PadraoMental({ table = 'mental_patterns', onBack, initEd
           const p = data.find(x => x.id === editId)
           if (p) {
             const b = toB(p)
-            setForm({ n1:b.neg.belief,n2:b.neg.causes,n3:b.neg.feeling,n4:b.neg.result,
-                      p1:b.pos.action,p2:b.pos.feeling,p3:b.pos.impact,p4:b.pos.belief })
-            setVis({ nf2:true,nf3:true,nf4:true,pf1:true,pf2:true,pf3:true })
-            setNegLocked(false); setP4Enabled(true); setShowSave(true)
-            setTimeout(() => Object.values(ta.current).forEach(el => {
-              if (el) { el.style.height='auto'; el.style.height=el.scrollHeight+'px' }
-            }), 80)
+            if (startSaved) {
+              setSavedB(b); setView('saved')
+            } else {
+              setForm({ n1:b.neg.belief,n2:b.neg.causes,n3:b.neg.feeling,n4:b.neg.result,
+                        p1:b.pos.action,p2:b.pos.feeling,p3:b.pos.impact,p4:b.pos.belief })
+              setVis({ nf2:true,nf3:true,nf4:true,pf1:true,pf2:true,pf3:true })
+              setNegLocked(false); setP4Enabled(true); setShowSave(true)
+              setTimeout(() => Object.values(ta.current).forEach(el => {
+                if (el) { el.style.height='auto'; el.style.height=el.scrollHeight+'px' }
+              }), 80)
+            }
           }
         } else {
           setTimeout(() => ta.current['n1']?.focus(), 200)
@@ -242,7 +247,14 @@ export default function PadraoMental({ table = 'mental_patterns', onBack, initEd
         <div className="pm-sv">
           <button className="pm-sv-edit" aria-label="editar"
             onClick={() => onBack ? inlineEdit(savedB) : (window.location.href='/padrao-mental?id='+savedB.id)}>✎</button>
-          <div className="pm-sv-poles" onClick={() => setExpanded(e => !e)}>
+          <div className="pm-sv-poles" onClick={() => {
+            if (clickTimer.current) {
+              clearTimeout(clickTimer.current); clickTimer.current = null
+              inlineEdit(savedB)
+            } else {
+              clickTimer.current = setTimeout(() => { clickTimer.current = null; setExpanded(e => !e) }, 260)
+            }
+          }}>
             <div className="pm-sv-neg">
               <div className="pm-sv-plbl">POLO NEGATIVO</div>
               <div className="pm-sv-ptxt">{savedB.neg.belief}</div>
@@ -252,7 +264,7 @@ export default function PadraoMental({ table = 'mental_patterns', onBack, initEd
               <div className="pm-sv-ptxt">{savedB.pos.belief}</div>
             </div>
           </div>
-          <div className="pm-sv-hint">{expanded ? 'toque para fechar' : 'toque para ver o exercício completo'}</div>
+          <div className="pm-sv-hint">{expanded ? 'toque para fechar · duplo clique para editar' : 'toque para ver o exercício · duplo clique para editar'}</div>
           <div className={`pm-sv-expand${expanded?' open':''}`}>
             <div className="pm-sv-ei">
               <div className="pm-sv-col pm-sv-cn">

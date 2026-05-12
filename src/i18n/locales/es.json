@@ -106,6 +106,37 @@
     "title": "Espíritu",
     "subtitle": "Explora tu mundo interior",
     "identity": "Identidad",
+    "portals": {
+      "past": "Pasado",
+      "present": "Quién soy",
+      "life": "Vida en curso",
+      "comingSoon": "próximamente"
+    },
+    "past": {
+      "title": "Pasado",
+      "subtitle": "Tus historias y reflexiones",
+      "back": "Volver",
+      "untitled": "Sin título",
+      "delete": "Eliminar",
+      "deleteConfirm": "¿Eliminar este documento?",
+      "collapse": "cerrar",
+      "hidePrompt": "Ocultar esta frase",
+      "newDocument": "Nuevo documento",
+      "titlePlaceholder": "Título",
+      "subtitlePlaceholder": "Añade un subtítulo...",
+      "writeHere": "Empieza a escribir...",
+      "enterToOpen": "Pulsa Enter para crear",
+      "clickToStart": "haz clic para empezar",
+      "saved": "Guardado",
+      "saving": "Guardando...",
+      "notFound": "Documento no encontrado",
+      "timeAgo": { "now": "ahora" },
+      "prompts": {
+        "1": "Escribe libremente tus historias y/o momentos específicos de tu pasado, sin reglas, como prefieras.",
+        "2": "¿Qué sentimientos de esta historia aún llevas contigo (buenos o malos)? ¿Qué efectos, síntomas, reflejos o cualquier otra cosa todavía resuenan en el presente? ¿De qué manera?\n\nExprésalos como creas conveniente.",
+        "3": "¿Sientes que es momento de soltar estos sentimientos? Pueden ser todos, solo uno, o tal vez ninguno — está bien, respeta tu tiempo. Siempre puedes volver aquí.\n\nSi tienes alguno para soltar, agradécele lo que te enseñó, pero es hora de dejarlo ir. Mantenerlo solo genera resentimientos y ataduras."
+      }
+    },
     "whoAmI": {
       "label": "¿Quién soy yo?",
       "placeholder": "Escribe libremente sobre quién eres — tus rasgos, tu esencia, lo que te define…"
@@ -200,24 +231,83 @@
     }
   },
   "projects": {
-    "gardenTitle": "Jardín de Proyectos",
-    "gardenSubtitle": "{{count}} proyecto(s) · {{pct}}% completado",
-    "emptyHint": "Ningún proyecto aún. Haz clic en + para plantar el primero.",
-    "newProject": "Nuevo proyecto",
-    "backToGarden": "Volver al jardín",
-    "questionsTitle": "Preguntas del Proyecto",
-    "activitiesTitle": "Actividades",
-    "question": "Pregunta",
-    "answerPlaceholder": "Escribe aquí…",
-    "addQuestion": "+",
-    "deleteQuestion": "Eliminar pregunta",
-    "addActivity": "+",
-    "deleteActivity": "Eliminar actividad",
-    "taskPlaceholder": "Describe la tarea…",
-    "taskDate": "Fecha límite",
-    "addTask": "+",
-    "deleteTask": "Eliminar tarea",
-    "toggleTask": "Marcar como completada"
+    "title": "Proyectos",
+    "loading": "cargando...",
+    "count_one": "{{count}} proyecto",
+    "count_other": "{{count}} proyectos",
+    "view": { "kanban": "Kanban", "list": "Lista" },
+    "newProject": "+ Nuevo proyecto",
+    "noProjects": "Aún no hay proyectos — haz clic en \"+ Nuevo proyecto\" para empezar.",
+    "noProjectsKanban": "Cambia a Kanban para crear el primero.",
+    "untitled": "(sin título)",
+    "stages": {
+      "soil": "Preparar el Suelo",
+      "plant": "Plantar",
+      "water": "Regar y Crecer",
+      "harvest": "Cosechar"
+    },
+    "soil": {
+      "why": "POR QUÉ",
+      "success": "ÉXITO",
+      "doubleClickHint": "doble clic para completar"
+    },
+    "tasks": {
+      "addHint": "doble clic para añadir tareas",
+      "more": "+{{count}} más",
+      "placeholder": "describe la tarea...",
+      "addTask": "añadir tarea",
+      "deadline": "fecha límite:",
+      "start": "inicio:",
+      "end": "fin:",
+      "singleDate": "fecha única (sin repetición):"
+    },
+    "card": {
+      "delete": "eliminar",
+      "harvested": "🌾 Concluido",
+      "blockedHint": "Completa todas las tareas primero",
+      "advanceTo": "Avanzar a {{stage}}"
+    },
+    "form": {
+      "name": "Nombre del proyecto...",
+      "why": "cuál es la motivación...",
+      "success": "cómo sabré que funcionó...",
+      "addInfo": "Añadir + info",
+      "cancel": "cerrar"
+    },
+    "modal": {
+      "namePlaceholder": "Nombre del proyecto...",
+      "deleteConfirm": "¿Eliminar proyecto?",
+      "delete": "eliminar",
+      "save": "Guardar",
+      "saving": "guardando…",
+      "saved": "🎉 ¡guardado!",
+      "savedShort": "guardado ✓",
+      "descriptions": {
+        "soil": "Información general del proyecto — qué, por qué, cómo y cuándo.",
+        "plant": "Pre-proyecto: tareas que deben ocurrir ANTES de que el proyecto comience.",
+        "water": "Actividades del proyecto — acciones, rutinas y tareas recurrentes.",
+        "harvest": "Finalización: últimas actividades y reflexión sobre el proyecto."
+      },
+      "fields": {
+        "idea": "IDEA / OBJETIVO",
+        "ideaPh": "¿Cuál es la idea del proyecto?",
+        "why": "POR QUÉ",
+        "whyPh": "¿Por qué es importante este proyecto?",
+        "success": "ÉXITO",
+        "successPh": "¿Cómo sabrás que tuvo éxito?",
+        "how": "CÓMO",
+        "howPh": "¿Cómo lo llevarás a cabo?",
+        "start": "INICIO",
+        "end": "FIN",
+        "finalActivities": "ACTIVIDADES FINALES",
+        "reflection": "REFLEXIÓN FINAL",
+        "reflectionPh": "Escribe libremente sobre este proyecto — aprendizajes, resultados, próximos pasos..."
+      },
+      "noPeriodWarning": "⚠ Define el período del proyecto en \"Preparar el Suelo\" para calcular el total",
+      "usingTaskDates": "usando fechas de la actividad",
+      "usingProjectDates": "usando fechas del proyecto"
+    },
+    "list": { "projectHeader": "PROYECTO" }
   },
   "body": {
     "title": "Cuerpo",

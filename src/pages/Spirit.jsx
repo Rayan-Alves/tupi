@@ -1,7 +1,43 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Plus, Trash2, ChevronDown, ChevronRight, Check, Sparkles, Save, X } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Plus, Trash2, ChevronDown, ChevronRight, Check, Sparkles, Save, X, Clock, User, Wind } from 'lucide-react'
 import { useSpirit } from '../hooks/useSpirit'
+
+function PortalCard({ icon, label, color, onClick, disabled, comingSoonLabel }) {
+  return (
+    <button
+      onClick={disabled ? undefined : onClick}
+      className="relative group rounded-2xl p-5 transition-all duration-200 text-left"
+      style={{
+        background: `linear-gradient(135deg, ${color}10 0%, ${color}22 100%)`,
+        border: `1px solid ${color}44`,
+        cursor: disabled ? 'default' : 'pointer',
+        opacity: disabled ? 0.55 : 1,
+      }}
+      onMouseEnter={e => {
+        if (disabled) return
+        e.currentTarget.style.transform = 'translateY(-2px)'
+        e.currentTarget.style.boxShadow = `0 8px 20px ${color}33`
+        e.currentTarget.style.borderColor = color
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.transform = 'translateY(0)'
+        e.currentTarget.style.boxShadow = 'none'
+        e.currentTarget.style.borderColor = `${color}44`
+      }}>
+      <div style={{ color, marginBottom: '12px' }}>{icon}</div>
+      <div style={{ fontSize: '15px', fontWeight: 700, color: '#1a1a1a', letterSpacing: '-0.01em' }}>
+        {label}
+      </div>
+      {disabled && comingSoonLabel && (
+        <div style={{ fontSize: '10px', color, marginTop: '4px', fontStyle: 'italic', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600 }}>
+          {comingSoonLabel}
+        </div>
+      )}
+    </button>
+  )
+}
 
 function ValueCard({ card, presets, onSave, onDelete, t }) {
   const [selected, setSelected] = useState(card.selected || '')
@@ -501,6 +537,7 @@ function parseValues(raw) {
 
 export default function Spirit() {
   const { t, i18n } = useTranslation()
+  const navigate = useNavigate()
   const {
     profile, saveProfileField,
     goals, addGoal, saveGoalFields, deleteGoal,
@@ -574,6 +611,30 @@ export default function Spirit() {
             initialValue={profile.who_am_i}
             onSave={val => saveProfileField('who_am_i', val)}
             placeholder={t('spirit.whoAmI.placeholder')}
+          />
+        </div>
+
+        {/* Portals */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <PortalCard
+            icon={<Clock size={22} />}
+            label={t('spirit.portals.past')}
+            color="#8B5A2B"
+            onClick={() => navigate('/passado')}
+          />
+          <PortalCard
+            icon={<User size={22} />}
+            label={t('spirit.portals.present')}
+            color="#3B6DC4"
+            disabled
+            comingSoonLabel={t('spirit.portals.comingSoon')}
+          />
+          <PortalCard
+            icon={<Wind size={22} />}
+            label={t('spirit.portals.life')}
+            color="#10B981"
+            disabled
+            comingSoonLabel={t('spirit.portals.comingSoon')}
           />
         </div>
 

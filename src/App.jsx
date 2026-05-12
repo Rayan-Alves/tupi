@@ -11,6 +11,8 @@ import Profile from './pages/Profile'
 import Projects from './pages/Projects'
 import Jornada from './pages/Jornada'
 import PadraoMental from './pages/PadraoMental'
+import Passado from './pages/Passado'
+import PassadoDoc from './pages/PassadoDoc'
 
 function LoadingScreen() {
   return (
@@ -44,6 +46,7 @@ export default function App() {
           <Route path="/jornada"       element={<Jornada />} />
           <Route path="/padrao-mental"   element={<ProtectedRoute><PadraoMental /></ProtectedRoute>} />
           <Route path="/padrao-mental-2" element={<ProtectedRoute><PadraoMental table="mental_patterns_2" /></ProtectedRoute>} />
+          <Route path="/passado/:id"     element={<ProtectedRoute><PassadoDoc /></ProtectedRoute>} />
 
           <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<Navigate to="/dashboard" replace />} />
@@ -53,6 +56,7 @@ export default function App() {
             <Route path="/body"      element={<Body />} />
             <Route path="/projects"  element={<Projects />} />
             <Route path="/profile"   element={<Profile />} />
+            <Route path="/passado"   element={<Passado />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

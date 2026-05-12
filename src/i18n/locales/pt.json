@@ -106,6 +106,37 @@
     "title": "Espírito",
     "subtitle": "Explore o seu mundo interior",
     "identity": "Identidade",
+    "portals": {
+      "past": "Passado",
+      "present": "Quem eu sou",
+      "life": "Vida acontecendo",
+      "comingSoon": "em breve"
+    },
+    "past": {
+      "title": "Passado",
+      "subtitle": "Suas histórias e reflexões",
+      "back": "Voltar",
+      "untitled": "Sem título",
+      "delete": "Excluir",
+      "deleteConfirm": "Excluir este documento?",
+      "collapse": "fechar",
+      "hidePrompt": "Esconder esta frase",
+      "newDocument": "Novo documento",
+      "titlePlaceholder": "Título",
+      "subtitlePlaceholder": "Adicione um subtítulo...",
+      "writeHere": "Comece a escrever...",
+      "enterToOpen": "Pressione Enter para criar",
+      "clickToStart": "clique para começar",
+      "saved": "Salvo",
+      "saving": "Salvando...",
+      "notFound": "Documento não encontrado",
+      "timeAgo": { "now": "agora" },
+      "prompts": {
+        "1": "Escreva livremente suas histórias e/ou momentos específicos do seu passado, sem regras, do jeitinho que você quiser.",
+        "2": "Quais sentimentos dessa história ainda carrega comigo (sejam bons ou ruins)? Quais efeitos, sintomas, reflexos ou quer que seja que ainda ressoam no presente? De qual forma?\n\nExpresse-os da maneira que achar que deve.",
+        "3": "Você sente que é o momento de desapegar desses sentimentos? Pode ser de todos eles, apenas um, ou talvez nenhum — não tem problema, respeite seu tempo. Você sempre pode voltar aqui.\n\nCaso você tenha algum para desapegar, agradeça os aprendizados, mas é hora de deixá-los ir. Mantê-los em si só gera mágoas e aprisionamentos."
+      }
+    },
     "whoAmI": {
       "label": "Quem sou eu?",
       "placeholder": "Escreva livremente sobre quem você é — seus traços, sua essência, o que te define…"
@@ -200,24 +231,83 @@
     }
   },
   "projects": {
-    "gardenTitle": "Jardim de Projetos",
-    "gardenSubtitle": "{{count}} projeto(s) · {{pct}}% concluído",
-    "emptyHint": "Nenhum projeto ainda. Clique em + para plantar o primeiro.",
-    "newProject": "Novo projeto",
-    "backToGarden": "Voltar ao jardim",
-    "questionsTitle": "Perguntas do Projeto",
-    "activitiesTitle": "Atividades",
-    "question": "Pergunta",
-    "answerPlaceholder": "Escreva aqui…",
-    "addQuestion": "+",
-    "deleteQuestion": "Remover pergunta",
-    "addActivity": "+",
-    "deleteActivity": "Remover atividade",
-    "taskPlaceholder": "Descreva a tarefa…",
-    "taskDate": "Data limite",
-    "addTask": "+",
-    "deleteTask": "Remover tarefa",
-    "toggleTask": "Marcar como concluída"
+    "title": "Projetos",
+    "loading": "carregando...",
+    "count_one": "{{count}} projeto",
+    "count_other": "{{count}} projetos",
+    "view": { "kanban": "Kanban", "list": "Lista" },
+    "newProject": "+ Novo projeto",
+    "noProjects": "Nenhum projeto ainda — clique em \"+ Novo projeto\" para começar.",
+    "noProjectsKanban": "Mude para Kanban para criar o primeiro.",
+    "untitled": "(sem título)",
+    "stages": {
+      "soil": "Preparar o Solo",
+      "plant": "Plantar",
+      "water": "Regar e Crescer",
+      "harvest": "Colher"
+    },
+    "soil": {
+      "why": "POR QUÊ",
+      "success": "SUCESSO",
+      "doubleClickHint": "duplo clique para completar"
+    },
+    "tasks": {
+      "addHint": "duplo clique para adicionar tasks",
+      "more": "+{{count}} mais",
+      "placeholder": "descreva a task...",
+      "addTask": "adicionar task",
+      "deadline": "prazo:",
+      "start": "início:",
+      "end": "fim:",
+      "singleDate": "data única (sem repetição):"
+    },
+    "card": {
+      "delete": "excluir",
+      "harvested": "🌾 Concluído",
+      "blockedHint": "Complete todas as tasks primeiro",
+      "advanceTo": "Avançar para {{stage}}"
+    },
+    "form": {
+      "name": "Nome do projeto...",
+      "why": "qual a motivação...",
+      "success": "como saberá que deu certo...",
+      "addInfo": "Add + info",
+      "cancel": "fechar"
+    },
+    "modal": {
+      "namePlaceholder": "Nome do projeto...",
+      "deleteConfirm": "Excluir projeto?",
+      "delete": "excluir",
+      "save": "Salvar",
+      "saving": "salvando…",
+      "saved": "🎉 salvo!",
+      "savedShort": "salvo ✓",
+      "descriptions": {
+        "soil": "Informações gerais do projeto — o que, por quê, como e quando.",
+        "plant": "Pré-projeto: tasks que precisam acontecer ANTES do projeto começar.",
+        "water": "Atividades do projeto em si — ações, rotinas e tarefas recorrentes.",
+        "harvest": "Finalização: últimas atividades e reflexão sobre o projeto."
+      },
+      "fields": {
+        "idea": "IDEIA / OBJETIVO",
+        "ideaPh": "Qual é a ideia do projeto?",
+        "why": "POR QUÊ",
+        "whyPh": "Por que esse projeto é importante?",
+        "success": "SUCESSO",
+        "successPh": "Como saberá que foi bem-sucedido?",
+        "how": "COMO",
+        "howPh": "Como vai realizar?",
+        "start": "INÍCIO",
+        "end": "FIM",
+        "finalActivities": "ATIVIDADES FINAIS",
+        "reflection": "REFLEXÃO FINAL",
+        "reflectionPh": "Escreva livremente sobre esse projeto — aprendizados, resultados, próximos passos..."
+      },
+      "noPeriodWarning": "⚠ Defina o período do projeto em \"Preparar o Solo\" para calcular o total",
+      "usingTaskDates": "usando datas da atividade",
+      "usingProjectDates": "usando datas do projeto"
+    },
+    "list": { "projectHeader": "PROJETO" }
   },
   "body": {
     "title": "Corpo",
