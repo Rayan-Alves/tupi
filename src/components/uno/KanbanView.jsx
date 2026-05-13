@@ -1,4 +1,4 @@
-const RECURRENCE_LABELS = { daily: '↺ Diário', weekly: '↺ Semanal', monthly: '↺ Mensal' }
+import { formatRecurrence } from './RecurrenceModal'
 const STATUS_NEXT = { todo: 'doing', doing: 'done', done: 'todo' }
 const COLUMNS = [
   { id: 'todo',  label: 'A Fazer', color: '#71717a', bg: '#F4F4F5' },
@@ -30,7 +30,7 @@ export default function KanbanView({ tasks, onUpdate }) {
                       📅 {new Date(task.due_date+'T00:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})}
                     </div>
                   )}
-                  {task.recurrence && <div style={{ fontSize:10, color:'#D4890A', marginBottom:6 }}>{RECURRENCE_LABELS[task.recurrence]}</div>}
+                  {task.recurrence && <div style={{ fontSize: 10, color: '#4A0E8F', marginBottom: 6 }}>↺ {formatRecurrence(task.recurrence)}</div>}
                   <div style={{ display:'flex', gap:4, justifyContent:'flex-end', marginTop:6 }}>
                     {col.id !== 'todo' && (
                       <button onClick={()=>onUpdate(task.id,{status:col.id==='doing'?'todo':'doing',completed:false})}

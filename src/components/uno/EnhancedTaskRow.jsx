@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Check, Trash2, Plus } from 'lucide-react'
+import RecurrenceModal, { formatRecurrence } from './RecurrenceModal'
 
-const RECURRENCE_LABELS = { daily: '↺ Diário', weekly: '↺ Semanal', monthly: '↺ Mensal' }
 const STATUS_NEXT = { todo: 'doing', doing: 'done', done: 'todo' }
 const STATUS_BG   = { todo: '#fff', doing: '#FFFBEB', done: '#F0FDF4' }
 
@@ -115,8 +115,9 @@ function SubtaskRow({ task, onUpdate, onDelete }) {
 export default function EnhancedTaskRow({ task, subtasks = [], onUpdate, onDelete, onAddSubtask }) {
   const [title, setTitle]       = useState(task.title || '')
   const [notes, setNotes]       = useState(task.notes || '')
-  const [showNotes, setShowNotes] = useState(false)
-  const [expanded, setExpanded] = useState(false)
+  const [showNotes, setShowNotes]       = useState(false)
+  const [expanded, setExpanded]         = useState(false)
+  const [showRecurrence, setShowRecurrence] = useState(false)
 
   useEffect(() => { setTitle(task.title || '') }, [task.id])
   useEffect(() => { setNotes(task.notes || '') }, [task.id])
@@ -164,11 +165,13 @@ export default function EnhancedTaskRow({ task, subtasks = [], onUpdate, onDelet
           }}
         />
 
-        {/* Recurrence badge */}
+        {/* Recurrence badge + button */}
         {task.recurrence && (
-          <span style={{ fontSize: 10, color: '#D4890A', background: '#FEF3C7', padding: '2px 7px', borderRadius: 99, fontWeight: 600, flexShrink: 0 }}>
-            {RECURRENCE_LABELS[task.recurrence]}
-          </span>
+          <button
+            onClick={() => setShowRecurrence(true)}
+            style={{ fontSize: 10, color: '#4A0E8F', background: '#EDE9FE', padding: '2px 8px', borderRadius: 99, fontWeight: 600, flexShrink: 0, border: 'none', cursor: 'pointer' }}>
+            ↺ {formatRecurrence(task.recurrence)}
+          </button>
         )}
 
         {/* Date chips — Google Calendar style */}
@@ -186,17 +189,12 @@ export default function EnhancedTaskRow({ task, subtasks = [], onUpdate, onDelet
           />
         </div>
 
-        {/* Recurrence selector */}
-        <select
-          value={task.recurrence || ''}
-          onChange={e => onUpdate(task.id, { recurrence: e.target.value || null })}
-          style={{ fontSize: 11, border: '1px solid #e4e4e7', borderRadius: 8, padding: '3px 6px', background: 'white', outline: 'none', color: '#71717a' }}
-        >
-          <option value="">↺</option>
-          <option value="daily">Diário</option>
-          <option value="weekly">Semanal</option>
-          <option value="monthly">Mensal</option>
-        </select>
+        {/* Recurrence selector → opens modal */}
+        <button
+          onClick={() => setShowRecurrence(true)}
+          title="Recorrência"
+          style={{ fontSize: 12, color: task.recurrence ? '#4A0E8F' : '#a1a1aa', background: task.recurrence ? '#EDE9FE' : '#f4f4f5', border: 'none', cursor: 'pointer', padding: '3px 9px', borderRadius: 8, fontWeight: 600, flexShrink: 0 }}
+        >↺</button>
 
         {/* Notes toggle */}
         <button
@@ -246,6 +244,15 @@ export default function EnhancedTaskRow({ task, subtasks = [], onUpdate, onDelet
       {expanded && subtasks.map(sub => (
         <SubtaskRow key={sub.id} task={sub} onUpdate={onUpdate} onDelete={onDelete} />
       ))}
+
+      {/* Recurrence modal */}
+      {showRecurrence && (
+        <RecurrenceModal
+          raw={task.recurrence}
+          onSave={val => onUpdate(task.id, { recurrence: val })}
+          onClose={() => setShowRecurrence(false)}
+        />
+      )}
     </div>
   )
 }

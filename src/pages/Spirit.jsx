@@ -673,33 +673,6 @@ export default function Spirit() {
       </section>
 
 
-      {/* ── GOALS ── */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <SectionDivider label={t('spirit.goals.title')} />
-          {goals.length < 3 && (
-            <button onClick={addGoal} className="btn-primary ml-4 flex-shrink-0">
-              {t('spirit.goals.add')}
-            </button>
-          )}
-        </div>
-        <div className="grid grid-cols-1 gap-3">
-          {goals.map(goal => (
-            <GoalCard
-              key={goal.id}
-              goal={goal}
-              tasks={tasks}
-              onSave={saveGoalFields}
-              onDelete={deleteGoal}
-              onAddTask={addTask}
-              onUpdateTask={updateTask}
-              onDeleteTask={deleteTask}
-              t={t}
-            />
-          ))}
-        </div>
-      </section>
-
       {/* ── ROUTINE ── */}
       <section className="space-y-4 pb-16">
         <div className="flex items-center justify-between">

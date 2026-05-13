@@ -392,51 +392,6 @@ export default function Body() {
       {/* Positive affirmations */}
       <AffirmationsSection />
 
-      {/* Last exam check */}
-      <section>
-        <div className="spirit-card p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <CalendarDays size={15} className="text-body" />
-            <label className="field-label mb-0">{t('body.examCheck.title')}</label>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="field-label">{t('body.lastExam')}</label>
-              <input
-                type="month"
-                value={profile.last_exam_date || ''}
-                onChange={e => saveProfileField('last_exam_date', e.target.value || null)}
-                className="w-full text-sm border border-zinc-200 rounded-xl px-3 py-2 focus:border-tabatinga focus:ring-0 transition-colors text-zinc-700"
-              />
-            </div>
-            <div>
-              <label className="field-label">{t('body.nextExam')}</label>
-              <input
-                type="month"
-                value={profile.next_exam_date || ''}
-                onChange={e => saveProfileField('next_exam_date', e.target.value || null)}
-                className="w-full text-sm border border-zinc-200 rounded-xl px-3 py-2 focus:border-tabatinga focus:ring-0 transition-colors text-zinc-700"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Goals */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <SectionDivider label={t('body.goals.title')} />
-          {goals.length < 3 && (
-            <button onClick={addGoal} className="btn-primary ml-4 flex-shrink-0">
-              {t('spirit.goals.add')}
-            </button>
-          )}
-        </div>
-        <div className="grid grid-cols-1 gap-3">
-          {goals.map(goal => <GoalCard key={goal.id} goal={goal} tasks={tasks} onSave={saveGoalFields} onDelete={deleteGoal} onAddTask={addTask} onUpdateTask={updateTask} onDeleteTask={deleteTask} t={t} />)}
-        </div>
-      </section>
-
       {/* Routine / Activities */}
       <section className="space-y-4 pb-16">
         <div className="flex items-center justify-between">
