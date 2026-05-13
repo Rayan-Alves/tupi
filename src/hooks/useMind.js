@@ -38,7 +38,7 @@ export function useMind() {
   async function addGoal(initialData = {}) {
     const { data, error } = await supabase
       .from('mind_goals')
-      .insert({ user_id: user.id, title: initialData.title || '', measurable: '', achievable: '', relevant: '', time_bound: '', reflection: '', position: goals.length })
+      .insert({ user_id: user.id, title: initialData.title || '', why: '', how: '', what_needed: '', measurable: '', achievable: '', relevant: '', time_bound: '', reflection: '', position: goals.length })
       .select().single()
     if (!error && data) setGoals(prev => [...prev, data])
   }
