@@ -18,10 +18,10 @@ export default function UnoListPage() {
             UNO
           </div>
           <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 30, fontWeight: 700, color: '#0a0a0a', margin: 0, lineHeight: 1.2 }}>
-            Jornada dos Desejos
+            Jornada dos Desejos Internos da Alma
           </h1>
           <p style={{ fontSize: 13, color: '#a1a1aa', margin: '6px 0 0' }}>
-            Desejos de alma em transformação
+            Seus desejos de alma em transformação
           </p>
         </div>
       </div>
