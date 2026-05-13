@@ -5,6 +5,45 @@ import KanbanView from './KanbanView'
 import TimelineView from './TimelineView'
 import { parseRecurrence } from './RecurrenceModal'
 
+const DAY_IDS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab']
+
+/** Returns how many times a recurring task fires between two date strings */
+function calcOccurrences(task, projStart, projEnd) {
+  const rec = parseRecurrence(task.recurrence)
+  if (!rec) return 1
+  if (rec.endType === 'count') return Math.max(1, rec.count || 1)
+
+  const s = new Date(task.start_date || projStart)
+  const eRaw = rec.endType === 'date' && rec.endDate
+    ? new Date(rec.endDate)
+    : new Date(task.due_date || projEnd)
+  if (!s || !eRaw || isNaN(s) || isNaN(eRaw) || eRaw <= s) return 1
+  const e = eRaw
+
+  if (rec.unit === 'day') {
+    const days = Math.ceil((e - s) / 86400000)
+    return Math.max(1, Math.ceil(days / (rec.interval || 1)))
+  }
+  if (rec.unit === 'week') {
+    const activeDays = rec.days && rec.days.length > 0 ? rec.days : DAY_IDS
+    let count = 0
+    const cur = new Date(s)
+    while (cur <= e) {
+      const id = DAY_IDS[cur.getDay()]
+      if (activeDays.includes(id)) count++
+      cur.setDate(cur.getDate() + 1)
+    }
+    const interval = rec.interval || 1
+    return Math.max(1, interval === 1 ? count : Math.ceil(count / interval))
+  }
+  if (rec.unit === 'month') {
+    const months = (e.getFullYear() - s.getFullYear()) * 12 + (e.getMonth() - s.getMonth()) + 1
+    return Math.max(1, Math.ceil(months / (rec.interval || 1)))
+  }
+  return 1
+}
+
+
 const VIEWS = [
   { id: 'list',     label: '≡  Lista' },
   { id: 'kanban',   label: '⊞  Kanban' },
@@ -77,19 +116,21 @@ export default function BodyStage({ project, tasks, saveField, addTask, updateTa
   const [endDate, setEndDate]   = useState(project.project_end_date || '')
   const [notes, setNotes]       = useState(project.project_notes || '')
 
-  const rootTasks  = tasks.filter(t => !t.parent_id)
+  const rootTasks   = tasks.filter(t => !t.parent_id)
   const getSubtasks = id => tasks.filter(t => t.parent_id === id)
+  const ps = project.project_start_date
+  const pe = project.project_end_date
 
-  // Progress: recurring tasks count fractionally (occurrences_done / total)
-  const progressPoints = rootTasks.reduce((sum, t) => {
-    const rec = parseRecurrence(t.recurrence)
-    if (rec && rec.endType === 'count' && rec.count > 0) {
-      return sum + Math.min(t.occurrences_done || 0, rec.count) / rec.count
-    }
+  // Total activities = every occurrence of every task (including subtasks)
+  const totalActivities = tasks.reduce((sum, t) => sum + calcOccurrences(t, ps, pe), 0)
+
+  // Done activities = occurrences_done for recurring, 1 if done for normal
+  const doneActivities = tasks.reduce((sum, t) => {
+    if (t.recurrence) return sum + Math.min(t.occurrences_done || 0, calcOccurrences(t, ps, pe))
     return sum + (t.status === 'done' ? 1 : 0)
   }, 0)
-  const done = Math.round(progressPoints)
-  const pct  = rootTasks.length > 0 ? Math.round((progressPoints / rootTasks.length) * 100) : 0
+
+  const pct = totalActivities > 0 ? Math.round((doneActivities / totalActivities) * 100) : 0
 
   return (
     <>
@@ -117,7 +158,7 @@ export default function BodyStage({ project, tasks, saveField, addTask, updateTa
       {/* Project notes */}
       <div style={{ marginBottom:32 }}>
         <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.12em', textTransform:'uppercase', color:'#71717a', marginBottom:8 }}>Notas do Projeto</div>
-        <textarea value={notes} onChange={e => setNotes(e.target.value)} onBlur={() => saveField('project_notes', notes)}
+        <textarea value={notes} onChange={e => setNotes(e.target.value)}
           placeholder="Contexto, decisões, referências importantes…" rows={3}
           style={{ width:'100%', border:'1px solid #e4e4e7', borderRadius:12, padding:'12px 14px', fontSize:14, color:'#1a1a1a', fontFamily:'Georgia,serif',
             lineHeight:1.7, resize:'vertical', outline:'none', boxSizing:'border-box', background:'#FAFAF7', transition:'border-color .2s' }}
@@ -128,10 +169,10 @@ export default function BodyStage({ project, tasks, saveField, addTask, updateTa
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12, flexWrap:'wrap', gap:10 }}>
         <div>
           <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.12em', textTransform:'uppercase', color:'#71717a', marginBottom:2 }}>
-            Tarefas — {done}/{tasks.length} concluídas
+            Atividades — {doneActivities}/{totalActivities}
           </div>
-          {tasks.length > 0 && (
-            <div style={{ height:4, width:120, background:'#f0f0f0', borderRadius:2, overflow:'hidden', marginTop:4 }}>
+          {totalActivities > 0 && (
+            <div style={{ height:4, width:160, background:'#f0f0f0', borderRadius:2, overflow:'hidden', marginTop:4 }}>
               <div style={{ height:'100%', width:`${pct}%`, background:'#2D5016', borderRadius:2, transition:'width .4s ease' }} />
             </div>
           )}
@@ -155,6 +196,7 @@ export default function BodyStage({ project, tasks, saveField, addTask, updateTa
             ? <div style={{ textAlign:'center', padding:'32px 0', color:'#a1a1aa', fontSize:13 }}>Clique em "Nova tarefa" para começar.</div>
             : rootTasks.map(task => (
                 <EnhancedTaskRow key={task.id} task={task} subtasks={getSubtasks(task.id)}
+                  totalOcc={calcOccurrences(task, ps, pe)}
                   onUpdate={updateTask} onDelete={deleteTask} onAddSubtask={addTask} />
               ))
           }
@@ -163,13 +205,14 @@ export default function BodyStage({ project, tasks, saveField, addTask, updateTa
       {view === 'kanban' && <KanbanView tasks={tasks} onUpdate={updateTask} />}
       {view === 'timeline' && <TimelineView project={project} tasks={tasks} />}
 
-      {pct === 100 && tasks.length > 0 && (
+      {pct === 100 && totalActivities > 0 && (
         <div style={{ textAlign:'center', padding:'24px', background:'#f0fdf4', borderRadius:16, border:'1px solid #bbf7d0', marginTop:32 }}>
           <div style={{ fontSize:28, marginBottom:6 }}>🌿</div>
-          <div style={{ fontSize:15, fontWeight:700, color:'#15803d', marginBottom:4 }}>Todas as tarefas concluídas!</div>
+          <div style={{ fontSize:15, fontWeight:700, color:'#15803d', marginBottom:4 }}>Todas as atividades concluídas!</div>
           <div style={{ fontSize:13, color:'#4ade80' }}>Seu desejo de alma tomou forma no mundo.</div>
         </div>
       )}
     </>
   )
 }
+

@@ -46,12 +46,12 @@ export default function Sidebar() {
           comingSoon ? (
             <div
               key={to}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-zinc-600 cursor-default select-none"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-zinc-300 cursor-default select-none"
               title={t('nav.comingSoon')}
             >
-              <Icon size={17} className={color || 'text-zinc-600'} style={{ opacity: 0.5 }} />
-              <span className="opacity-60">{t(key)}</span>
-              <span className="ml-auto text-[9px] uppercase tracking-wider text-zinc-600 opacity-70">
+              <Icon size={17} className={color || 'text-zinc-500'} />
+              <span>{t(key)}</span>
+              <span className="ml-auto text-[9px] uppercase tracking-wider font-bold text-black bg-white px-1.5 py-0.5 rounded-md">
                 {t('nav.comingSoon')}
               </span>
             </div>

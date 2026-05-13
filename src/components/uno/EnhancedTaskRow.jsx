@@ -6,29 +6,34 @@ const STATUS_NEXT = { todo: 'doing', doing: 'done', done: 'todo' }
 const STATUS_BG   = { todo: '#fff', doing: '#FFFBEB', done: '#F0FDF4' }
 
 /* ── Recurring occurrence counter button ─────────────────── */
-function RecurringCheck({ occDone, total, onCheck, isDone }) {
+function RecurringCheck({ occDone, totalOcc, onCheck }) {
   const [flash, setFlash] = useState(false)
+  const isDone = totalOcc > 0 && occDone >= totalOcc
+
   function handle() {
     if (isDone) return
     setFlash(true)
-    setTimeout(() => setFlash(false), 700)
     onCheck()
+    setTimeout(() => setFlash(false), 800)
   }
-  const filled = isDone || flash
+
+  // Neutral: gray pill showing N/total. Flash: brief green. Done: permanent green.
+  const bg    = isDone ? '#2D5016' : flash ? '#16a34a' : '#f0f0f0'
+  const color = isDone || flash ? '#fff' : '#71717a'
+
   return (
-    <button onClick={handle} title={total ? `${occDone}/${total} concluídas` : `${occDone} realizações`}
+    <button onClick={handle} title={`${occDone}/${totalOcc} realizadas`}
       style={{
-        minWidth: 36, height: 22, borderRadius: 99, border: 'none',
+        minWidth: 48, height: 22, borderRadius: 99, border: 'none',
         cursor: isDone ? 'default' : 'pointer',
-        background: filled ? '#2D5016' : '#EDE9FE',
-        color: filled ? '#fff' : '#4A0E8F',
+        background: bg, color,
         fontSize: 11, fontWeight: 700, flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: '0 8px', gap: 3,
-        transition: 'background .3s, color .3s',
+        padding: '0 9px', gap: 3,
+        transition: 'background .35s, color .35s',
       }}>
-      {isDone ? <Check size={10} /> : null}
-      {isDone ? (total ? `${total}/${total}` : `${occDone}×`) : (total ? `${occDone}/${total}` : `${occDone}×`)}
+      {(isDone || flash) && <Check size={9} />}
+      {`${occDone}/${totalOcc}`}
     </button>
   )
 }
@@ -140,7 +145,7 @@ function SubtaskRow({ task, onUpdate, onDelete }) {
 }
 
 /* ── Main task row ────────────────────────────────────────── */
-export default function EnhancedTaskRow({ task, subtasks = [], onUpdate, onDelete, onAddSubtask }) {
+export default function EnhancedTaskRow({ task, subtasks = [], totalOcc = 1, onUpdate, onDelete, onAddSubtask }) {
   const [title, setTitle]       = useState(task.title || '')
   const [notes, setNotes]       = useState(task.notes || '')
   const [showNotes, setShowNotes]       = useState(false)
@@ -152,16 +157,15 @@ export default function EnhancedTaskRow({ task, subtasks = [], onUpdate, onDelet
 
   function flush() { if (title !== task.title) onUpdate(task.id, { title }) }
   function flushNotes() { onUpdate(task.id, { notes }) }
-  const rec       = parseRecurrence(task.recurrence)
+  const rec        = parseRecurrence(task.recurrence)
   const isRecurring = !!rec
-  const occDone   = task.occurrences_done || 0
-  const totalOcc  = rec?.endType === 'count' ? (rec.count || 0) : 0
-  const isRecDone = totalOcc > 0 && occDone >= totalOcc
+  const occDone    = task.occurrences_done || 0
+  const isRecDone  = totalOcc > 0 && occDone >= totalOcc
 
   function cycleStatus() {
     if (isRecurring) {
       const newOcc = occDone + 1
-      const done   = totalOcc > 0 && newOcc >= totalOcc
+      const done   = newOcc >= totalOcc
       onUpdate(task.id, { occurrences_done: newOcc, status: done ? 'done' : 'doing', completed: done })
     } else {
       const next = STATUS_NEXT[task.status || 'todo']
@@ -178,7 +182,7 @@ export default function EnhancedTaskRow({ task, subtasks = [], onUpdate, onDelet
       >
         {/* Check button — recurring shows counter, normal shows status */}
         {isRecurring ? (
-          <RecurringCheck occDone={occDone} total={totalOcc} onCheck={cycleStatus} isDone={isRecDone} />
+          <RecurringCheck occDone={occDone} totalOcc={totalOcc} onCheck={cycleStatus} />
         ) : (
           <button
             onClick={cycleStatus}
