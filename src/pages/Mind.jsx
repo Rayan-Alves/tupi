@@ -126,14 +126,60 @@ function TaskItem({ task, onUpdate, onDelete, t }) {
   )
 }
 
+function SkillItem({ skill, onUpdate, onDelete, onTurnIntoProject, t }) {
+  const [localName, setLocalName] = useState(skill.name || '')
+  const [saveStatus, setSaveStatus] = useState('clean')
+
+  useEffect(() => { setLocalName(skill.name || ''); setSaveStatus('clean') }, [skill.id])
+
+  async function handleSave() {
+    setSaveStatus('saving')
+    await onUpdate(skill.id, { name: localName, status: skill.status })
+    setSaveStatus('saved')
+    setTimeout(() => setSaveStatus('clean'), 2500)
+  }
+
+  return (
+    <div className="group flex flex-col sm:flex-row gap-3 p-4 rounded-xl border border-zinc-100 bg-zinc-50 hover:border-zinc-200 transition-all items-start sm:items-center">
+      <input 
+        value={localName} 
+        onChange={e => { setLocalName(e.target.value); setSaveStatus('dirty') }}
+        placeholder="Ex: Aprender React, Tocar Violão..."
+        className="flex-1 bg-transparent text-sm text-zinc-800 placeholder-zinc-400 border-0 focus:ring-0 p-0 font-medium"
+      />
+      <div className="flex items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0 flex-wrap sm:flex-nowrap">
+        <select 
+          value={skill.status || 'want_to_learn'} 
+          onChange={e => onUpdate(skill.id, { status: e.target.value })}
+          className="text-xs bg-white border border-zinc-200 rounded-lg px-2 py-1.5 focus:ring-mind focus:border-mind outline-none"
+        >
+          <option value="want_to_learn">Quero Aprender</option>
+          <option value="learning">Aprendendo</option>
+          <option value="mastered">Dominado</option>
+        </select>
+        <button 
+          onClick={() => onTurnIntoProject(skill)}
+          className="flex items-center gap-1 text-xs bg-[#D4890A]/10 text-mind px-2 py-1.5 rounded-lg hover:bg-[#D4890A]/20 transition-all font-semibold"
+        >
+          ✨ Transformar em Meta
+        </button>
+        <SaveButton status={saveStatus} onClick={handleSave} />
+        <button onClick={() => onDelete(skill.id)} className="text-zinc-400 hover:text-red-500 transition-all p-1">
+          <Trash2 size={13} />
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function GoalCard({ goal, tasks, onSave, onDelete, onAddTask, onUpdateTask, onDeleteTask, t }) {
   const [open, setOpen] = useState(false)
-  const [local, setLocal] = useState({ title: goal.title || '', why: goal.why || '', how: goal.how || '', what_needed: goal.what_needed || '', reflection: goal.reflection || '' })
+  const [local, setLocal] = useState({ title: goal.title || '', measurable: goal.measurable || '', achievable: goal.achievable || '', relevant: goal.relevant || '', time_bound: goal.time_bound || '', reflection: goal.reflection || '' })
   const [saveStatus, setSaveStatus] = useState('clean')
   const goalTasks = tasks.filter(task => task.goal_id === goal.id)
 
   useEffect(() => {
-    setLocal({ title: goal.title || '', why: goal.why || '', how: goal.how || '', what_needed: goal.what_needed || '', reflection: goal.reflection || '' })
+    setLocal({ title: goal.title || '', measurable: goal.measurable || '', achievable: goal.achievable || '', relevant: goal.relevant || '', time_bound: goal.time_bound || '', reflection: goal.reflection || '' })
   }, [goal.id])
 
   function update(field, value) { setLocal(prev => ({ ...prev, [field]: value })); setSaveStatus('dirty') }
@@ -163,13 +209,14 @@ function GoalCard({ goal, tasks, onSave, onDelete, onAddTask, onUpdateTask, onDe
       {open && (
         <div className="px-4 pb-4 space-y-4 border-t border-zinc-100">
           {[
-            { field: 'why', labelKey: 'spirit.goals.why', phKey: 'spirit.goals.whyPlaceholder' },
-            { field: 'how', labelKey: 'spirit.goals.how', phKey: 'spirit.goals.howPlaceholder' },
-            { field: 'what_needed', labelKey: 'spirit.goals.whatNeeded', phKey: 'spirit.goals.whatNeededPlaceholder' },
-          ].map(({ field, labelKey, phKey }) => (
+            { field: 'measurable', label: 'Mensurável (Como vou medir o progresso?)', phKey: 'Ex: Fazer 1 exercício por dia, ler 10 páginas...' },
+            { field: 'achievable', label: 'Alcançável (Passos e recursos necessários)', phKey: 'Ex: Comprar o livro, assinar o curso, reservar 30 min/dia...' },
+            { field: 'relevant', label: 'Relevante (Por que isso é importante? Propósito)', phKey: 'Ex: Para melhorar minha carreira, para minha saúde mental...' },
+            { field: 'time_bound', label: 'Temporal (Prazo final)', phKey: 'Ex: Até dezembro deste ano, em 3 meses...' },
+          ].map(({ field, label, phKey }) => (
             <div key={field} className="pt-3">
-              <label className="field-label">{t(labelKey)}</label>
-              <AutoTextarea value={local[field]} onChange={val => update(field, val)} placeholder={t(phKey)} />
+              <label className="field-label">{t(`spirit.goals.${field}`, label)}</label>
+              <AutoTextarea value={local[field]} onChange={val => update(field, val)} placeholder={t(`spirit.goals.${field}Placeholder`, phKey)} />
             </div>
           ))}
           <div className="pt-1">
@@ -248,13 +295,22 @@ function RoutineItem({ routine, onSaveField, onDelete, t }) {
 
 export default function Mind() {
   const { t } = useTranslation()
-  const { profile, saveProfileField, goals, addGoal, saveGoalFields, deleteGoal, tasks, addTask, updateTask, deleteTask, routines, addRoutine, saveRoutineField, deleteRoutine, loading } = useMind()
+  const { profile, saveProfileField, goals, addGoal, saveGoalFields, deleteGoal, tasks, addTask, updateTask, deleteTask, routines, addRoutine, saveRoutineField, deleteRoutine, skills, addSkill, updateSkill, deleteSkill, loading } = useMind()
   const [pensamentoView, setPensamentoView] = useState(null)
   const [pensamentoKey, setPensamentoKey] = useState(0)
 
   function handlePensamentoBack() {
     setPensamentoView(null)
     setPensamentoKey(k => k + 1)
+  }
+
+  const handleTurnSkillIntoProject = async (skill) => {
+    await addGoal({ title: `Aprender: ${skill.name || 'Nova Habilidade'}` })
+    if (skill.status === 'want_to_learn') {
+      await updateSkill(skill.id, { status: 'learning' })
+    }
+    // Scroll down to goals
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })
   }
 
   if (loading) return <div className="flex items-center justify-center h-64 text-zinc-400 text-sm">{t('common.loading')}</div>
@@ -300,18 +356,33 @@ export default function Mind() {
         />
       </section>
 
-      {/* Skills x Tips */}
-      <section>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="spirit-card p-6">
-            <label className="field-label">{t('mind.skills.label')}</label>
-            <SaveableTextarea initialValue={profile.skills} onSave={v => saveProfileField('skills', v)} placeholder={t('mind.skills.placeholder')} />
-          </div>
-          <div className="spirit-card p-6">
-            <label className="field-label">{t('mind.tips.label')}</label>
-            <SaveableTextarea initialValue={profile.tips} onSave={v => saveProfileField('tips', v)} placeholder={t('mind.tips.placeholder')} />
-          </div>
+      {/* Skills Journey */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <SectionDivider label="Jornada de Aprendizado (Skills)" />
+          <button onClick={addSkill} className="btn-primary ml-4 flex-shrink-0">
+            Adicionar Habilidade
+          </button>
         </div>
+        
+        {skills.length === 0 ? (
+          <div className="spirit-card p-10 text-center">
+            <p className="text-zinc-400 text-sm">Nenhuma habilidade cadastrada ainda. O que você quer aprender?</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-3">
+            {skills.map(skill => (
+              <SkillItem 
+                key={skill.id} 
+                skill={skill} 
+                onUpdate={updateSkill} 
+                onDelete={deleteSkill} 
+                onTurnIntoProject={handleTurnSkillIntoProject} 
+                t={t} 
+              />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Goals */}

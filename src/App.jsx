@@ -11,8 +11,12 @@ import Profile from './pages/Profile'
 import Projects from './pages/Projects'
 import Jornada from './pages/Jornada'
 import PadraoMental from './pages/PadraoMental'
-import Passado from './pages/Passado'
-import PassadoDoc from './pages/PassadoDoc'
+import DocList from './pages/DocList'
+import DocEditor from './pages/DocEditor'
+
+const PAST = { table: 'past_documents', basePath: '/passado', i18nNs: 'spirit.past', introKey: 'tupi.past.introHidden', introPromptKey: 'spirit.past.prompts.1', pages: 3 }
+const PRESENT = { table: 'present_documents', basePath: '/presente', i18nNs: 'spirit.present', introKey: 'tupi.present.introHidden', introPromptKey: 'spirit.present.prompts.1', pages: 1 }
+const DESIRES = { table: 'direction_desires', basePath: '/spirit', i18nNs: 'spirit.desires', pages: 3 }
 
 function LoadingScreen() {
   return (
@@ -46,7 +50,9 @@ export default function App() {
           <Route path="/jornada"       element={<Jornada />} />
           <Route path="/padrao-mental"   element={<ProtectedRoute><PadraoMental /></ProtectedRoute>} />
           <Route path="/padrao-mental-2" element={<ProtectedRoute><PadraoMental table="mental_patterns_2" /></ProtectedRoute>} />
-          <Route path="/passado/:id"     element={<ProtectedRoute><PassadoDoc /></ProtectedRoute>} />
+          <Route path="/passado/:id"     element={<ProtectedRoute><DocEditor {...PAST} /></ProtectedRoute>} />
+          <Route path="/presente/:id"    element={<ProtectedRoute><DocEditor {...PRESENT} /></ProtectedRoute>} />
+          <Route path="/desejos/:id"     element={<ProtectedRoute><DocEditor {...DESIRES} /></ProtectedRoute>} />
 
           <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<Navigate to="/dashboard" replace />} />
@@ -56,7 +62,8 @@ export default function App() {
             <Route path="/body"      element={<Body />} />
             <Route path="/projects"  element={<Projects />} />
             <Route path="/profile"   element={<Profile />} />
-            <Route path="/passado"   element={<Passado />} />
+            <Route path="/passado"   element={<DocList {...PAST} />} />
+            <Route path="/presente"  element={<DocList {...PRESENT} />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

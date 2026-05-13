@@ -137,6 +137,48 @@
         "3": "Do you feel it's time to let go of these feelings? It can be all of them, just one, or maybe none — that's okay, honor your time. You can always come back here.\n\nIf you have any to release, thank them for what they taught you, but it's time to let them go. Holding on only creates resentment and entrapment."
       }
     },
+    "present": {
+      "title": "Who I am",
+      "back": "Back",
+      "untitled": "Untitled",
+      "delete": "Delete",
+      "deleteConfirm": "Delete this document?",
+      "hidePrompt": "Hide this prompt",
+      "newDocument": "New document",
+      "titlePlaceholder": "Title",
+      "subtitlePlaceholder": "Add a subtitle...",
+      "writeHere": "Start writing...",
+      "clickToStart": "click to start",
+      "saved": "Saved",
+      "saving": "Saving...",
+      "notFound": "Document not found",
+      "timeAgo": { "now": "just now" },
+      "prompts": {
+        "1": "Write freely about yourself, however it comes, as many times as you want."
+      }
+    },
+    "desires": {
+      "sectionTitle": "My deep desires",
+      "placeholder": "Write a desire...",
+      "add": "Add",
+      "untitled": "Unnamed desire",
+      "back": "Back",
+      "delete": "Delete",
+      "deleteConfirm": "Delete this desire?",
+      "hidePrompt": "Hide this prompt",
+      "titlePlaceholder": "Desire",
+      "subtitlePlaceholder": "Add a subtitle...",
+      "writeHere": "Start writing...",
+      "saved": "Saved",
+      "saving": "Saving...",
+      "notFound": "Desire not found",
+      "timeAgo": { "now": "just now" },
+      "prompts": {
+        "1": "Space to write about this desire.",
+        "2": "Where I am in relation to it.",
+        "3": "What are my plans regarding it."
+      }
+    },
     "whoAmI": {
       "label": "Who am I?",
       "placeholder": "Write freely about who you are — your traits, your essence, what defines you…"

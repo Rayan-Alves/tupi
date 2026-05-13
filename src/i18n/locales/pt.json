@@ -137,6 +137,48 @@
         "3": "Você sente que é o momento de desapegar desses sentimentos? Pode ser de todos eles, apenas um, ou talvez nenhum — não tem problema, respeite seu tempo. Você sempre pode voltar aqui.\n\nCaso você tenha algum para desapegar, agradeça os aprendizados, mas é hora de deixá-los ir. Mantê-los em si só gera mágoas e aprisionamentos."
       }
     },
+    "present": {
+      "title": "Quem eu sou",
+      "back": "Voltar",
+      "untitled": "Sem título",
+      "delete": "Excluir",
+      "deleteConfirm": "Excluir este documento?",
+      "hidePrompt": "Esconder esta frase",
+      "newDocument": "Novo documento",
+      "titlePlaceholder": "Título",
+      "subtitlePlaceholder": "Adicione um subtítulo...",
+      "writeHere": "Comece a escrever...",
+      "clickToStart": "clique para começar",
+      "saved": "Salvo",
+      "saving": "Salvando...",
+      "notFound": "Documento não encontrado",
+      "timeAgo": { "now": "agora" },
+      "prompts": {
+        "1": "Escreva livremente sobre você, da forma que vier, quantas vezes quiser."
+      }
+    },
+    "desires": {
+      "sectionTitle": "Meus desejos profundos",
+      "placeholder": "Escreva um desejo...",
+      "add": "Adicionar",
+      "untitled": "Desejo sem nome",
+      "back": "Voltar",
+      "delete": "Excluir",
+      "deleteConfirm": "Excluir este desejo?",
+      "hidePrompt": "Esconder esta frase",
+      "titlePlaceholder": "Desejo",
+      "subtitlePlaceholder": "Adicione um subtítulo...",
+      "writeHere": "Comece a escrever...",
+      "saved": "Salvo",
+      "saving": "Salvando...",
+      "notFound": "Desejo não encontrado",
+      "timeAgo": { "now": "agora" },
+      "prompts": {
+        "1": "Espaço para escrever sobre esse desejo.",
+        "2": "Onde estou em relação a ele.",
+        "3": "Quais meus planos em relação a ele."
+      }
+    },
     "whoAmI": {
       "label": "Quem sou eu?",
       "placeholder": "Escreva livremente sobre quem você é — seus traços, sua essência, o que te define…"

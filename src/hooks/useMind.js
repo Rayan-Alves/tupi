@@ -7,6 +7,7 @@ export function useMind() {
   const [profile, setProfile] = useState({ self_thought: '', sabotage: '', turn_gold: '', skills: '', tips: '' })
   const [goals, setGoals] = useState([])
   const [tasks, setTasks] = useState([])
+  const [skills, setSkills] = useState([])
   const [routines, setRoutines] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -18,11 +19,13 @@ export function useMind() {
       supabase.from('mind_goals').select('*').eq('user_id', user.id).order('position'),
       supabase.from('mind_tasks').select('*').eq('user_id', user.id).order('created_at'),
       supabase.from('mind_routines').select('*').eq('user_id', user.id).order('created_at'),
-    ]).then(([p, g, t, r]) => {
+      supabase.from('mind_skills').select('*').eq('user_id', user.id).order('created_at'),
+    ]).then(([p, g, t, r, sk]) => {
       if (p.data) setProfile(p.data)
       if (g.data) setGoals(g.data)
       if (t.data) setTasks(t.data)
       if (r.data) setRoutines(r.data)
+      if (sk && sk.data) setSkills(sk.data)
       setLoading(false)
     })
   }, [user])
@@ -32,10 +35,10 @@ export function useMind() {
     await supabase.from('mind_profile').upsert({ user_id: user.id, [field]: value }, { onConflict: 'user_id' })
   }
 
-  async function addGoal() {
+  async function addGoal(initialData = {}) {
     const { data, error } = await supabase
       .from('mind_goals')
-      .insert({ user_id: user.id, title: '', why: '', how: '', what_needed: '', reflection: '', position: goals.length })
+      .insert({ user_id: user.id, title: initialData.title || '', measurable: '', achievable: '', relevant: '', time_bound: '', reflection: '', position: goals.length })
       .select().single()
     if (!error && data) setGoals(prev => [...prev, data])
   }
@@ -87,11 +90,30 @@ export function useMind() {
     await supabase.from('mind_routines').delete().eq('id', id).eq('user_id', user.id)
   }
 
+  async function addSkill() {
+    const { data, error } = await supabase
+      .from('mind_skills')
+      .insert({ user_id: user.id, name: '', status: 'want_to_learn' })
+      .select().single()
+    if (!error && data) setSkills(prev => [...prev, data])
+  }
+
+  async function updateSkill(id, fields) {
+    setSkills(prev => prev.map(s => s.id === id ? { ...s, ...fields } : s))
+    await supabase.from('mind_skills').update(fields).eq('id', id).eq('user_id', user.id)
+  }
+
+  async function deleteSkill(id) {
+    setSkills(prev => prev.filter(s => s.id !== id))
+    await supabase.from('mind_skills').delete().eq('id', id).eq('user_id', user.id)
+  }
+
   return {
     profile, saveProfileField,
     goals, addGoal, saveGoalFields, deleteGoal,
     tasks, addTask, updateTask, deleteTask,
     routines, addRoutine, saveRoutineField, deleteRoutine,
+    skills, addSkill, updateSkill, deleteSkill,
     loading,
   }
 }

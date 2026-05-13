@@ -137,6 +137,48 @@
         "3": "¿Sientes que es momento de soltar estos sentimientos? Pueden ser todos, solo uno, o tal vez ninguno — está bien, respeta tu tiempo. Siempre puedes volver aquí.\n\nSi tienes alguno para soltar, agradécele lo que te enseñó, pero es hora de dejarlo ir. Mantenerlo solo genera resentimientos y ataduras."
       }
     },
+    "present": {
+      "title": "Quién soy",
+      "back": "Volver",
+      "untitled": "Sin título",
+      "delete": "Eliminar",
+      "deleteConfirm": "¿Eliminar este documento?",
+      "hidePrompt": "Ocultar esta frase",
+      "newDocument": "Nuevo documento",
+      "titlePlaceholder": "Título",
+      "subtitlePlaceholder": "Añade un subtítulo...",
+      "writeHere": "Empieza a escribir...",
+      "clickToStart": "haz clic para empezar",
+      "saved": "Guardado",
+      "saving": "Guardando...",
+      "notFound": "Documento no encontrado",
+      "timeAgo": { "now": "ahora" },
+      "prompts": {
+        "1": "Escribe libremente sobre ti, como salga, cuantas veces quieras."
+      }
+    },
+    "desires": {
+      "sectionTitle": "Mis deseos profundos",
+      "placeholder": "Escribe un deseo...",
+      "add": "Añadir",
+      "untitled": "Deseo sin nombre",
+      "back": "Volver",
+      "delete": "Eliminar",
+      "deleteConfirm": "¿Eliminar este deseo?",
+      "hidePrompt": "Ocultar esta frase",
+      "titlePlaceholder": "Deseo",
+      "subtitlePlaceholder": "Añade un subtítulo...",
+      "writeHere": "Empieza a escribir...",
+      "saved": "Guardado",
+      "saving": "Guardando...",
+      "notFound": "Deseo no encontrado",
+      "timeAgo": { "now": "ahora" },
+      "prompts": {
+        "1": "Espacio para escribir sobre este deseo.",
+        "2": "Dónde estoy en relación a él.",
+        "3": "Cuáles son mis planes respecto a él."
+      }
+    },
     "whoAmI": {
       "label": "¿Quién soy yo?",
       "placeholder": "Escribe libremente sobre quién eres — tus rasgos, tu esencia, lo que te define…"

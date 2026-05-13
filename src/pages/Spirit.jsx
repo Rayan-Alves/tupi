@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Trash2, ChevronDown, ChevronRight, Check, Sparkles, Save, X, Clock, User, Wind } from 'lucide-react'
 import { useSpirit } from '../hooks/useSpirit'
+import DesireList from '../components/spirit/DesireList'
 
 function PortalCard({ icon, label, color, onClick, disabled, comingSoonLabel }) {
   return (
@@ -605,15 +606,6 @@ export default function Spirit() {
       <section className="space-y-4">
         <SectionDivider label={t('spirit.identity')} />
 
-        <div className="spirit-card p-6">
-          <label className="field-label">{t('spirit.whoAmI.label')}</label>
-          <SaveableTextarea
-            initialValue={profile.who_am_i}
-            onSave={val => saveProfileField('who_am_i', val)}
-            placeholder={t('spirit.whoAmI.placeholder')}
-          />
-        </div>
-
         {/* Portals */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <PortalCard
@@ -626,8 +618,7 @@ export default function Spirit() {
             icon={<User size={22} />}
             label={t('spirit.portals.present')}
             color="#3B6DC4"
-            disabled
-            comingSoonLabel={t('spirit.portals.comingSoon')}
+            onClick={() => navigate('/presente')}
           />
           <PortalCard
             icon={<Wind size={22} />}
@@ -661,28 +652,10 @@ export default function Spirit() {
         </div>
       </section>
 
-      {/* ── DIRECTION ── */}
+      {/* ── DEEP DESIRES ── */}
       <section className="space-y-4">
-        <SectionDivider label={t('spirit.direction')} />
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="spirit-card p-6">
-            <label className="field-label">{t('spirit.whereIAm.label')}</label>
-            <SaveableTextarea
-              initialValue={profile.where_i_am}
-              onSave={val => saveProfileField('where_i_am', val)}
-              placeholder={t('spirit.whereIAm.placeholder')}
-            />
-          </div>
-          <div className="spirit-card p-6 border-l-4 border-l-spirit">
-            <label className="field-label">{t('spirit.whereIWantToGo.label')}</label>
-            <SaveableTextarea
-              initialValue={profile.where_i_want_to_go}
-              onSave={val => saveProfileField('where_i_want_to_go', val)}
-              placeholder={t('spirit.whereIWantToGo.placeholder')}
-            />
-          </div>
-        </div>
+        <SectionDivider label={t('spirit.desires.sectionTitle')} />
+        <DesireList />
       </section>
 
       {/* ── GOALS ── */}
