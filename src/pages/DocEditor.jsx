@@ -69,6 +69,7 @@ export default function DocEditor({ table, basePath, i18nNs, pages = 1 }) {
   const [page, setPage] = useState(1)
   const [status, setStatus] = useState('saved')
   const [notFound, setNotFound] = useState(false)
+  const [activating, setActivating] = useState(false)
   const saveTimer = useRef(null)
   const pendingRef = useRef({})
 
@@ -99,6 +100,23 @@ export default function DocEditor({ table, basePath, i18nNs, pages = 1 }) {
       await supabase.from(table).update(payload).eq('id', id).eq('user_id', user.id)
       setStatus('saved')
     }, 700)
+  }
+
+  async function handleActivateUno() {
+    if (activating) return
+    setActivating(true)
+    const { data: existing } = await supabase.from('uno_projects')
+      .select('id').eq('desire_id', id).eq('user_id', user.id).maybeSingle()
+    let projectId = existing?.id
+    if (!projectId) {
+      const { data: created } = await supabase.from('uno_projects')
+        .insert({ user_id: user.id, desire_id: id, title: doc?.title || 'Desejo de Alma', stage: 'spirit' })
+        .select().single()
+      projectId = created?.id
+    }
+    scheduleSave({ uno_activated: true })
+    setActivating(false)
+    if (projectId) navigate(`/uno/${projectId}`)
   }
 
   if (notFound) {
@@ -160,6 +178,30 @@ export default function DocEditor({ table, basePath, i18nNs, pages = 1 }) {
                 <ArrowRight size={14} />
               </button>
             </div>
+            {/* UNO button — shown on last page of desires */}
+            {table === 'direction_desires' && page === pages && (
+              <button
+                onClick={handleActivateUno}
+                disabled={activating}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: 10,
+                  border: 'none',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: activating ? 'wait' : 'pointer',
+                  background: doc?.uno_activated ? '#16a34a' : '#4A0E8F',
+                  color: '#fff',
+                  transition: 'all .2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {doc?.uno_activated ? <><Check size={11} /> Desejo ativado</> : 'Trabalhar nesse desejo agora'}
+              </button>
+            )}
           </div>
         )}
       </div>

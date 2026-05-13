@@ -2,8 +2,10 @@ import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react
 import { useTranslation } from 'react-i18next'
 import { Plus, Trash2, ChevronDown, ChevronRight, Check, Brain, Save } from 'lucide-react'
 import { useMind } from '../hooks/useMind'
+import { useUno } from '../hooks/useUno'
 import MentalPatternTab from '../components/mental-pattern/MentalPatternTab'
 import PadraoMental from './PadraoMental'
+import UnoSection from '../components/UnoSection'
 
 const WEEK_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 
@@ -298,6 +300,8 @@ function RoutineItem({ routine, onSaveField, onDelete, t }) {
 export default function Mind() {
   const { t } = useTranslation()
   const { profile, saveProfileField, goals, addGoal, saveGoalFields, deleteGoal, tasks, addTask, updateTask, deleteTask, routines, addRoutine, saveRoutineField, deleteRoutine, skills, addSkill, updateSkill, deleteSkill, loading } = useMind()
+  const { projects: allUnoProjects, loading: unoLoading } = useUno()
+  const unoProjects = allUnoProjects.filter(p => p.stage === 'mind' || p.stage === 'body')
   const [pensamentoView, setPensamentoView] = useState(null)
   const [pensamentoKey, setPensamentoKey] = useState(0)
 
@@ -357,6 +361,18 @@ export default function Mind() {
           onSelect={(id) => setPensamentoView({ editId: id, startSaved: true })}
         />
       </section>
+
+      {/* UNO */}
+      <section className="space-y-4">
+        <SectionDivider label="UNO" />
+        {!unoLoading && (
+          <UnoSection
+            projects={unoProjects}
+            lockedMessage="Nenhum desejo de alma enviado para a Mente ainda. Complete a etapa no Espírito e clique em 'Enviar para Mente'."
+          />
+        )}
+      </section>
+
 
       {/* Skills Journey */}
       <section className="space-y-4">

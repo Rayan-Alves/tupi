@@ -2,8 +2,10 @@ import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react
 import { useTranslation } from 'react-i18next'
 import { Plus, Trash2, ChevronDown, ChevronRight, Check, Dumbbell, Save, CalendarDays, Sparkles } from 'lucide-react'
 import { useBody } from '../hooks/useBody'
+import { useUno } from '../hooks/useUno'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
+import UnoSection from '../components/UnoSection'
 
 const WEEK_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 
@@ -353,6 +355,8 @@ function AffirmationRow({ item, inputRef, onUpdate, onRemove, onEnter }) {
 export default function Body() {
   const { t } = useTranslation()
   const { profile, saveProfileField, goals, addGoal, saveGoalFields, deleteGoal, tasks, addTask, updateTask, deleteTask, routines, addRoutine, saveRoutineField, deleteRoutine, loading } = useBody()
+  const { projects: allUnoProjects, loading: unoLoading } = useUno()
+  const unoProjects = allUnoProjects.filter(p => p.stage === 'body')
 
   if (loading) return <div className="flex items-center justify-center h-64 text-zinc-400 text-sm">{t('common.loading')}</div>
 
@@ -365,6 +369,17 @@ export default function Body() {
           <p className="text-sm text-zinc-400">{t('body.subtitle')}</p>
         </div>
       </div>
+
+      {/* UNO */}
+      <section className="space-y-4">
+        <SectionDivider label="UNO" />
+        {!unoLoading && (
+          <UnoSection
+            projects={unoProjects}
+            lockedMessage="Nenhum projeto pronto para o Corpo ainda. Complete as etapas no Espírito e na Mente antes de continuar."
+          />
+        )}
+      </section>
 
       {/* Treat yourself with kindness */}
       <section>

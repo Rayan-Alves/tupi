@@ -13,6 +13,8 @@ import Jornada from './pages/Jornada'
 import PadraoMental from './pages/PadraoMental'
 import DocList from './pages/DocList'
 import DocEditor from './pages/DocEditor'
+import UnoPage from './pages/UnoPage'
+import UnoListPage from './pages/UnoListPage'
 
 const PAST = { table: 'past_documents', basePath: '/passado', i18nNs: 'spirit.past', introKey: 'tupi.past.introHidden', introPromptKey: 'spirit.past.prompts.1', pages: 3 }
 const PRESENT = { table: 'present_documents', basePath: '/presente', i18nNs: 'spirit.present', introKey: 'tupi.present.introHidden', introPromptKey: 'spirit.present.prompts.1', pages: 1 }
@@ -53,6 +55,7 @@ export default function App() {
           <Route path="/passado/:id"     element={<ProtectedRoute><DocEditor {...PAST} /></ProtectedRoute>} />
           <Route path="/presente/:id"    element={<ProtectedRoute><DocEditor {...PRESENT} /></ProtectedRoute>} />
           <Route path="/desejos/:id"     element={<ProtectedRoute><DocEditor {...DESIRES} /></ProtectedRoute>} />
+          <Route path="/uno/:projectId"  element={<ProtectedRoute><UnoPage /></ProtectedRoute>} />
 
           <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<Navigate to="/dashboard" replace />} />
@@ -64,6 +67,7 @@ export default function App() {
             <Route path="/profile"   element={<Profile />} />
             <Route path="/passado"   element={<DocList {...PAST} />} />
             <Route path="/presente"  element={<DocList {...PRESENT} />} />
+            <Route path="/uno"       element={<UnoListPage />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

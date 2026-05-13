@@ -3,7 +3,9 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Trash2, ChevronDown, ChevronRight, Check, Sparkles, Save, X, Clock, User, Wind } from 'lucide-react'
 import { useSpirit } from '../hooks/useSpirit'
+import { useUno } from '../hooks/useUno'
 import DesireList from '../components/spirit/DesireList'
+import UnoSection from '../components/UnoSection'
 
 function PortalCard({ icon, label, color, onClick, disabled, comingSoonLabel }) {
   return (
@@ -546,6 +548,7 @@ export default function Spirit() {
     routines, addRoutine, saveRoutineField, deleteRoutine,
     loading,
   } = useSpirit()
+  const { projects: unoProjects, loading: unoLoading } = useUno()
 
   const [valueCards, setValueCards] = useState([])
 
@@ -657,6 +660,18 @@ export default function Spirit() {
         <SectionDivider label={t('spirit.desires.sectionTitle')} />
         <DesireList />
       </section>
+
+      {/* ── UNO ── */}
+      <section className="space-y-4">
+        <SectionDivider label="UNO" />
+        {!unoLoading && (
+          <UnoSection
+            projects={unoProjects}
+            lockedMessage="Inicie em Deepest Desire — abra um desejo, vá até a última página e clique em 'Trabalhar nesse desejo agora'."
+          />
+        )}
+      </section>
+
 
       {/* ── GOALS ── */}
       <section className="space-y-4">
