@@ -157,13 +157,15 @@ function SkillItem({ skill, onUpdate, onDelete, onTurnIntoProject, t }) {
           <option value="learning">Aprendendo</option>
           <option value="mastered">Dominado</option>
         </select>
+        <SaveButton status={saveStatus} onClick={handleSave} />
         <button 
-          onClick={() => onTurnIntoProject(skill)}
-          className="flex items-center gap-1 text-xs bg-[#D4890A]/10 text-mind px-2 py-1.5 rounded-lg hover:bg-[#D4890A]/20 transition-all font-semibold"
+          onClick={() => skill.name ? onTurnIntoProject(skill) : null}
+          disabled={!skill.name}
+          title={!skill.name ? 'Salve a habilidade antes de transformar em meta' : ''}
+          className={`flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg transition-all font-semibold ${skill.name ? 'bg-[#D4890A]/10 text-mind hover:bg-[#D4890A]/20 cursor-pointer' : 'bg-zinc-100 text-zinc-400 cursor-not-allowed opacity-50'}`}
         >
           ✨ Transformar em Meta
         </button>
-        <SaveButton status={saveStatus} onClick={handleSave} />
         <button onClick={() => onDelete(skill.id)} className="text-zinc-400 hover:text-red-500 transition-all p-1">
           <Trash2 size={13} />
         </button>
