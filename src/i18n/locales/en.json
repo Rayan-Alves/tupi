@@ -4,9 +4,11 @@
     "spirit": "Spirit",
     "mind": "Mind",
     "body": "Body",
+    "travels": "Travels",
     "projects": "Projects",
     "jornada": "Journey",
-    "profile": "Profile"
+    "profile": "Profile",
+    "comingSoon": "soon"
   },
   "common": {
     "saving": "Saving…",

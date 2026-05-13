@@ -3,6 +3,7 @@ import { Plus, Check } from 'lucide-react'
 import EnhancedTaskRow from './EnhancedTaskRow'
 import KanbanView from './KanbanView'
 import TimelineView from './TimelineView'
+import { parseRecurrence } from './RecurrenceModal'
 
 const VIEWS = [
   { id: 'list',     label: '≡  Lista' },
@@ -78,8 +79,17 @@ export default function BodyStage({ project, tasks, saveField, addTask, updateTa
 
   const rootTasks  = tasks.filter(t => !t.parent_id)
   const getSubtasks = id => tasks.filter(t => t.parent_id === id)
-  const done = tasks.filter(t => t.status === 'done').length
-  const pct  = tasks.length > 0 ? Math.round((done / tasks.length) * 100) : 0
+
+  // Progress: recurring tasks count fractionally (occurrences_done / total)
+  const progressPoints = rootTasks.reduce((sum, t) => {
+    const rec = parseRecurrence(t.recurrence)
+    if (rec && rec.endType === 'count' && rec.count > 0) {
+      return sum + Math.min(t.occurrences_done || 0, rec.count) / rec.count
+    }
+    return sum + (t.status === 'done' ? 1 : 0)
+  }, 0)
+  const done = Math.round(progressPoints)
+  const pct  = rootTasks.length > 0 ? Math.round((progressPoints / rootTasks.length) * 100) : 0
 
   return (
     <>

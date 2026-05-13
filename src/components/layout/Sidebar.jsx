@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { LayoutDashboard, Sparkles, Brain, Dumbbell, Sprout, Compass, LogOut, Globe } from 'lucide-react'
+import { LayoutDashboard, Sparkles, Brain, Dumbbell, Plane, Sprout, Compass, LogOut, Globe } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useProfile } from '../../hooks/useProfile'
 import i18n from '../../i18n'
@@ -17,6 +17,7 @@ const NAV = [
   { to: '/spirit',    icon: Sparkles,        key: 'nav.spirit',    color: 'text-[#5a8ab8]' },
   { to: '/mind',      icon: Brain,           key: 'nav.mind',      color: 'text-[#e0a840]' },
   { to: '/body',      icon: Dumbbell,        key: 'nav.body',      color: 'text-[#6aaa30]' },
+  { to: '/travels',   icon: Plane,           key: 'nav.travels',   color: 'text-[#8B5A2B]', comingSoon: true },
   { to: '/projects',  icon: Sprout,          key: 'nav.projects',  color: 'text-[#C4A882]' },
 ]
 
@@ -41,25 +42,39 @@ export default function Sidebar() {
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {NAV.map(({ to, icon: Icon, key, color }) => (
-          <NavLink
-            key={to}
-            to={to}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
-                isActive
-                  ? 'bg-white/10 text-white'
-                  : 'text-zinc-400 hover:text-white hover:bg-white/6'
-              }`
-            }
-          >
-            {({ isActive }) => (
-              <>
-                <Icon size={17} className={isActive ? (color || 'text-white') : (color || 'text-zinc-500')} />
-                {t(key)}
-              </>
-            )}
-          </NavLink>
+        {NAV.map(({ to, icon: Icon, key, color, comingSoon }) => (
+          comingSoon ? (
+            <div
+              key={to}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-zinc-600 cursor-default select-none"
+              title={t('nav.comingSoon')}
+            >
+              <Icon size={17} className={color || 'text-zinc-600'} style={{ opacity: 0.5 }} />
+              <span className="opacity-60">{t(key)}</span>
+              <span className="ml-auto text-[9px] uppercase tracking-wider text-zinc-600 opacity-70">
+                {t('nav.comingSoon')}
+              </span>
+            </div>
+          ) : (
+            <NavLink
+              key={to}
+              to={to}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
+                  isActive
+                    ? 'bg-white/10 text-white'
+                    : 'text-zinc-400 hover:text-white hover:bg-white/6'
+                }`
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  <Icon size={17} className={isActive ? (color || 'text-white') : (color || 'text-zinc-500')} />
+                  {t(key)}
+                </>
+              )}
+            </NavLink>
+          )
         ))}
 
         {/* Jornada — abre em nova janela */}

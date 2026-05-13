@@ -10,14 +10,14 @@ const WEEK_DAYS = [
   { id: 'sab', label: 'S' },
 ]
 
-function parseRecurrence(raw) {
-  if (!raw) return { interval: 1, unit: 'week', days: [], endType: 'never', endDate: '', count: 10 }
+export function parseRecurrence(raw) {
+  if (!raw) return null
   try { return JSON.parse(raw) } catch {
-    // Legacy strings: 'daily' → day, 'weekly' → week, 'monthly' → month
     const map = { daily: 'day', weekly: 'week', monthly: 'month' }
     return { interval: 1, unit: map[raw] || 'week', days: [], endType: 'never', endDate: '', count: 10 }
   }
 }
+
 
 export function formatRecurrence(raw) {
   if (!raw) return null
@@ -37,7 +37,8 @@ export function formatRecurrence(raw) {
 }
 
 export default function RecurrenceModal({ raw, onSave, onClose }) {
-  const init = parseRecurrence(raw)
+  const init = parseRecurrence(raw) || { interval: 1, unit: 'week', days: [], endType: 'never', endDate: '', count: 10 }
+
   const [interval, setInterval] = useState(init.interval || 1)
   const [unit, setUnit]         = useState(init.unit || 'week')
   const [days, setDays]         = useState(init.days || [])

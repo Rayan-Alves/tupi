@@ -1,9 +1,37 @@
 import { useState, useEffect, useRef } from 'react'
 import { Check, Trash2, Plus } from 'lucide-react'
-import RecurrenceModal, { formatRecurrence } from './RecurrenceModal'
+import RecurrenceModal, { formatRecurrence, parseRecurrence } from './RecurrenceModal'
 
 const STATUS_NEXT = { todo: 'doing', doing: 'done', done: 'todo' }
 const STATUS_BG   = { todo: '#fff', doing: '#FFFBEB', done: '#F0FDF4' }
+
+/* ── Recurring occurrence counter button ─────────────────── */
+function RecurringCheck({ occDone, total, onCheck, isDone }) {
+  const [flash, setFlash] = useState(false)
+  function handle() {
+    if (isDone) return
+    setFlash(true)
+    setTimeout(() => setFlash(false), 700)
+    onCheck()
+  }
+  const filled = isDone || flash
+  return (
+    <button onClick={handle} title={total ? `${occDone}/${total} concluídas` : `${occDone} realizações`}
+      style={{
+        minWidth: 36, height: 22, borderRadius: 99, border: 'none',
+        cursor: isDone ? 'default' : 'pointer',
+        background: filled ? '#2D5016' : '#EDE9FE',
+        color: filled ? '#fff' : '#4A0E8F',
+        fontSize: 11, fontWeight: 700, flexShrink: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '0 8px', gap: 3,
+        transition: 'background .3s, color .3s',
+      }}>
+      {isDone ? <Check size={10} /> : null}
+      {isDone ? (total ? `${total}/${total}` : `${occDone}×`) : (total ? `${occDone}/${total}` : `${occDone}×`)}
+    </button>
+  )
+}
 
 /* ── Date chip like Google Calendar ───────────────────────── */
 function DateChip({ value, onChange, placeholder, color = '#71717a' }) {
@@ -124,9 +152,21 @@ export default function EnhancedTaskRow({ task, subtasks = [], onUpdate, onDelet
 
   function flush() { if (title !== task.title) onUpdate(task.id, { title }) }
   function flushNotes() { onUpdate(task.id, { notes }) }
+  const rec       = parseRecurrence(task.recurrence)
+  const isRecurring = !!rec
+  const occDone   = task.occurrences_done || 0
+  const totalOcc  = rec?.endType === 'count' ? (rec.count || 0) : 0
+  const isRecDone = totalOcc > 0 && occDone >= totalOcc
+
   function cycleStatus() {
-    const next = STATUS_NEXT[task.status || 'todo']
-    onUpdate(task.id, { status: next, completed: next === 'done' })
+    if (isRecurring) {
+      const newOcc = occDone + 1
+      const done   = totalOcc > 0 && newOcc >= totalOcc
+      onUpdate(task.id, { occurrences_done: newOcc, status: done ? 'done' : 'doing', completed: done })
+    } else {
+      const next = STATUS_NEXT[task.status || 'todo']
+      onUpdate(task.id, { status: next, completed: next === 'done' })
+    }
   }
 
   return (
@@ -136,19 +176,23 @@ export default function EnhancedTaskRow({ task, subtasks = [], onUpdate, onDelet
         className="uno-task-row"
         style={{ background: STATUS_BG[task.status || 'todo'], flexWrap: 'wrap', gap: 6, alignItems: 'center' }}
       >
-        {/* Status button */}
-        <button
-          onClick={cycleStatus}
-          className="uno-check"
-          title={`Status: ${task.status || 'todo'}`}
-          style={
-            task.status === 'done'  ? { background: '#2D5016', borderColor: '#2D5016' } :
-            task.status === 'doing' ? { background: '#D4890A', borderColor: '#D4890A' } : {}
-          }
-        >
-          {task.status === 'done'  && <Check size={9} style={{ color: '#fff' }} />}
-          {task.status === 'doing' && <div style={{ width: 5, height: 5, background: '#fff', borderRadius: 1 }} />}
-        </button>
+        {/* Check button — recurring shows counter, normal shows status */}
+        {isRecurring ? (
+          <RecurringCheck occDone={occDone} total={totalOcc} onCheck={cycleStatus} isDone={isRecDone} />
+        ) : (
+          <button
+            onClick={cycleStatus}
+            className="uno-check"
+            title={`Status: ${task.status || 'todo'}`}
+            style={
+              task.status === 'done'  ? { background: '#2D5016', borderColor: '#2D5016' } :
+              task.status === 'doing' ? { background: '#D4890A', borderColor: '#D4890A' } : {}
+            }
+          >
+            {task.status === 'done'  && <Check size={9} style={{ color: '#fff' }} />}
+            {task.status === 'doing' && <div style={{ width: 5, height: 5, background: '#fff', borderRadius: 1 }} />}
+          </button>
+        )}
 
         {/* Title */}
         <input
