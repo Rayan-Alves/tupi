@@ -1,242 +1,332 @@
-import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
-import { Sparkles, Brain, Dumbbell, Target, Clock, Check, ListTodo, Zap } from 'lucide-react'
-import { useSpirit } from '../../hooks/useSpirit'
-import { useMind } from '../../hooks/useMind'
-import { useBody } from '../../hooks/useBody'
-import { useWeek, getCurrentWeekPeriod } from '../../hooks/useWeek'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { Plus, Check, Trash2, ChevronRight } from 'lucide-react'
+import { useDayDashboard, TODAY_KEY } from '../../hooks/useDayDashboard'
 
-const TODAY = new Date().toISOString().split('T')[0]
-const TODAY_KEY = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][new Date().getDay()]
-const DONE_KEY = `art_routines_done_${TODAY}`
+/* ─── helpers ─────────────────────────────────── */
+const SOURCE_DOT = { spirit:'#1B3A5C', mind:'#D4890A', body:'#2D5016', dashboard:'#a1a1aa' }
+const SOURCE_LABEL = { spirit:'S', mind:'M', body:'B', dashboard:'D' }
+const DAYS_PT = [
+  { key:'sun',label:'D' },{ key:'mon',label:'S' },{ key:'tue',label:'T' },
+  { key:'wed',label:'Q' },{ key:'thu',label:'Q' },{ key:'fri',label:'S' },{ key:'sat',label:'S' },
+]
 
-function getDone() {
-  try { return JSON.parse(localStorage.getItem(DONE_KEY) || '[]') } catch { return [] }
-}
+function pct(d,t) { return t>0 ? Math.round(d/t*100) : 0 }
 
-function pct(done, total) {
-  if (!total) return 0
-  return Math.round((done / total) * 100)
-}
-
-function MiniBar({ value, color }) {
+/* ─── Shared primitives ──────────────────────── */
+function CheckCircle({ done, onToggle, size=18 }) {
+  const [flash, setFlash] = useState(false)
+  function handle() {
+    setFlash(true); setTimeout(() => setFlash(false), 600); onToggle()
+  }
+  const filled = done || flash
   return (
-    <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
-      <div className={`h-full rounded-full transition-all duration-500 ${color}`} style={{ width: `${value}%` }} />
+    <button onClick={handle} style={{
+      width:size, height:size, borderRadius:'50%', flexShrink:0, cursor:'pointer',
+      border:`1.5px solid ${filled ? '#22c55e' : '#d4d4d8'}`,
+      background: filled ? '#22c55e' : 'transparent',
+      display:'flex', alignItems:'center', justifyContent:'center',
+      transition:'all .2s',
+    }}>
+      {filled && <Check size={size*0.5} strokeWidth={2.5} color="#fff" />}
+    </button>
+  )
+}
+
+function CounterBadge({ done, total, showPct, onToggle }) {
+  return (
+    <button onClick={onToggle} style={{
+      fontSize:11, fontWeight:600, color:'#a1a1aa',
+      background:'#F4F4F5', border:'none', cursor:'pointer',
+      padding:'2px 8px', borderRadius:99, transition:'color .15s',
+    }}>
+      {showPct ? `${pct(done,total)}%` : `${done}/${total}`}
+    </button>
+  )
+}
+
+function ThinBar({ done, total }) {
+  const p = pct(done, total)
+  return (
+    <div style={{ height:2, background:'#F4F4F5', borderRadius:2, overflow:'hidden', margin:'8px 0 0' }}>
+      <div style={{ height:'100%', width:`${p}%`, background: p===100 ? '#22c55e' : '#a1a1aa', borderRadius:2, transition:'width .4s ease' }} />
     </div>
   )
 }
 
-function ProgressCard({ icon: Icon, title, color, accent, to, goals, tasks, routinesToday, doneRoutines }) {
-  const goalsP   = pct(goals.filter(g => g.completed).length, goals.length)
-  const tasksP   = pct(tasks.filter(t => t.completed).length, tasks.length)
-  const routinesP = pct(doneRoutines.filter(id => routinesToday.some(r => r.id === id)).length, routinesToday.length)
-  const overall  = goals.length + tasks.length + routinesToday.length > 0
-    ? Math.round((goalsP + tasksP + routinesP) / 3)
-    : 0
-
+function SectionCard({ title, done, total, showPct, onToggleCounter, children }) {
   return (
-    <div className="bg-white rounded-2xl border border-zinc-100 shadow-card p-5 space-y-4">
-      <div className="flex items-center justify-between">
-        <div className={`flex items-center gap-2 text-sm font-semibold ${color}`}>
-          <Icon size={15} />{title}
+    <div style={{ background:'#fff', borderRadius:16, border:'1px solid #EBEBEB', overflow:'hidden', boxShadow:'0 1px 4px rgba(0,0,0,0.04)' }}>
+      <div style={{ padding:'14px 16px 0' }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+          <span style={{ fontSize:12, fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', color:'#3f3f46' }}>
+            {title}
+          </span>
+          {total > 0 && <CounterBadge done={done} total={total} showPct={showPct} onToggle={onToggleCounter} />}
         </div>
-        <div className="flex items-center gap-2">
-          <span className={`text-2xl font-bold ${color}`}>{overall}%</span>
-          {to && <Link to={to} className="text-[12px] text-zinc-400 hover:text-zinc-700">→</Link>}
-        </div>
+        {total > 0 && <ThinBar done={done} total={total} />}
       </div>
+      <div style={{ padding:'8px 16px 14px' }}>{children}</div>
+    </div>
+  )
+}
 
-      <div className="space-y-2.5">
-        {[
-          { label: 'Goals', value: goalsP, count: `${goals.filter(g => g.completed).length}/${goals.length}` },
-          { label: 'Tasks', value: tasksP, count: `${tasks.filter(t => t.completed).length}/${tasks.length}` },
-          { label: 'Rotinas', value: routinesP, count: `${doneRoutines.filter(id => routinesToday.some(r => r.id === id)).length}/${routinesToday.length}` },
-        ].map(({ label, value, count }) => (
-          <div key={label} className="space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] text-zinc-500 font-medium">{label}</span>
-              <span className="text-[11px] text-zinc-400">{count} · {value}%</span>
-            </div>
-            <MiniBar value={value} color={accent} />
-          </div>
+/* ─── Add Routine Form ───────────────────────── */
+function AddRoutineForm({ onSave, onCancel }) {
+  const [title, setTitle] = useState('')
+  const [days, setDays]   = useState([])
+  const [start, setStart] = useState('')
+  const [end, setEnd]     = useState('')
+  function toggleDay(k) { setDays(d => d.includes(k) ? d.filter(x=>x!==k) : [...d,k]) }
+  function save() { if (!title.trim()) return; onSave({ title, days, start_date: start||null, end_date: end||null }); onCancel() }
+  return (
+    <div style={{ marginTop:8, padding:'12px 14px', background:'#FAFAF8', borderRadius:12, border:'1px solid #EBEBEB' }}>
+      <input autoFocus value={title} onChange={e=>setTitle(e.target.value)}
+        placeholder="Nome da rotina…"
+        style={{ width:'100%', border:'none', borderBottom:'1px solid #E4E4E7', background:'transparent', fontSize:13, color:'#1a1a1a', padding:'2px 0 6px', outline:'none', marginBottom:10, boxSizing:'border-box' }}
+        onKeyDown={e => { if(e.key==='Enter') save(); if(e.key==='Escape') onCancel() }}
+      />
+      {/* Day pills */}
+      <div style={{ display:'flex', gap:4, marginBottom:10 }}>
+        {DAYS_PT.map(d => (
+          <button key={d.key} onClick={()=>toggleDay(d.key)}
+            style={{ width:26, height:26, borderRadius:'50%', border:'none', fontSize:11, fontWeight:700, cursor:'pointer',
+              background: days.includes(d.key) ? '#1a1a1a' : '#F4F4F5',
+              color: days.includes(d.key) ? '#fff' : '#71717a', transition:'all .15s' }}>
+            {d.label}
+          </button>
         ))}
       </div>
+      {/* Dates */}
+      <div style={{ display:'flex', gap:8, marginBottom:10, alignItems:'center' }}>
+        <input type="date" value={start} onChange={e=>setStart(e.target.value)}
+          style={{ border:'1px solid #E4E4E7', borderRadius:8, padding:'4px 8px', fontSize:12, color:'#3f3f46', outline:'none' }} />
+        <span style={{ color:'#a1a1aa', fontSize:12 }}>→</span>
+        <input type="date" value={end} onChange={e=>setEnd(e.target.value)}
+          style={{ border:'1px solid #E4E4E7', borderRadius:8, padding:'4px 8px', fontSize:12, color:'#3f3f46', outline:'none' }} />
+      </div>
+      {/* Actions */}
+      <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
+        <button onClick={onCancel} style={{ fontSize:12, color:'#a1a1aa', background:'none', border:'none', cursor:'pointer' }}>Cancelar</button>
+        <button onClick={save}
+          style={{ fontSize:12, fontWeight:700, color:'#fff', background: title.trim() ? '#1a1a1a' : '#d4d4d8',
+            border:'none', borderRadius:99, padding:'5px 14px', cursor: title.trim() ? 'pointer' : 'default', transition:'background .15s' }}>
+          Salvar
+        </button>
+      </div>
     </div>
   )
 }
 
-function RoutineList({ items, doneRoutines, onToggle, emptyText, badge, badgeColor, badgeLabel }) {
-  if (items.length === 0) return <p className="text-sm text-zinc-400">{emptyText}</p>
+/* ─── Routine row ────────────────────────────── */
+function RoutineRow({ routine, done, onToggle, onDelete }) {
+  const dot = SOURCE_DOT[routine.source] || '#a1a1aa'
+  const lbl = SOURCE_LABEL[routine.source] || 'D'
   return (
-    <ul className="space-y-2">
-      {items.map(r => {
-        const done = doneRoutines.includes(r.id)
-        return (
-          <li key={r.id} className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 min-w-0">
-              <button
-                onClick={() => onToggle(r.id)}
-                className={`flex-shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${done ? `${badgeColor} border-transparent` : 'border-zinc-300 hover:border-zinc-400'}`}
-              >
-                {done && <Check size={9} className="text-white" />}
-              </button>
-              <span className={`text-sm truncate ${done ? 'line-through text-zinc-400' : 'text-zinc-700'}`}>{r.title || '—'}</span>
-              <span className={`flex-shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-md ${badge}`}>{badgeLabel}</span>
-            </div>
-            {r.start_time && (
-              <span className="text-[11px] text-zinc-400 flex-shrink-0">
-                {r.start_time.slice(0, 5)}{r.end_time ? ` → ${r.end_time.slice(0, 5)}` : ''}
-              </span>
-            )}
-          </li>
-        )
-      })}
-    </ul>
+    <div style={{ display:'flex', alignItems:'center', gap:10, paddingTop:10 }}>
+      <CheckCircle done={done} onToggle={() => onToggle(routine.id, routine.source)} />
+      <span style={{ flex:1, fontSize:13, color: done ? '#a1a1aa' : '#1a1a1a', textDecoration: done ? 'line-through' : 'none', transition:'color .2s' }}>
+        {routine.title || '—'}
+      </span>
+      <span style={{ fontSize:9, fontWeight:800, letterSpacing:'0.08em', color: dot, background:`${dot}18`, padding:'2px 5px', borderRadius:99, flexShrink:0 }}>
+        {lbl}
+      </span>
+      {routine.source === 'dashboard' && (
+        <button onClick={()=>onDelete(routine.id)} style={{ background:'none', border:'none', cursor:'pointer', color:'#d4d4d8', padding:2 }}
+          onMouseEnter={e=>e.currentTarget.style.color='#ef4444'} onMouseLeave={e=>e.currentTarget.style.color='#d4d4d8'}>
+          <Trash2 size={12} />
+        </button>
+      )}
+    </div>
   )
 }
 
-export default function DayTab() {
-  const { t } = useTranslation()
-  const { goals: sGoals, tasks: sTasks, routines: sRoutines, loading: sLoading } = useSpirit()
-  const { goals: mGoals, tasks: mTasks, routines: mRoutines, loading: mLoading } = useMind()
-  const { goals: bGoals, tasks: bTasks, routines: bRoutines, loading: bLoading } = useBody()
-  const { tasks: weekTasks } = useWeek(getCurrentWeekPeriod())
-
-  const [doneRoutines, setDoneRoutines] = useState(() => getDone())
-
-  const loading = sLoading || mLoading || bLoading
-
-  function toggleRoutine(id) {
-    setDoneRoutines(prev => {
-      const next = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
-      localStorage.setItem(DONE_KEY, JSON.stringify(next))
-      return next
-    })
-  }
-
-  const spiritToday = sRoutines.filter(r => (r.days || []).includes(TODAY_KEY))
-  const mindToday   = mRoutines.filter(r => (r.days || []).includes(TODAY_KEY))
-  const bodyToday   = bRoutines.filter(r => (r.days || []).includes(TODAY_KEY))
-  const allRoutinesToday = [...spiritToday, ...mindToday, ...bodyToday]
-
-  const completedWeekTasks = weekTasks.filter(t => t.completed).length
-  const mainGoal = sGoals.find(g => !g.completed) || sGoals[0]
+/* ─── Task row (day tasks) ───────────────────── */
+function TaskRow({ task, subtasks, onToggle, onTitleChange, onDelete, onAddSub }) {
+  const [title, setTitle] = useState(task.title || '')
+  const [expanded, setExpanded] = useState(false)
+  const dirty = useRef(false)
+  useEffect(() => { setTitle(task.title || '') }, [task.id])
+  function flush() { if (dirty.current) { onTitleChange(task.id, title); dirty.current = false } }
 
   return (
-    <div className="space-y-6">
-      {/* ── To Do List ── */}
-      <div className="bg-white rounded-2xl border border-zinc-100 shadow-card p-5">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2 text-sm font-semibold text-zinc-700">
-            <ListTodo size={15} />{t('dashboard.day.todoList')}
-          </div>
-          <Link to="/dashboard" className="text-[12px] text-zinc-400 hover:text-zinc-700">→</Link>
+    <div style={{ paddingTop:10 }}>
+      <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+        <CheckCircle done={task.completed} onToggle={() => onToggle(task.id, { completed: !task.completed })} />
+        {subtasks.length > 0 && (
+          <button onClick={() => setExpanded(e=>!e)} style={{ background:'none', border:'none', cursor:'pointer', color:'#a1a1aa', padding:0, display:'flex' }}>
+            <ChevronRight size={12} style={{ transform: expanded ? 'rotate(90deg)' : 'none', transition:'transform .15s' }} />
+          </button>
+        )}
+        <input value={title} onChange={e=>{setTitle(e.target.value);dirty.current=true}} onBlur={flush}
+          onKeyDown={e=>e.key==='Enter'&&flush()}
+          placeholder="Nova tarefa…"
+          style={{ flex:1, border:'none', background:'transparent', fontSize:13, color: task.completed ? '#a1a1aa' : '#1a1a1a',
+            textDecoration: task.completed ? 'line-through' : 'none', outline:'none' }} />
+        <button onClick={()=>onAddSub(task.id)} title="Subtarefa"
+          style={{ background:'none', border:'none', cursor:'pointer', color:'#d4d4d8', padding:2 }}
+          onMouseEnter={e=>e.currentTarget.style.color='#71717a'} onMouseLeave={e=>e.currentTarget.style.color='#d4d4d8'}>
+          <Plus size={12} />
+        </button>
+        <button onClick={()=>onDelete(task.id)} style={{ background:'none', border:'none', cursor:'pointer', color:'#d4d4d8', padding:2 }}
+          onMouseEnter={e=>e.currentTarget.style.color='#ef4444'} onMouseLeave={e=>e.currentTarget.style.color='#d4d4d8'}>
+          <Trash2 size={12} />
+        </button>
+      </div>
+      {/* Subtasks */}
+      {(expanded || subtasks.length > 0) && subtasks.map(sub => (
+        <div key={sub.id} style={{ display:'flex', alignItems:'center', gap:8, paddingTop:6, paddingLeft:26 }}>
+          <CheckCircle done={sub.completed} onToggle={()=>onToggle(sub.id,{completed:!sub.completed})} size={14} />
+          <SubInput sub={sub} onChange={(id,v)=>onTitleChange(id,v)} onDelete={onDelete} />
         </div>
-        {weekTasks.length === 0
-          ? <p className="text-sm text-zinc-400">{t('dashboard.week.noTasks')}</p>
-          : (
-            <div className="space-y-2">
-              <ul className="space-y-1.5">
-                {weekTasks.slice(0, 6).map(task => (
-                  <li key={task.id} className="flex items-center gap-2">
-                    <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${task.completed ? 'bg-tabatinga' : 'bg-zinc-300'}`} />
-                    <span className={`text-sm ${task.completed ? 'line-through text-zinc-400' : 'text-zinc-700'}`}>{task.title || '—'}</span>
-                  </li>
-                ))}
-                {weekTasks.length > 6 && <li className="text-[12px] text-zinc-400 pl-3.5">+{weekTasks.length - 6}</li>}
-              </ul>
-              <div className="pt-1">
-                <div className="flex items-end justify-between mb-1">
-                  <span className="text-[11px] text-zinc-400">{completedWeekTasks}/{weekTasks.length} {t('dashboard.completed').toLowerCase()}</span>
-                  <span className="text-[11px] text-zinc-500 font-semibold">{pct(completedWeekTasks, weekTasks.length)}%</span>
-                </div>
-                <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-spirit rounded-full transition-all duration-500"
-                    style={{ width: `${pct(completedWeekTasks, weekTasks.length)}%` }} />
-                </div>
-              </div>
-            </div>
-          )
+      ))}
+    </div>
+  )
+}
+
+function SubInput({ sub, onChange, onDelete }) {
+  const [v, setV] = useState(sub.title || '')
+  const dirty = useRef(false)
+  useEffect(()=>{setV(sub.title||'')},[sub.id])
+  function flush() { if(dirty.current){onChange(sub.id,v);dirty.current=false} }
+  return (
+    <>
+      <input value={v} onChange={e=>{setV(e.target.value);dirty.current=true}} onBlur={flush}
+        placeholder="Subtarefa…"
+        style={{ flex:1, border:'none', background:'transparent', fontSize:12, color: sub.completed?'#a1a1aa':'#3f3f46',
+          textDecoration: sub.completed?'line-through':'none', outline:'none' }} />
+      <button onClick={()=>onDelete(sub.id)} style={{ background:'none', border:'none', cursor:'pointer', color:'#d4d4d8', padding:2 }}
+        onMouseEnter={e=>e.currentTarget.style.color='#ef4444'} onMouseLeave={e=>e.currentTarget.style.color='#d4d4d8'}>
+        <Trash2 size={11} />
+      </button>
+    </>
+  )
+}
+
+/* ─── Note area ──────────────────────────────── */
+function NoteArea({ content, onSave }) {
+  const [text, setText] = useState(content || '')
+  const timer = useRef(null)
+  useEffect(() => { setText(content || '') }, [content])
+  function handleChange(v) {
+    setText(v)
+    clearTimeout(timer.current)
+    timer.current = setTimeout(() => onSave(v), 800)
+  }
+  return (
+    <textarea value={text} onChange={e=>handleChange(e.target.value)}
+      placeholder="Pensamentos, reflexões, intenções para hoje…"
+      rows={5}
+      style={{ width:'100%', border:'none', background:'transparent', resize:'none', outline:'none',
+        fontSize:14, color:'#1a1a1a', lineHeight:1.8, fontFamily:'Georgia, serif', boxSizing:'border-box' }} />
+  )
+}
+
+/* ─── Add button ─────────────────────────────── */
+function AddBtn({ label, onClick }) {
+  return (
+    <button onClick={onClick}
+      style={{ display:'flex', alignItems:'center', gap:5, marginTop:12, fontSize:12, color:'#a1a1aa',
+        background:'none', border:'none', cursor:'pointer', padding:0, transition:'color .15s' }}
+      onMouseEnter={e=>e.currentTarget.style.color='#1a1a1a'}
+      onMouseLeave={e=>e.currentTarget.style.color='#a1a1aa'}>
+      <Plus size={13} />{label}
+    </button>
+  )
+}
+
+/* ─── Main DayTab ────────────────────────────── */
+export default function DayTab() {
+  const {
+    loading,
+    routinesToday, completions, toggleRoutine, addDashRoutine, deleteDashRoutine,
+    dayTasks, addDayTask, updateDayTask, deleteDayTask,
+    projTasks, toggleProjTask,
+    note, saveNote,
+  } = useDayDashboard()
+
+  const [showRPct,  setShowRPct]  = useState(false)
+  const [showTPct,  setShowTPct]  = useState(false)
+  const [showPPct,  setShowPPct]  = useState(false)
+  const [addingR,   setAddingR]   = useState(false)
+
+  if (loading) {
+    return <div style={{ textAlign:'center', padding:'60px 0', color:'#a1a1aa', fontSize:13 }}>Carregando…</div>
+  }
+
+  const rootTasks = dayTasks.filter(t => !t.parent_id)
+  const getSubs   = id => dayTasks.filter(t => t.parent_id === id)
+  const rDone     = routinesToday.filter(r => completions.has(r.id)).length
+  const tDone     = dayTasks.filter(t => !t.parent_id && t.completed).length
+  const pDone     = projTasks.filter(t => t.completed).length
+
+  async function handleAddTask() {
+    await addDayTask(null)
+  }
+
+  return (
+    <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+
+      {/* ── 1. ROTINAS ─────────────────────────── */}
+      <SectionCard title="Rotinas do Dia" done={rDone} total={routinesToday.length}
+        showPct={showRPct} onToggleCounter={() => setShowRPct(v=>!v)}>
+        {routinesToday.length === 0 && !addingR && (
+          <p style={{ fontSize:13, color:'#a1a1aa', margin:'8px 0 0' }}>
+            Adicione rotinas em Espírito, Mente ou Corpo — elas aparecem aqui.
+          </p>
+        )}
+        {routinesToday.map(r => (
+          <RoutineRow key={r.id} routine={r} done={completions.has(r.id)}
+            onToggle={toggleRoutine} onDelete={deleteDashRoutine} />
+        ))}
+        {addingR
+          ? <AddRoutineForm onSave={addDashRoutine} onCancel={() => setAddingR(false)} />
+          : <AddBtn label="Nova rotina" onClick={() => setAddingR(true)} />
         }
-      </div>
+      </SectionCard>
 
-      {/* ── Routines + Activities ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Spirit + Mind routines */}
-        <div className="bg-white rounded-2xl border border-zinc-100 shadow-card p-5">
-          <div className="flex items-center gap-2 text-sm font-semibold text-zinc-700 mb-4">
-            <Clock size={15} />{t('dashboard.day.routine')}
-          </div>
-          {loading
-            ? <p className="text-sm text-zinc-400">{t('common.loading')}</p>
-            : <RoutineList
-                items={[...spiritToday, ...mindToday]}
-                doneRoutines={doneRoutines}
-                onToggle={toggleRoutine}
-                emptyText={t('spirit.routine.noRoutines')}
-                badge="bg-[#1B3A5C]/10 text-spirit"
-                badgeColor="bg-spirit"
-                badgeLabel="S"
-              />
-          }
-        </div>
+      {/* ── 2. TAREFAS DO DIA ──────────────────── */}
+      <SectionCard title="Tarefas do Dia" done={tDone} total={rootTasks.length}
+        showPct={showTPct} onToggleCounter={() => setShowTPct(v=>!v)}>
+        {rootTasks.length === 0 && (
+          <p style={{ fontSize:13, color:'#a1a1aa', margin:'8px 0 0' }}>O que você vai fazer hoje?</p>
+        )}
+        {rootTasks.map(task => (
+          <TaskRow key={task.id} task={task} subtasks={getSubs(task.id)}
+            onToggle={(id, changes) => updateDayTask(id, changes)}
+            onTitleChange={(id, title) => updateDayTask(id, { title })}
+            onDelete={deleteDayTask}
+            onAddSub={addDayTask} />
+        ))}
+        <AddBtn label="Nova tarefa" onClick={handleAddTask} />
+      </SectionCard>
 
-        {/* Body routines as Activities */}
-        <div className="bg-white rounded-2xl border border-zinc-100 shadow-card p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2 text-sm font-semibold text-zinc-700">
-              <Zap size={15} />{t('dashboard.day.activities')}
+      {/* ── 3. PROJETOS ────────────────────────── */}
+      {projTasks.length > 0 && (
+        <SectionCard title="Projetos — Hoje" done={pDone} total={projTasks.length}
+          showPct={showPPct} onToggleCounter={() => setShowPPct(v=>!v)}>
+          {projTasks.map(task => (
+            <div key={task.id} style={{ display:'flex', alignItems:'center', gap:10, paddingTop:10 }}>
+              <CheckCircle done={task.completed} onToggle={() => toggleProjTask(task.id)} />
+              <span style={{ flex:1, fontSize:13, color: task.completed?'#a1a1aa':'#1a1a1a', textDecoration: task.completed?'line-through':'none' }}>
+                {task.title || '—'}
+              </span>
+              {task.projects?.title && (
+                <span style={{ fontSize:10, color:'#a1a1aa', flexShrink:0 }}>
+                  {task.projects.title}
+                </span>
+              )}
             </div>
-            <Link to="/body" className="text-[12px] text-zinc-400 hover:text-zinc-700">→</Link>
-          </div>
-          {loading
-            ? <p className="text-sm text-zinc-400">{t('common.loading')}</p>
-            : <RoutineList
-                items={bodyToday}
-                doneRoutines={doneRoutines}
-                onToggle={toggleRoutine}
-                emptyText={t('body.routine.noRoutines')}
-                badge="bg-[#2D5016]/10 text-body"
-                badgeColor="bg-body"
-                badgeLabel="B"
-              />
-          }
-        </div>
-      </div>
-
-      {/* ── Main Goal ── */}
-      {!loading && mainGoal && (
-        <div className="bg-white rounded-2xl border border-zinc-100 shadow-card p-5 border-l-4 border-l-spirit">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2 text-sm font-semibold text-spirit">
-              <Target size={15} />{t('dashboard.day.mainGoal')}
-            </div>
-            <Link to="/spirit" className="text-[12px] text-zinc-400 hover:text-zinc-700">→</Link>
-          </div>
-          <p className="text-sm font-semibold text-zinc-800">{mainGoal.title || t('spirit.goals.goalTitle')}</p>
-          {mainGoal.why && <p className="text-sm text-zinc-500 mt-1">{mainGoal.why}</p>}
-        </div>
+          ))}
+        </SectionCard>
       )}
 
-      {/* ── Progress ── */}
-      {!loading && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <ProgressCard
-            icon={Sparkles} title={t('nav.spirit')} color="text-spirit" accent="bg-spirit" to="/spirit"
-            goals={sGoals} tasks={sTasks} routinesToday={spiritToday} doneRoutines={doneRoutines}
-          />
-          <ProgressCard
-            icon={Brain} title={t('nav.mind')} color="text-mind" accent="bg-mind" to="/mind"
-            goals={mGoals} tasks={mTasks} routinesToday={mindToday} doneRoutines={doneRoutines}
-          />
-          <ProgressCard
-            icon={Dumbbell} title={t('nav.body')} color="text-body" accent="bg-body" to="/body"
-            goals={bGoals} tasks={bTasks} routinesToday={bodyToday} doneRoutines={doneRoutines}
-          />
+      {/* ── 4. NOTAS DO DIA ────────────────────── */}
+      <SectionCard title="Notas do Dia" done={0} total={0} showPct={false} onToggleCounter={()=>{}}>
+        <div style={{ paddingTop:8 }}>
+          <NoteArea content={note.content} onSave={saveNote} />
         </div>
-      )}
+      </SectionCard>
+
     </div>
   )
 }

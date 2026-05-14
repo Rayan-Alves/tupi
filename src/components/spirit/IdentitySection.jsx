@@ -6,7 +6,7 @@ import { useAuth } from '../../contexts/AuthContext'
 
 const ARCH_RADIUS = '50% 50% 20px 20px / 28% 28% 20px 20px'
 
-function ArchCard({ chapter, chapterLabel, title, description, color, soft, percent, locked, lockedLabel, ctaLabel, icon: Icon, onClick }) {
+function ArchCard({ chapter, chapterLabel, title, description, color, soft, count, locked, lockedLabel, ctaLabel, entriesLabel, icon: Icon, onClick }) {
   const [hover, setHover] = useState(false)
   return (
     <button
@@ -62,20 +62,17 @@ function ArchCard({ chapter, chapterLabel, title, description, color, soft, perc
         {description}
       </p>
 
-      {/* Footer: progress OR locked pill */}
+      {/* Footer: count + CTA, or locked pill */}
       {locked ? (
         <div className="text-[10px] tracking-[0.18em] uppercase text-zinc-500 border border-zinc-300 rounded-full px-3 py-1.5">
           {lockedLabel}
         </div>
       ) : (
         <div className="flex items-center gap-3 w-full px-2">
-          <span className="text-[11px] font-semibold tabular-nums" style={{ color }}>{percent}%</span>
-          <div className="flex-1 h-px bg-zinc-200 relative overflow-hidden rounded-full">
-            <div
-              className="absolute inset-y-0 left-0 rounded-full transition-all duration-500"
-              style={{ width: `${percent}%`, background: color }}
-            />
-          </div>
+          <span className="text-[11px] font-semibold tabular-nums whitespace-nowrap" style={{ color: count > 0 ? color : '#a1a1aa' }}>
+            {count > 0 ? `${count} ${entriesLabel}` : '—'}
+          </span>
+          <div className="flex-1 h-px" style={{ background: `${color}33` }} />
           <span className="text-[10px] tracking-[0.18em] uppercase text-zinc-700 whitespace-nowrap">
             {ctaLabel} →
           </span>
@@ -102,9 +99,6 @@ export default function IdentitySection() {
     })
   }, [user?.id])
 
-  const pastPercent    = Math.min(100, pastCount    * 25)
-  const presentPercent = Math.min(100, presentCount * 25)
-
   return (
     <section>
       {/* Section header */}
@@ -130,7 +124,8 @@ export default function IdentitySection() {
           description="The moments and people that shaped the person you are becoming."
           color="#B8703A"
           soft="#F0DCC8"
-          percent={pastPercent}
+          count={pastCount}
+          entriesLabel={pastCount === 1 ? 'entry' : 'entries'}
           ctaLabel={pastCount > 0 ? 'Open' : 'Enter'}
           icon={Clock}
           onClick={() => navigate('/passado')}
@@ -142,7 +137,8 @@ export default function IdentitySection() {
           description="The values, beliefs and patterns that make up your present self."
           color="#6E6EB5"
           soft="#DFDFF0"
-          percent={presentPercent}
+          count={presentCount}
+          entriesLabel={presentCount === 1 ? 'entry' : 'entries'}
           ctaLabel={presentCount > 0 ? 'Open' : 'Enter'}
           icon={User}
           onClick={() => navigate('/presente')}
