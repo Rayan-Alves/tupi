@@ -229,7 +229,12 @@
         "Continuous learning",
         "Security",
         "Personal fulfillment"
-      ]
+      ],
+      "sectionHeader": "WHO I AM · 01",
+      "title": "My personal values",
+      "subtitle": "The compass you return to when life feels unclear.",
+      "addValue": "Add a value",
+      "represent": "WHAT DOES THIS REPRESENT TO ME?"
     },
     "direction": "Direction",
     "whereIAm": {

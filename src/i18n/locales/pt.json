@@ -229,7 +229,12 @@
         "Aprendizado contínuo",
         "Segurança",
         "Realização pessoal"
-      ]
+      ],
+      "sectionHeader": "QUEM SOU EU · 01",
+      "title": "Meus valores pessoais",
+      "subtitle": "A bússola para onde você volta quando a vida parece incerta.",
+      "addValue": "Adicionar valor",
+      "represent": "O QUE ISSO REPRESENTA PARA MIM?"
     },
     "direction": "Direção",
     "whereIAm": {

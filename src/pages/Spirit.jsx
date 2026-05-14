@@ -76,69 +76,87 @@ function ValueCard({ card, presets, onSave, onDelete, t }) {
     setTimeout(() => setStatus('clean'), 2500)
   }
 
-  const saveStyles = {
-    clean:  'bg-zinc-100 text-zinc-400 cursor-default',
-    dirty:  'bg-spirit hover:bg-[#152e4a] text-white shadow-sm cursor-pointer',
-    saving: 'bg-[#3a6490] text-white cursor-wait',
-    saved:  'bg-emerald-500 text-white cursor-default',
-  }
-  const saveLabels = { clean: t('common.saved'), dirty: t('common.saving').replace('…','') || 'Save', saving: t('common.saving'), saved: '✓ ' + t('common.saved') }
+  const DragHandle = () => (
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-zinc-300">
+      <circle cx="4" cy="4" r="1.5" fill="currentColor"/>
+      <circle cx="4" cy="8" r="1.5" fill="currentColor"/>
+      <circle cx="4" cy="12" r="1.5" fill="currentColor"/>
+      <circle cx="12" cy="4" r="1.5" fill="currentColor"/>
+      <circle cx="12" cy="8" r="1.5" fill="currentColor"/>
+      <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+    </svg>
+  );
 
   return (
-    <div className="spirit-card p-4 flex flex-col gap-3 relative">
-      <button onClick={() => onDelete(card.id)} className="absolute top-3 right-3 text-zinc-300 hover:text-red-400 transition-colors">
-        <X size={13} />
-      </button>
+    <div className="bg-white rounded-3xl p-6 shadow-sm flex flex-col relative transition-all duration-200 hover:shadow-md border border-black/5">
+      {/* Top action icons */}
+      <div className="flex justify-between items-start mb-2">
+        <button className="cursor-grab active:cursor-grabbing text-zinc-300 hover:text-zinc-500">
+          <DragHandle />
+        </button>
+        <button onClick={() => onDelete(card.id)} className="text-zinc-300 hover:text-red-400 transition-colors p-1 -mr-2 -mt-2">
+          <X size={14} strokeWidth={2} />
+        </button>
+      </div>
 
-      {/* Dropdown */}
-      <select
-        value={selected}
-        onChange={e => mark(e.target.value)}
-        className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm text-zinc-800 focus:border-spirit focus:ring-1 focus:ring-spirit/20 transition-all bg-white pr-8"
-      >
-        <option value="">{t('spirit.values.selectPlaceholder')}</option>
-        {presets.map(v => (
-          <option key={v} value={v}>{v}</option>
-        ))}
-        <option value="__custom__">{t('spirit.values.customOption')}</option>
-      </select>
-
-      {/* Custom input shown when "other" selected */}
-      {selected === '__custom__' && (
-        <input
-          type="text"
-          value={custom}
-          onChange={e => { setCustom(e.target.value); setStatus('dirty') }}
-          placeholder={t('spirit.values.customPlaceholder')}
-          className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm text-zinc-800 placeholder-zinc-400 focus:border-spirit focus:ring-1 focus:ring-spirit/20 transition-all"
-          autoFocus
-        />
-      )}
+      {/* Value Title input */}
+      <div className="mb-4">
+        <select
+          value={selected}
+          onChange={e => mark(e.target.value)}
+          className="w-full bg-transparent border-0 p-0 text-[32px] font-display text-[#2D2A26] focus:ring-0 cursor-pointer appearance-none outline-none leading-none tracking-tight"
+          style={{ backgroundImage: 'none' }}
+        >
+          <option value="" disabled>{t('spirit.values.selectPlaceholder')}</option>
+          {presets.map(v => (
+            <option key={v} value={v}>{v}</option>
+          ))}
+          <option value="__custom__">{t('spirit.values.customOption')}</option>
+        </select>
+        
+        {selected === '__custom__' && (
+          <input
+            type="text"
+            value={custom}
+            onChange={e => { setCustom(e.target.value); setStatus('dirty') }}
+            placeholder={t('spirit.values.customPlaceholder')}
+            className="w-full mt-2 border-b border-zinc-200 bg-transparent px-0 py-1 text-lg font-display text-zinc-800 placeholder-zinc-400 focus:border-spirit focus:ring-0 transition-all outline-none"
+            autoFocus
+          />
+        )}
+      </div>
 
       {/* Divider */}
-      <div className="border-t border-zinc-100" />
+      <div className="h-px bg-zinc-100 w-full mb-5" />
 
-      {/* Meaning */}
-      <div>
-        <label className="field-label mb-1">{t('spirit.values.meaning')}</label>
+      {/* Meaning text */}
+      <div className="flex-1 flex flex-col">
+        <label className="text-[10px] font-bold tracking-[0.15em] text-zinc-400 uppercase mb-3">
+          {t('spirit.values.represent')}
+        </label>
         <textarea
           ref={textRef}
           value={meaning}
           onChange={e => { setMeaning(e.target.value); setStatus('dirty') }}
           placeholder={t('spirit.values.meaningPlaceholder')}
-          rows={1}
-          className="auto-textarea"
+          rows={2}
+          className="w-full bg-transparent border-0 p-0 text-[15px] text-[#2D2A26] focus:ring-0 resize-none outline-none leading-relaxed"
         />
       </div>
 
-      {/* Save */}
-      <div className="flex justify-end">
+      {/* Save button */}
+      <div className="flex justify-end mt-6">
         <button
           onClick={status === 'dirty' ? handleSave : undefined}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${saveStyles[status]}`}
+          className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[13px] font-medium transition-all duration-200 border
+            ${(status === 'clean' || status === 'saved') ? 'bg-white border-zinc-200 text-zinc-500' : ''}
+            ${status === 'dirty' ? 'bg-[#2D2A26] border-[#2D2A26] text-white hover:bg-black cursor-pointer shadow-sm' : ''}
+            ${status === 'saving' ? 'bg-zinc-50 border-zinc-200 text-zinc-400 cursor-wait' : ''}
+          `}
         >
-          <Save size={11} />
-          {status === 'dirty' ? 'Salvar' : status === 'saving' ? t('common.saving') : status === 'saved' ? '✓ Salvo' : 'Salvo'}
+          {(status === 'saved' || status === 'clean') && <Check size={13} strokeWidth={2.5} />}
+          {status === 'dirty' && <Save size={13} strokeWidth={2} />}
+          {status === 'clean' ? t('common.saved') : status === 'saving' ? t('common.saving') : status === 'saved' ? t('common.saved') : t('common.saving').replace('…','') || 'Save'}
         </button>
       </div>
     </div>
@@ -633,14 +651,27 @@ export default function Spirit() {
         </div>
 
         {/* Values grid */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <span className="field-label text-sm font-semibold text-zinc-600">{t('spirit.values.label')}</span>
-            <button onClick={addValueCard} className="btn-primary flex-shrink-0">
-              {t('spirit.values.add')}
-            </button>
+        <div className="bg-[#F5F0E8] rounded-3xl p-8 mt-6">
+          <div className="mb-8">
+            <div className="flex items-center gap-4 mb-3">
+              <span className="text-[10px] font-bold tracking-[0.15em] text-zinc-500 uppercase">{t('spirit.values.sectionHeader')}</span>
+              <div className="h-px bg-zinc-300 flex-1 max-w-[100px]"></div>
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+              <div>
+                <h2 className="font-display text-4xl font-semibold text-[#2D2A26] mb-1">{t('spirit.values.title')}</h2>
+                <p className="text-[#5C5C5C] text-sm">{t('spirit.values.subtitle')}</p>
+              </div>
+              <button 
+                onClick={addValueCard} 
+                className="flex items-center gap-1.5 px-4 py-2 bg-white border border-zinc-200 rounded-full text-sm font-medium text-zinc-800 hover:bg-zinc-50 transition-colors shadow-sm flex-shrink-0"
+              >
+                <Plus size={14} /> {t('spirit.values.addValue')}
+              </button>
+            </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {valueCards.map(card => (
               <ValueCard
                 key={card.id}

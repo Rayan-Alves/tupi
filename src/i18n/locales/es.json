@@ -229,7 +229,12 @@
         "Aprendizaje continuo",
         "Seguridad",
         "Realización personal"
-      ]
+      ],
+      "sectionHeader": "QUIÉN SOY · 01",
+      "title": "Mis valores personales",
+      "subtitle": "La brújula a la que vuelves cuando la vida parece incierta.",
+      "addValue": "Añadir valor",
+      "represent": "¿QUÉ REPRESENTA ESTO PARA MÍ?"
     },
     "direction": "Dirección",
     "whereIAm": {
