@@ -255,21 +255,35 @@ function SubRow({ sub, onToggle, onChange, onDelete, t }) {
   )
 }
 
+const PHASE_LABEL = { soil: 'Semente', plant: 'Plantando', water: 'Crescendo', harvest: 'Colheita' }
+const PHASE_COLOR = { soil: '#C8841A', plant: '#3B6D11', water: '#3B6DC4', harvest: '#D4890A' }
+
 function ProjectRow({ task, onToggle }) {
+  const phaseLabel = PHASE_LABEL[task.phase] || task.phase
+  const phaseColor = PHASE_COLOR[task.phase] || '#a1a1aa'
   return (
-    <div className="flex items-center gap-3 py-2.5">
+    <div className="flex items-center gap-3 py-2.5 border-b border-zinc-50 last:border-0">
       <CheckCircle done={task.completed} onToggle={() => onToggle(task.id)} />
       <span className={`flex-1 text-[14px] ${task.completed ? 'text-zinc-400 line-through' : 'text-zinc-800'}`}>
         {task.title || '—'}
       </span>
-      {task.projects?.title && (
-        <span className="text-[11px] text-zinc-400 flex-shrink-0 italic">
-          {task.projects.title}
-        </span>
-      )}
+      <div className="flex items-center gap-1.5 flex-shrink-0">
+        {task.projects?.title && (
+          <span className="text-[10px] text-zinc-400 italic">{task.projects.title}</span>
+        )}
+        {task.phase && (
+          <span
+            className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+            style={{ color: phaseColor, background: `${phaseColor}18` }}
+          >
+            {phaseLabel}
+          </span>
+        )}
+      </div>
     </div>
   )
 }
+
 
 function NoteArea({ content, onSave, placeholder }) {
   const [text, setText] = useState(content || '')
