@@ -1,147 +1,181 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Plus, Check, Trash2, ChevronRight } from 'lucide-react'
-import { useDayDashboard, TODAY_KEY } from '../../hooks/useDayDashboard'
+import { useTranslation } from 'react-i18next'
+import { format } from 'date-fns'
+import { ptBR, enUS, es } from 'date-fns/locale'
+import { useDayDashboard } from '../../hooks/useDayDashboard'
 
-/* ─── helpers ─────────────────────────────────── */
-const SOURCE_DOT = { spirit:'#1B3A5C', mind:'#D4890A', body:'#2D5016', dashboard:'#a1a1aa' }
-const SOURCE_LABEL = { spirit:'S', mind:'M', body:'B', dashboard:'D' }
-const DAYS_PT = [
-  { key:'sun',label:'D' },{ key:'mon',label:'S' },{ key:'tue',label:'T' },
-  { key:'wed',label:'Q' },{ key:'thu',label:'Q' },{ key:'fri',label:'S' },{ key:'sat',label:'S' },
-]
+const SOURCE_COLOR = {
+  spirit:    '#5a8ab8',
+  mind:      '#d4890a',
+  body:      '#6aaa30',
+  dashboard: '#c4c4c4',
+}
+const DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
+const pct = (d, t) => (t > 0 ? Math.round((d / t) * 100) : 0)
 
-function pct(d,t) { return t>0 ? Math.round(d/t*100) : 0 }
+/* ── Primitives ───────────────────────────── */
 
-/* ─── Shared primitives ──────────────────────── */
-function CheckCircle({ done, onToggle, size=18 }) {
+function CheckCircle({ done, onToggle, size = 18 }) {
   const [flash, setFlash] = useState(false)
   function handle() {
-    setFlash(true); setTimeout(() => setFlash(false), 600); onToggle()
+    setFlash(true); setTimeout(() => setFlash(false), 400); onToggle()
   }
   const filled = done || flash
   return (
-    <button onClick={handle} style={{
-      width:size, height:size, borderRadius:'50%', flexShrink:0, cursor:'pointer',
-      border:`1.5px solid ${filled ? '#22c55e' : '#d4d4d8'}`,
-      background: filled ? '#22c55e' : 'transparent',
-      display:'flex', alignItems:'center', justifyContent:'center',
-      transition:'all .2s',
-    }}>
-      {filled && <Check size={size*0.5} strokeWidth={2.5} color="#fff" />}
+    <button
+      onClick={handle}
+      className="flex-shrink-0 flex items-center justify-center rounded-full transition-all"
+      style={{
+        width: size, height: size,
+        border: `1.5px solid ${filled ? '#10b981' : '#dadada'}`,
+        background: filled ? '#10b981' : 'transparent',
+      }}
+    >
+      {filled && <Check size={size * 0.55} strokeWidth={2.5} color="#fff" />}
     </button>
   )
 }
 
-function CounterBadge({ done, total, showPct, onToggle }) {
+function Counter({ done, total, asPct, onToggle }) {
+  if (total === 0) return null
   return (
-    <button onClick={onToggle} style={{
-      fontSize:11, fontWeight:600, color:'#a1a1aa',
-      background:'#F4F4F5', border:'none', cursor:'pointer',
-      padding:'2px 8px', borderRadius:99, transition:'color .15s',
-    }}>
-      {showPct ? `${pct(done,total)}%` : `${done}/${total}`}
+    <button
+      onClick={onToggle}
+      className="text-[11px] tabular-nums font-medium text-zinc-400 hover:text-zinc-700 bg-zinc-50 hover:bg-zinc-100 rounded-full px-2.5 py-1 transition-colors"
+    >
+      {asPct ? `${pct(done, total)}%` : `${done} / ${total}`}
     </button>
   )
 }
 
-function ThinBar({ done, total }) {
-  const p = pct(done, total)
+function Section({ title, counter, children }) {
   return (
-    <div style={{ height:2, background:'#F4F4F5', borderRadius:2, overflow:'hidden', margin:'8px 0 0' }}>
-      <div style={{ height:'100%', width:`${p}%`, background: p===100 ? '#22c55e' : '#a1a1aa', borderRadius:2, transition:'width .4s ease' }} />
-    </div>
-  )
-}
-
-function SectionCard({ title, done, total, showPct, onToggleCounter, children }) {
-  return (
-    <div style={{ background:'#fff', borderRadius:16, border:'1px solid #EBEBEB', overflow:'hidden', boxShadow:'0 1px 4px rgba(0,0,0,0.04)' }}>
-      <div style={{ padding:'14px 16px 0' }}>
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-          <span style={{ fontSize:12, fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', color:'#3f3f46' }}>
-            {title}
-          </span>
-          {total > 0 && <CounterBadge done={done} total={total} showPct={showPct} onToggle={onToggleCounter} />}
-        </div>
-        {total > 0 && <ThinBar done={done} total={total} />}
+    <section className="bg-white rounded-3xl border border-zinc-100 px-7 py-6">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="font-display text-[22px] font-medium text-zinc-900 tracking-tight">{title}</h2>
+        {counter}
       </div>
-      <div style={{ padding:'8px 16px 14px' }}>{children}</div>
-    </div>
+      {children}
+    </section>
   )
 }
 
-/* ─── Add Routine Form ───────────────────────── */
-function AddRoutineForm({ onSave, onCancel }) {
+function AddBtn({ label, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex items-center gap-1.5 mt-4 text-[12px] text-zinc-400 hover:text-zinc-900 transition-colors"
+    >
+      <Plus size={13} strokeWidth={2} />{label}
+    </button>
+  )
+}
+
+/* ── Add Routine Form ─────────────────────── */
+
+function AddRoutineForm({ onSave, onCancel, t }) {
   const [title, setTitle] = useState('')
   const [days, setDays]   = useState([])
   const [start, setStart] = useState('')
   const [end, setEnd]     = useState('')
-  function toggleDay(k) { setDays(d => d.includes(k) ? d.filter(x=>x!==k) : [...d,k]) }
-  function save() { if (!title.trim()) return; onSave({ title, days, start_date: start||null, end_date: end||null }); onCancel() }
+
+  function toggleDay(k) { setDays(d => d.includes(k) ? d.filter(x => x !== k) : [...d, k]) }
+  function save() {
+    if (!title.trim()) return
+    onSave({ title, days, start_date: start || null, end_date: end || null })
+    onCancel()
+  }
+
   return (
-    <div style={{ marginTop:8, padding:'12px 14px', background:'#FAFAF8', borderRadius:12, border:'1px solid #EBEBEB' }}>
-      <input autoFocus value={title} onChange={e=>setTitle(e.target.value)}
-        placeholder="Nome da rotina…"
-        style={{ width:'100%', border:'none', borderBottom:'1px solid #E4E4E7', background:'transparent', fontSize:13, color:'#1a1a1a', padding:'2px 0 6px', outline:'none', marginBottom:10, boxSizing:'border-box' }}
-        onKeyDown={e => { if(e.key==='Enter') save(); if(e.key==='Escape') onCancel() }}
+    <div className="mt-4 p-4 bg-zinc-50 rounded-2xl space-y-3">
+      <input
+        autoFocus
+        value={title}
+        onChange={e => setTitle(e.target.value)}
+        placeholder={t('dashboard.day.routinePlaceholder')}
+        className="w-full bg-transparent border-0 border-b border-zinc-200 outline-none text-sm text-zinc-900 placeholder-zinc-400 pb-2"
+        onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') onCancel() }}
       />
-      {/* Day pills */}
-      <div style={{ display:'flex', gap:4, marginBottom:10 }}>
-        {DAYS_PT.map(d => (
-          <button key={d.key} onClick={()=>toggleDay(d.key)}
-            style={{ width:26, height:26, borderRadius:'50%', border:'none', fontSize:11, fontWeight:700, cursor:'pointer',
-              background: days.includes(d.key) ? '#1a1a1a' : '#F4F4F5',
-              color: days.includes(d.key) ? '#fff' : '#71717a', transition:'all .15s' }}>
-            {d.label}
-          </button>
-        ))}
+      <div className="flex gap-1.5">
+        {DAY_KEYS.map(k => {
+          const active = days.includes(k)
+          return (
+            <button
+              key={k}
+              onClick={() => toggleDay(k)}
+              className={`w-7 h-7 rounded-full text-[10px] font-bold transition-all ${
+                active ? 'bg-zinc-900 text-white' : 'bg-white text-zinc-400 hover:bg-zinc-100 border border-zinc-200'
+              }`}
+            >
+              {t(`spirit.tasks.days.${k}`).charAt(0).toUpperCase()}
+            </button>
+          )
+        })}
       </div>
-      {/* Dates */}
-      <div style={{ display:'flex', gap:8, marginBottom:10, alignItems:'center' }}>
-        <input type="date" value={start} onChange={e=>setStart(e.target.value)}
-          style={{ border:'1px solid #E4E4E7', borderRadius:8, padding:'4px 8px', fontSize:12, color:'#3f3f46', outline:'none' }} />
-        <span style={{ color:'#a1a1aa', fontSize:12 }}>→</span>
-        <input type="date" value={end} onChange={e=>setEnd(e.target.value)}
-          style={{ border:'1px solid #E4E4E7', borderRadius:8, padding:'4px 8px', fontSize:12, color:'#3f3f46', outline:'none' }} />
+      <div className="flex items-center gap-2">
+        <input
+          type="date"
+          value={start}
+          onChange={e => setStart(e.target.value)}
+          className="text-xs border border-zinc-200 rounded-lg px-2 py-1 text-zinc-600 outline-none bg-white"
+        />
+        <span className="text-zinc-300 text-xs">→</span>
+        <input
+          type="date"
+          value={end}
+          onChange={e => setEnd(e.target.value)}
+          className="text-xs border border-zinc-200 rounded-lg px-2 py-1 text-zinc-600 outline-none bg-white"
+        />
       </div>
-      {/* Actions */}
-      <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
-        <button onClick={onCancel} style={{ fontSize:12, color:'#a1a1aa', background:'none', border:'none', cursor:'pointer' }}>Cancelar</button>
-        <button onClick={save}
-          style={{ fontSize:12, fontWeight:700, color:'#fff', background: title.trim() ? '#1a1a1a' : '#d4d4d8',
-            border:'none', borderRadius:99, padding:'5px 14px', cursor: title.trim() ? 'pointer' : 'default', transition:'background .15s' }}>
-          Salvar
+      <div className="flex justify-end gap-3 pt-1">
+        <button onClick={onCancel} className="text-xs text-zinc-400 hover:text-zinc-700 transition-colors">
+          {t('common.cancel')}
+        </button>
+        <button
+          onClick={save}
+          disabled={!title.trim()}
+          className={`text-xs font-semibold px-3.5 py-1.5 rounded-full transition-all ${
+            title.trim()
+              ? 'bg-zinc-900 text-white hover:bg-zinc-700 cursor-pointer'
+              : 'bg-zinc-200 text-zinc-400 cursor-not-allowed'
+          }`}
+        >
+          {t('dashboard.day.saveRoutine')}
         </button>
       </div>
     </div>
   )
 }
 
-/* ─── Routine row ────────────────────────────── */
+/* ── Rows ─────────────────────────────────── */
+
 function RoutineRow({ routine, done, onToggle, onDelete }) {
-  const dot = SOURCE_DOT[routine.source] || '#a1a1aa'
-  const lbl = SOURCE_LABEL[routine.source] || 'D'
+  const dotColor = SOURCE_COLOR[routine.source] || SOURCE_COLOR.dashboard
   return (
-    <div style={{ display:'flex', alignItems:'center', gap:10, paddingTop:10 }}>
+    <div className="group flex items-center gap-3 py-2.5">
       <CheckCircle done={done} onToggle={() => onToggle(routine.id, routine.source)} />
-      <span style={{ flex:1, fontSize:13, color: done ? '#a1a1aa' : '#1a1a1a', textDecoration: done ? 'line-through' : 'none', transition:'color .2s' }}>
+      <span className={`flex-1 text-[14px] transition-colors ${done ? 'text-zinc-400 line-through' : 'text-zinc-800'}`}>
         {routine.title || '—'}
       </span>
-      <span style={{ fontSize:9, fontWeight:800, letterSpacing:'0.08em', color: dot, background:`${dot}18`, padding:'2px 5px', borderRadius:99, flexShrink:0 }}>
-        {lbl}
-      </span>
+      <span
+        style={{ background: dotColor }}
+        className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+        title={routine.source}
+      />
       {routine.source === 'dashboard' && (
-        <button onClick={()=>onDelete(routine.id)} style={{ background:'none', border:'none', cursor:'pointer', color:'#d4d4d8', padding:2 }}
-          onMouseEnter={e=>e.currentTarget.style.color='#ef4444'} onMouseLeave={e=>e.currentTarget.style.color='#d4d4d8'}>
-          <Trash2 size={12} />
+        <button
+          onClick={() => onDelete(routine.id)}
+          className="opacity-0 group-hover:opacity-100 text-zinc-300 hover:text-red-500 transition-all"
+        >
+          <Trash2 size={13} />
         </button>
       )}
     </div>
   )
 }
 
-/* ─── Task row (day tasks) ───────────────────── */
-function TaskRow({ task, subtasks, onToggle, onTitleChange, onDelete, onAddSub }) {
+function TaskRow({ task, subtasks, onToggle, onTitleChange, onDelete, onAddSub, t }) {
   const [title, setTitle] = useState(task.title || '')
   const [expanded, setExpanded] = useState(false)
   const dirty = useRef(false)
@@ -149,61 +183,95 @@ function TaskRow({ task, subtasks, onToggle, onTitleChange, onDelete, onAddSub }
   function flush() { if (dirty.current) { onTitleChange(task.id, title); dirty.current = false } }
 
   return (
-    <div style={{ paddingTop:10 }}>
-      <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+    <div className="group">
+      <div className="flex items-center gap-2 py-2.5">
         <CheckCircle done={task.completed} onToggle={() => onToggle(task.id, { completed: !task.completed })} />
         {subtasks.length > 0 && (
-          <button onClick={() => setExpanded(e=>!e)} style={{ background:'none', border:'none', cursor:'pointer', color:'#a1a1aa', padding:0, display:'flex' }}>
-            <ChevronRight size={12} style={{ transform: expanded ? 'rotate(90deg)' : 'none', transition:'transform .15s' }} />
+          <button
+            onClick={() => setExpanded(e => !e)}
+            className="text-zinc-400 hover:text-zinc-700 transition-colors -ml-1"
+          >
+            <ChevronRight
+              size={13}
+              style={{ transform: expanded ? 'rotate(90deg)' : 'none', transition: 'transform .15s' }}
+            />
           </button>
         )}
-        <input value={title} onChange={e=>{setTitle(e.target.value);dirty.current=true}} onBlur={flush}
-          onKeyDown={e=>e.key==='Enter'&&flush()}
-          placeholder="Nova tarefa…"
-          style={{ flex:1, border:'none', background:'transparent', fontSize:13, color: task.completed ? '#a1a1aa' : '#1a1a1a',
-            textDecoration: task.completed ? 'line-through' : 'none', outline:'none' }} />
-        <button onClick={()=>onAddSub(task.id)} title="Subtarefa"
-          style={{ background:'none', border:'none', cursor:'pointer', color:'#d4d4d8', padding:2 }}
-          onMouseEnter={e=>e.currentTarget.style.color='#71717a'} onMouseLeave={e=>e.currentTarget.style.color='#d4d4d8'}>
-          <Plus size={12} />
+        <input
+          value={title}
+          onChange={e => { setTitle(e.target.value); dirty.current = true }}
+          onBlur={flush}
+          onKeyDown={e => e.key === 'Enter' && flush()}
+          placeholder={t('dashboard.day.taskPlaceholder')}
+          className={`flex-1 bg-transparent border-0 outline-none text-[14px] ${
+            task.completed ? 'text-zinc-400 line-through' : 'text-zinc-800'
+          }`}
+        />
+        <button
+          onClick={() => onAddSub(task.id)}
+          title={t('dashboard.day.addSubtask')}
+          className="opacity-0 group-hover:opacity-100 text-zinc-300 hover:text-zinc-700 transition-all"
+        >
+          <Plus size={13} />
         </button>
-        <button onClick={()=>onDelete(task.id)} style={{ background:'none', border:'none', cursor:'pointer', color:'#d4d4d8', padding:2 }}
-          onMouseEnter={e=>e.currentTarget.style.color='#ef4444'} onMouseLeave={e=>e.currentTarget.style.color='#d4d4d8'}>
-          <Trash2 size={12} />
+        <button
+          onClick={() => onDelete(task.id)}
+          className="opacity-0 group-hover:opacity-100 text-zinc-300 hover:text-red-500 transition-all"
+        >
+          <Trash2 size={13} />
         </button>
       </div>
-      {/* Subtasks */}
       {(expanded || subtasks.length > 0) && subtasks.map(sub => (
-        <div key={sub.id} style={{ display:'flex', alignItems:'center', gap:8, paddingTop:6, paddingLeft:26 }}>
-          <CheckCircle done={sub.completed} onToggle={()=>onToggle(sub.id,{completed:!sub.completed})} size={14} />
-          <SubInput sub={sub} onChange={(id,v)=>onTitleChange(id,v)} onDelete={onDelete} />
-        </div>
+        <SubRow key={sub.id} sub={sub} onToggle={onToggle} onChange={onTitleChange} onDelete={onDelete} t={t} />
       ))}
     </div>
   )
 }
 
-function SubInput({ sub, onChange, onDelete }) {
+function SubRow({ sub, onToggle, onChange, onDelete, t }) {
   const [v, setV] = useState(sub.title || '')
   const dirty = useRef(false)
-  useEffect(()=>{setV(sub.title||'')},[sub.id])
-  function flush() { if(dirty.current){onChange(sub.id,v);dirty.current=false} }
+  useEffect(() => { setV(sub.title || '') }, [sub.id])
+  function flush() { if (dirty.current) { onChange(sub.id, v); dirty.current = false } }
   return (
-    <>
-      <input value={v} onChange={e=>{setV(e.target.value);dirty.current=true}} onBlur={flush}
-        placeholder="Subtarefa…"
-        style={{ flex:1, border:'none', background:'transparent', fontSize:12, color: sub.completed?'#a1a1aa':'#3f3f46',
-          textDecoration: sub.completed?'line-through':'none', outline:'none' }} />
-      <button onClick={()=>onDelete(sub.id)} style={{ background:'none', border:'none', cursor:'pointer', color:'#d4d4d8', padding:2 }}
-        onMouseEnter={e=>e.currentTarget.style.color='#ef4444'} onMouseLeave={e=>e.currentTarget.style.color='#d4d4d8'}>
+    <div className="group flex items-center gap-2 py-1.5 pl-8">
+      <CheckCircle done={sub.completed} onToggle={() => onToggle(sub.id, { completed: !sub.completed })} size={14} />
+      <input
+        value={v}
+        onChange={e => { setV(e.target.value); dirty.current = true }}
+        onBlur={flush}
+        placeholder={t('dashboard.day.subtaskPlaceholder')}
+        className={`flex-1 bg-transparent border-0 outline-none text-[12px] ${
+          sub.completed ? 'text-zinc-400 line-through' : 'text-zinc-700'
+        }`}
+      />
+      <button
+        onClick={() => onDelete(sub.id)}
+        className="opacity-0 group-hover:opacity-100 text-zinc-300 hover:text-red-500 transition-all"
+      >
         <Trash2 size={11} />
       </button>
-    </>
+    </div>
   )
 }
 
-/* ─── Note area ──────────────────────────────── */
-function NoteArea({ content, onSave }) {
+function ProjectRow({ task, onToggle }) {
+  return (
+    <div className="flex items-center gap-3 py-2.5">
+      <CheckCircle done={task.completed} onToggle={() => onToggle(task.id)} />
+      <span className={`flex-1 text-[14px] ${task.completed ? 'text-zinc-400 line-through' : 'text-zinc-800'}`}>
+        {task.title || '—'}
+      </span>
+      {task.projects?.title && (
+        <span className="text-[11px] text-zinc-400 flex-shrink-0 italic">
+          {task.projects.title}
+        </span>
+      )}
+    </div>
+  )
+}
+
+function NoteArea({ content, onSave, placeholder }) {
   const [text, setText] = useState(content || '')
   const timer = useRef(null)
   useEffect(() => { setText(content || '') }, [content])
@@ -213,29 +281,21 @@ function NoteArea({ content, onSave }) {
     timer.current = setTimeout(() => onSave(v), 800)
   }
   return (
-    <textarea value={text} onChange={e=>handleChange(e.target.value)}
-      placeholder="Pensamentos, reflexões, intenções para hoje…"
-      rows={5}
-      style={{ width:'100%', border:'none', background:'transparent', resize:'none', outline:'none',
-        fontSize:14, color:'#1a1a1a', lineHeight:1.8, fontFamily:'Georgia, serif', boxSizing:'border-box' }} />
+    <textarea
+      value={text}
+      onChange={e => handleChange(e.target.value)}
+      placeholder={placeholder}
+      rows={6}
+      className="w-full bg-transparent border-0 outline-none resize-none text-[15px] text-zinc-800 placeholder-zinc-300 leading-relaxed mt-2"
+      style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
+    />
   )
 }
 
-/* ─── Add button ─────────────────────────────── */
-function AddBtn({ label, onClick }) {
-  return (
-    <button onClick={onClick}
-      style={{ display:'flex', alignItems:'center', gap:5, marginTop:12, fontSize:12, color:'#a1a1aa',
-        background:'none', border:'none', cursor:'pointer', padding:0, transition:'color .15s' }}
-      onMouseEnter={e=>e.currentTarget.style.color='#1a1a1a'}
-      onMouseLeave={e=>e.currentTarget.style.color='#a1a1aa'}>
-      <Plus size={13} />{label}
-    </button>
-  )
-}
+/* ── Main ─────────────────────────────────── */
 
-/* ─── Main DayTab ────────────────────────────── */
 export default function DayTab() {
+  const { t, i18n } = useTranslation()
   const {
     loading,
     routinesToday, completions, toggleRoutine, addDashRoutine, deleteDashRoutine,
@@ -244,89 +304,151 @@ export default function DayTab() {
     note, saveNote,
   } = useDayDashboard()
 
-  const [showRPct,  setShowRPct]  = useState(false)
-  const [showTPct,  setShowTPct]  = useState(false)
-  const [showPPct,  setShowPPct]  = useState(false)
-  const [addingR,   setAddingR]   = useState(false)
+  const [showRPct, setShowRPct] = useState(false)
+  const [showTPct, setShowTPct] = useState(false)
+  const [showPPct, setShowPPct] = useState(false)
+  const [addingR, setAddingR]   = useState(false)
 
   if (loading) {
-    return <div style={{ textAlign:'center', padding:'60px 0', color:'#a1a1aa', fontSize:13 }}>Carregando…</div>
+    return <div className="text-center py-16 text-zinc-400 text-sm">{t('common.loading')}</div>
   }
 
-  const rootTasks = dayTasks.filter(t => !t.parent_id)
-  const getSubs   = id => dayTasks.filter(t => t.parent_id === id)
+  const rootTasks = dayTasks.filter(task => !task.parent_id)
+  const getSubs   = id => dayTasks.filter(task => task.parent_id === id)
   const rDone     = routinesToday.filter(r => completions.has(r.id)).length
-  const tDone     = dayTasks.filter(t => !t.parent_id && t.completed).length
-  const pDone     = projTasks.filter(t => t.completed).length
+  const tDone     = dayTasks.filter(task => !task.parent_id && task.completed).length
+  const pDone     = projTasks.filter(task => task.completed).length
 
-  async function handleAddTask() {
-    await addDayTask(null)
-  }
+  const localeMap = { pt: ptBR, en: enUS, es }
+  const dateLocale = localeMap[i18n.language] || ptBR
+  const today = new Date()
+  const dateStr = i18n.language === 'en'
+    ? format(today, 'EEEE, MMMM d', { locale: dateLocale })
+    : format(today, "EEEE, d 'de' MMMM", { locale: dateLocale })
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+    <div className="flex flex-col gap-4 max-w-2xl mx-auto">
+      {/* Date header */}
+      <div className="mb-2 px-1">
+        <div className="text-[11px] tracking-[0.22em] uppercase text-zinc-400 mb-1.5 font-medium">
+          {t('dashboard.today')}
+        </div>
+        <h1 className="font-display text-3xl font-medium text-zinc-900 capitalize tracking-tight">
+          {dateStr}
+        </h1>
+      </div>
 
-      {/* ── 1. ROTINAS ─────────────────────────── */}
-      <SectionCard title="Rotinas do Dia" done={rDone} total={routinesToday.length}
-        showPct={showRPct} onToggleCounter={() => setShowRPct(v=>!v)}>
+      {/* Routines */}
+      <Section
+        title={t('dashboard.day.routine')}
+        counter={
+          <Counter
+            done={rDone}
+            total={routinesToday.length}
+            asPct={showRPct}
+            onToggle={() => setShowRPct(v => !v)}
+          />
+        }
+      >
         {routinesToday.length === 0 && !addingR && (
-          <p style={{ fontSize:13, color:'#a1a1aa', margin:'8px 0 0' }}>
-            Adicione rotinas em Espírito, Mente ou Corpo — elas aparecem aqui.
-          </p>
+          <p className="text-[13px] text-zinc-400 mt-1">{t('dashboard.day.routineEmpty')}</p>
         )}
         {routinesToday.map(r => (
-          <RoutineRow key={r.id} routine={r} done={completions.has(r.id)}
-            onToggle={toggleRoutine} onDelete={deleteDashRoutine} />
+          <RoutineRow
+            key={r.id}
+            routine={r}
+            done={completions.has(r.id)}
+            onToggle={toggleRoutine}
+            onDelete={deleteDashRoutine}
+          />
         ))}
-        {addingR
-          ? <AddRoutineForm onSave={addDashRoutine} onCancel={() => setAddingR(false)} />
-          : <AddBtn label="Nova rotina" onClick={() => setAddingR(true)} />
-        }
-      </SectionCard>
+        {addingR ? (
+          <AddRoutineForm onSave={addDashRoutine} onCancel={() => setAddingR(false)} t={t} />
+        ) : (
+          <AddBtn label={t('dashboard.day.addRoutine')} onClick={() => setAddingR(true)} />
+        )}
+      </Section>
 
-      {/* ── 2. TAREFAS DO DIA ──────────────────── */}
-      <SectionCard title="Tarefas do Dia" done={tDone} total={rootTasks.length}
-        showPct={showTPct} onToggleCounter={() => setShowTPct(v=>!v)}>
+      {/* Tasks */}
+      <Section
+        title={t('dashboard.day.todoList')}
+        counter={
+          <Counter
+            done={tDone}
+            total={rootTasks.length}
+            asPct={showTPct}
+            onToggle={() => setShowTPct(v => !v)}
+          />
+        }
+      >
         {rootTasks.length === 0 && (
-          <p style={{ fontSize:13, color:'#a1a1aa', margin:'8px 0 0' }}>O que você vai fazer hoje?</p>
+          <p className="text-[13px] text-zinc-400 mt-1">{t('dashboard.day.tasksEmpty')}</p>
         )}
         {rootTasks.map(task => (
-          <TaskRow key={task.id} task={task} subtasks={getSubs(task.id)}
+          <TaskRow
+            key={task.id}
+            task={task}
+            subtasks={getSubs(task.id)}
             onToggle={(id, changes) => updateDayTask(id, changes)}
             onTitleChange={(id, title) => updateDayTask(id, { title })}
             onDelete={deleteDayTask}
-            onAddSub={addDayTask} />
+            onAddSub={addDayTask}
+            t={t}
+          />
         ))}
-        <AddBtn label="Nova tarefa" onClick={handleAddTask} />
-      </SectionCard>
+        <AddBtn label={t('dashboard.day.addTask')} onClick={() => addDayTask(null)} />
+      </Section>
 
-      {/* ── 3. PROJETOS ────────────────────────── */}
-      {projTasks.length > 0 && (
-        <SectionCard title="Projetos — Hoje" done={pDone} total={projTasks.length}
-          showPct={showPPct} onToggleCounter={() => setShowPPct(v=>!v)}>
-          {projTasks.map(task => (
-            <div key={task.id} style={{ display:'flex', alignItems:'center', gap:10, paddingTop:10 }}>
-              <CheckCircle done={task.completed} onToggle={() => toggleProjTask(task.id)} />
-              <span style={{ flex:1, fontSize:13, color: task.completed?'#a1a1aa':'#1a1a1a', textDecoration: task.completed?'line-through':'none' }}>
-                {task.title || '—'}
-              </span>
-              {task.projects?.title && (
-                <span style={{ fontSize:10, color:'#a1a1aa', flexShrink:0 }}>
-                  {task.projects.title}
-                </span>
-              )}
+      {/* Projects */}
+      <Section
+        title={t('dashboard.day.projectsToday')}
+        counter={
+          <Counter
+            done={pDone}
+            total={projTasks.length}
+            asPct={showPPct}
+            onToggle={() => setShowPPct(v => !v)}
+          />
+        }
+      >
+        {projTasks.length === 0 ? (
+          <p className="text-[13px] text-zinc-400 mt-1">{t('dashboard.day.projectsEmpty') || 'Nenhuma tarefa pendente nos projetos.'}</p>
+        ) : (
+          Object.entries(
+            projTasks.reduce((acc, task) => {
+              const key = task.project_id || 'sem-projeto'
+              if (!acc[key]) acc[key] = {
+                title: task.projects?.title || 'Projeto',
+                stage: task.projects?.stage,
+                tasks: []
+              }
+              acc[key].tasks.push(task)
+              return acc
+            }, {})
+          ).map(([pid, group]) => (
+            <div key={pid} className="mb-4 last:mb-0">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-[10px] font-bold tracking-[0.12em] uppercase text-zinc-400">{group.title}</span>
+                {group.stage && (
+                  <span className="text-[9px] px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-500 font-semibold">{group.stage}</span>
+                )}
+              </div>
+              {group.tasks.map(task => (
+                <ProjectRow key={task.id} task={task} onToggle={toggleProjTask} />
+              ))}
             </div>
-          ))}
-        </SectionCard>
-      )}
+          ))
+        )}
+      </Section>
 
-      {/* ── 4. NOTAS DO DIA ────────────────────── */}
-      <SectionCard title="Notas do Dia" done={0} total={0} showPct={false} onToggleCounter={()=>{}}>
-        <div style={{ paddingTop:8 }}>
-          <NoteArea content={note.content} onSave={saveNote} />
-        </div>
-      </SectionCard>
-
+      {/* Notes */}
+      <Section title={t('dashboard.day.notes')}>
+        <NoteArea
+          content={note.content}
+          onSave={saveNote}
+          placeholder={t('dashboard.day.notesPlaceholder')}
+        />
+      </Section>
     </div>
   )
 }

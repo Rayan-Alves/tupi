@@ -47,10 +47,22 @@
       "day": "Dia"
     },
     "day": {
-      "todoList": "Lista de Tarefas",
-      "routine": "Rotina",
+      "todoList": "Tarefas do dia",
+      "routine": "Rotinas",
       "activities": "Atividades",
-      "mainGoal": "Objetivo Principal"
+      "mainGoal": "Objetivo Principal",
+      "routineEmpty": "Adicione rotinas em Espírito, Mente ou Corpo — elas aparecem aqui.",
+      "tasksEmpty": "O que precisa ser feito hoje?",
+      "projectsToday": "Projetos · Hoje",
+      "notes": "Notas",
+      "notesPlaceholder": "Escreva sobre o dia, do jeito que ele veio.",
+      "addRoutine": "Nova rotina",
+      "addTask": "Nova tarefa",
+      "addSubtask": "Subtarefa",
+      "routinePlaceholder": "Nome da rotina…",
+      "taskPlaceholder": "Nova tarefa…",
+      "subtaskPlaceholder": "Subtarefa…",
+      "saveRoutine": "Salvar"
     },
     "week": {
       "howStart": "Como inicio essa semana?",

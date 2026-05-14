@@ -47,10 +47,22 @@
       "day": "Day"
     },
     "day": {
-      "todoList": "To Do List",
-      "routine": "Routine",
+      "todoList": "Today's tasks",
+      "routine": "Routines",
       "activities": "Activities",
-      "mainGoal": "Main Goal"
+      "mainGoal": "Main Goal",
+      "routineEmpty": "Add routines in Spirit, Mind or Body — they show up here.",
+      "tasksEmpty": "What needs to happen today?",
+      "projectsToday": "Projects · Today",
+      "notes": "Notes",
+      "notesPlaceholder": "Write about the day, the way it came.",
+      "addRoutine": "New routine",
+      "addTask": "New task",
+      "addSubtask": "Subtask",
+      "routinePlaceholder": "Routine name…",
+      "taskPlaceholder": "New task…",
+      "subtaskPlaceholder": "Subtask…",
+      "saveRoutine": "Save"
     },
     "week": {
       "howStart": "How do I start this week?",
