@@ -5,6 +5,7 @@ import { Plus, Trash2, ChevronDown, ChevronRight, Check, Sparkles, Save, X, Cloc
 import { useSpirit } from '../hooks/useSpirit'
 import { useUno } from '../hooks/useUno'
 import DesireList from '../components/spirit/DesireList'
+import IdentitySection from '../components/spirit/IdentitySection'
 import UnoSection from '../components/UnoSection'
 
 function PortalCard({ icon, label, color, onClick, disabled, comingSoonLabel }) {
@@ -43,18 +44,23 @@ function PortalCard({ icon, label, color, onClick, disabled, comingSoonLabel }) 
 }
 
 function ValueCard({ card, presets, onSave, onDelete, t }) {
-  const [selected, setSelected] = useState(card.selected || '')
-  const [custom, setCustom]     = useState(card.custom || '')
+  const [custom, setCustom]     = useState(() => {
+    if (card.selected && card.selected !== '__custom__') return card.selected
+    return card.custom || ''
+  })
   const [meaning, setMeaning]   = useState(card.meaning || '')
   const [status, setStatus]     = useState('clean')
   const textRef = useRef(null)
 
   useEffect(() => {
-    setSelected(card.selected || '')
-    setCustom(card.custom || '')
+    if (card.selected && card.selected !== '__custom__') {
+      setCustom(card.selected)
+    } else {
+      setCustom(card.custom || '')
+    }
     setMeaning(card.meaning || '')
     setStatus('clean')
-  }, [card.id])
+  }, [card.id, card.selected, card.custom])
 
   useLayoutEffect(() => {
     const el = textRef.current
@@ -63,37 +69,17 @@ function ValueCard({ card, presets, onSave, onDelete, t }) {
     el.style.height = el.scrollHeight + 'px'
   })
 
-  function mark(val) {
-    setSelected(val)
-    if (val !== '__custom__') setCustom('')
-    setStatus('dirty')
-  }
-
   async function handleSave() {
     setStatus('saving')
-    await onSave(card.id, { selected, custom, meaning })
+    await onSave(card.id, { selected: '__custom__', custom, meaning })
     setStatus('saved')
     setTimeout(() => setStatus('clean'), 2500)
   }
 
-  const DragHandle = () => (
-    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-zinc-300">
-      <circle cx="4" cy="4" r="1.5" fill="currentColor"/>
-      <circle cx="4" cy="8" r="1.5" fill="currentColor"/>
-      <circle cx="4" cy="12" r="1.5" fill="currentColor"/>
-      <circle cx="12" cy="4" r="1.5" fill="currentColor"/>
-      <circle cx="12" cy="8" r="1.5" fill="currentColor"/>
-      <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
-    </svg>
-  );
-
   return (
     <div className="bg-white rounded-3xl p-6 shadow-sm flex flex-col relative transition-all duration-200 hover:shadow-md border border-black/5">
       {/* Top action icons */}
-      <div className="flex justify-between items-start mb-2">
-        <button className="cursor-grab active:cursor-grabbing text-zinc-300 hover:text-zinc-500">
-          <DragHandle />
-        </button>
+      <div className="flex justify-end items-start mb-2">
         <button onClick={() => onDelete(card.id)} className="text-zinc-300 hover:text-red-400 transition-colors p-1 -mr-2 -mt-2">
           <X size={14} strokeWidth={2} />
         </button>
@@ -101,29 +87,19 @@ function ValueCard({ card, presets, onSave, onDelete, t }) {
 
       {/* Value Title input */}
       <div className="mb-4">
-        <select
-          value={selected}
-          onChange={e => mark(e.target.value)}
-          className="w-full bg-transparent border-0 p-0 text-[32px] font-display text-[#2D2A26] focus:ring-0 cursor-pointer appearance-none outline-none leading-none tracking-tight"
-          style={{ backgroundImage: 'none' }}
-        >
-          <option value="" disabled>{t('spirit.values.selectPlaceholder')}</option>
+        <input
+          list={`presets-${card.id}`}
+          type="text"
+          value={custom}
+          onChange={e => { setCustom(e.target.value); setStatus('dirty') }}
+          placeholder={t('spirit.values.customPlaceholder')}
+          className="w-full bg-transparent border-0 p-0 text-[32px] font-display text-[#2D2A26] placeholder-zinc-300 focus:ring-0 transition-all outline-none leading-none tracking-tight"
+        />
+        <datalist id={`presets-${card.id}`}>
           {presets.map(v => (
-            <option key={v} value={v}>{v}</option>
+            <option key={v} value={v} />
           ))}
-          <option value="__custom__">{t('spirit.values.customOption')}</option>
-        </select>
-        
-        {selected === '__custom__' && (
-          <input
-            type="text"
-            value={custom}
-            onChange={e => { setCustom(e.target.value); setStatus('dirty') }}
-            placeholder={t('spirit.values.customPlaceholder')}
-            className="w-full mt-2 border-b border-zinc-200 bg-transparent px-0 py-1 text-lg font-display text-zinc-800 placeholder-zinc-400 focus:border-spirit focus:ring-0 transition-all outline-none"
-            autoFocus
-          />
-        )}
+        </datalist>
       </div>
 
       {/* Divider */}
@@ -624,32 +600,10 @@ export default function Spirit() {
       </div>
 
       {/* ── IDENTITY ── */}
+      <IdentitySection />
+
+      {/* ── VALUES ── */}
       <section className="space-y-4">
-        <SectionDivider label={t('spirit.identity')} />
-
-        {/* Portals */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <PortalCard
-            icon={<Clock size={22} />}
-            label={t('spirit.portals.past')}
-            color="#8B5A2B"
-            onClick={() => navigate('/passado')}
-          />
-          <PortalCard
-            icon={<User size={22} />}
-            label={t('spirit.portals.present')}
-            color="#3B6DC4"
-            onClick={() => navigate('/presente')}
-          />
-          <PortalCard
-            icon={<Wind size={22} />}
-            label={t('spirit.portals.life')}
-            color="#10B981"
-            disabled
-            comingSoonLabel={t('spirit.portals.comingSoon')}
-          />
-        </div>
-
         {/* Values grid */}
         <div className="bg-[#F5F0E8] rounded-3xl p-8 mt-6">
           <div className="mb-8">
@@ -664,9 +618,9 @@ export default function Spirit() {
               </div>
               <button 
                 onClick={addValueCard} 
-                className="flex items-center gap-1.5 px-4 py-2 bg-white border border-zinc-200 rounded-full text-sm font-medium text-zinc-800 hover:bg-zinc-50 transition-colors shadow-sm flex-shrink-0"
+                className="flex items-center justify-center w-10 h-10 bg-white border border-zinc-200 rounded-full text-zinc-800 hover:bg-zinc-50 transition-colors shadow-sm flex-shrink-0"
               >
-                <Plus size={14} /> {t('spirit.values.addValue')}
+                <Plus size={18} />
               </button>
             </div>
           </div>
