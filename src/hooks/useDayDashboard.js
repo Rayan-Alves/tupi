@@ -94,8 +94,6 @@ export function useDayDashboard() {
     const next = !task.completed
     setProjT(prev => prev.map(t => t.id === id ? {...t, completed: next} : t))
     await supabase.from('kanban_tasks').update({ completed: next }).eq('id', id).eq('user_id', user.id)
-    // Remove from list when completed
-    if (next) setProjT(prev => prev.filter(t => t.id !== id))
   }
 
   async function saveNote(content) {

@@ -49,13 +49,25 @@ function Counter({ done, total, asPct, onToggle }) {
   )
 }
 
-function Section({ title, counter, children }) {
+function Section({ title, counter, extra, done, total, barColor, children }) {
+  const p = total > 0 ? Math.round(done / total * 100) : 0
   return (
     <section className="bg-white rounded-3xl border border-zinc-100 px-7 py-6">
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-1">
         <h2 className="font-display text-[22px] font-medium text-zinc-900 tracking-tight">{title}</h2>
-        {counter}
+        <div className="flex items-center gap-2">
+          {extra}
+          {counter}
+        </div>
       </div>
+      {total > 0 && (
+        <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden mb-4">
+          <div
+            className="h-full rounded-full transition-all duration-500"
+            style={{ width: `${p}%`, background: p === 100 ? '#10b981' : (barColor || '#3f3f46') }}
+          />
+        </div>
+      )}
       {children}
     </section>
   )
@@ -318,20 +330,25 @@ export default function DayTab() {
     note, saveNote,
   } = useDayDashboard()
 
-  const [showRPct, setShowRPct] = useState(false)
-  const [showTPct, setShowTPct] = useState(false)
-  const [showPPct, setShowPPct] = useState(false)
-  const [addingR, setAddingR]   = useState(false)
+  const [showRPct, setShowRPct]   = useState(false)
+  const [showTPct, setShowTPct]   = useState(false)
+  const [showPPct, setShowPPct]   = useState(false)
+  const [addingR,  setAddingR]    = useState(false)
+  // 'hide' = tasks desaparecem ao dar check | 'strike' = ficam riscadas
+  const [projView, setProjView]   = useState('strike')
 
   if (loading) {
     return <div className="text-center py-16 text-zinc-400 text-sm">{t('common.loading')}</div>
   }
 
-  const rootTasks = dayTasks.filter(task => !task.parent_id)
-  const getSubs   = id => dayTasks.filter(task => task.parent_id === id)
-  const rDone     = routinesToday.filter(r => completions.has(r.id)).length
-  const tDone     = dayTasks.filter(task => !task.parent_id && task.completed).length
-  const pDone     = projTasks.filter(task => task.completed).length
+  const rootTasks    = dayTasks.filter(task => !task.parent_id)
+  const getSubs      = id => dayTasks.filter(task => task.parent_id === id)
+  const rDone        = routinesToday.filter(r => completions.has(r.id)).length
+  const tDone        = dayTasks.filter(task => !task.parent_id && task.completed).length
+  const pDone        = projTasks.filter(task => task.completed).length
+  const projVisible  = projView === 'hide'
+    ? projTasks.filter(t => !t.completed)
+    : projTasks
 
   const localeMap = { pt: ptBR, en: enUS, es }
   const dateLocale = localeMap[i18n.language] || ptBR
@@ -355,44 +372,29 @@ export default function DayTab() {
       {/* Routines */}
       <Section
         title={t('dashboard.day.routine')}
+        done={rDone} total={routinesToday.length} barColor="#1B3A5C"
         counter={
-          <Counter
-            done={rDone}
-            total={routinesToday.length}
-            asPct={showRPct}
-            onToggle={() => setShowRPct(v => !v)}
-          />
+          <Counter done={rDone} total={routinesToday.length} asPct={showRPct} onToggle={() => setShowRPct(v => !v)} />
         }
       >
         {routinesToday.length === 0 && !addingR && (
           <p className="text-[13px] text-zinc-400 mt-1">{t('dashboard.day.routineEmpty')}</p>
         )}
         {routinesToday.map(r => (
-          <RoutineRow
-            key={r.id}
-            routine={r}
-            done={completions.has(r.id)}
-            onToggle={toggleRoutine}
-            onDelete={deleteDashRoutine}
-          />
+          <RoutineRow key={r.id} routine={r} done={completions.has(r.id)} onToggle={toggleRoutine} onDelete={deleteDashRoutine} />
         ))}
-        {addingR ? (
-          <AddRoutineForm onSave={addDashRoutine} onCancel={() => setAddingR(false)} t={t} />
-        ) : (
-          <AddBtn label={t('dashboard.day.addRoutine')} onClick={() => setAddingR(true)} />
-        )}
+        {addingR
+          ? <AddRoutineForm onSave={addDashRoutine} onCancel={() => setAddingR(false)} t={t} />
+          : <AddBtn label={t('dashboard.day.addRoutine')} onClick={() => setAddingR(true)} />
+        }
       </Section>
 
       {/* Tasks */}
       <Section
         title={t('dashboard.day.todoList')}
+        done={tDone} total={rootTasks.length} barColor="#3f3f46"
         counter={
-          <Counter
-            done={tDone}
-            total={rootTasks.length}
-            asPct={showTPct}
-            onToggle={() => setShowTPct(v => !v)}
-          />
+          <Counter done={tDone} total={rootTasks.length} asPct={showTPct} onToggle={() => setShowTPct(v => !v)} />
         }
       >
         {rootTasks.length === 0 && (
@@ -400,9 +402,7 @@ export default function DayTab() {
         )}
         {rootTasks.map(task => (
           <TaskRow
-            key={task.id}
-            task={task}
-            subtasks={getSubs(task.id)}
+            key={task.id} task={task} subtasks={getSubs(task.id)}
             onToggle={(id, changes) => updateDayTask(id, changes)}
             onTitleChange={(id, title) => updateDayTask(id, { title })}
             onDelete={deleteDayTask}
@@ -416,26 +416,28 @@ export default function DayTab() {
       {/* Projects */}
       <Section
         title={t('dashboard.day.projectsToday')}
+        done={pDone} total={projTasks.length} barColor="#C8841A"
+        extra={
+          projTasks.length > 0 && (
+            <button
+              onClick={() => setProjView(v => v === 'hide' ? 'strike' : 'hide')}
+              className="text-[10px] text-zinc-400 hover:text-zinc-700 bg-zinc-50 hover:bg-zinc-100 rounded-full px-2 py-1 transition-colors"
+            >
+              {projView === 'hide' ? '✓ Sumir' : '✓ Riscar'}
+            </button>
+          )
+        }
         counter={
-          <Counter
-            done={pDone}
-            total={projTasks.length}
-            asPct={showPPct}
-            onToggle={() => setShowPPct(v => !v)}
-          />
+          <Counter done={pDone} total={projTasks.length} asPct={showPPct} onToggle={() => setShowPPct(v => !v)} />
         }
       >
         {projTasks.length === 0 ? (
           <p className="text-[13px] text-zinc-400 mt-1">{t('dashboard.day.projectsEmpty') || 'Nenhuma tarefa pendente nos projetos.'}</p>
         ) : (
           Object.entries(
-            projTasks.reduce((acc, task) => {
-              const key = task.project_id || 'sem-projeto'
-              if (!acc[key]) acc[key] = {
-                title: task.projects?.title || 'Projeto',
-                stage: task.projects?.stage,
-                tasks: []
-              }
+            projVisible.reduce((acc, task) => {
+              const key = task.project_id || 'sem'
+              if (!acc[key]) acc[key] = { title: task.projects?.title || 'Projeto', stage: task.projects?.stage, tasks: [] }
               acc[key].tasks.push(task)
               return acc
             }, {})
@@ -457,11 +459,7 @@ export default function DayTab() {
 
       {/* Notes */}
       <Section title={t('dashboard.day.notes')}>
-        <NoteArea
-          content={note.content}
-          onSave={saveNote}
-          placeholder={t('dashboard.day.notesPlaceholder')}
-        />
+        <NoteArea content={note.content} onSave={saveNote} placeholder={t('dashboard.day.notesPlaceholder')} />
       </Section>
     </div>
   )
