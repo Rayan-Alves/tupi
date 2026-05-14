@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { STAGES } from './KanbanBoard'
 import { playProgress } from '../../lib/sounds'
 import { hasRecurrence, totalOccurrences, computeCheckUpdate } from '../../lib/recurring'
+import SmartTab, { isSmartComplete } from './SmartTab'
 
 const DAYS = [
   { key: 'sun', label: 'D' }, { key: 'mon', label: 'S' }, { key: 'tue', label: 'T' },
@@ -236,13 +237,17 @@ export default function ProjectModal({ project, tasks, initialTab, onClose, onUp
   const { t } = useTranslation()
   const [tab, setTab] = useState(initialTab || project.stage || 'soil')
   const [form, setForm] = useState({
-    title:         project.title || '',
-    why:           project.why || '',
-    success:       project.success || '',
-    how:           project.how || '',
-    start_date:    project.start_date || '',
-    end_date:      project.end_date || '',
-    harvest_notes: project.harvest_notes || '',
+    title:              project.title || '',
+    why:                project.why || '',
+    success:            project.success || '',
+    how:                project.how || '',
+    start_date:         project.start_date || '',
+    end_date:           project.end_date || '',
+    harvest_notes:      project.harvest_notes || '',
+    smart_specific:     project.smart_specific || '',
+    smart_measurable:   project.smart_measurable || '',
+    smart_attainable:   project.smart_attainable || '',
+    smart_relevant:     project.smart_relevant || '',
   })
   const [savedFlash, setSavedFlash] = useState(false)
   const formRef = useRef(form)
@@ -299,6 +304,15 @@ export default function ProjectModal({ project, tasks, initialTab, onClose, onUp
                 {t(`projects.stages.${s.key}`)}
               </button>
             ))}
+            {/* SMART tab */}
+            <button onClick={async () => { await persist(); setTab('smart') }}
+              style={{ padding: '5px 13px', borderRadius: '20px', border: 'none',
+                background: tab === 'smart' ? '#15803d' : '#f4f4f5',
+                color: tab === 'smart' ? '#fff' : (isSmartComplete(form) ? '#15803d' : '#71717a'),
+                fontSize: '11px', fontWeight: tab === 'smart' ? 700 : (isSmartComplete(form) ? 700 : 400),
+                cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0, transition: 'all .15s' }}>
+              {isSmartComplete(form) ? 'SMART ✓' : 'SMART'}
+            </button>
           </div>
           <div style={{ fontSize: '11px', color: '#71717a', marginTop: '10px', lineHeight: 1.4, fontStyle: 'italic' }}>
             {t(`projects.modal.descriptions.${tab}`)}
@@ -320,6 +334,7 @@ export default function ProjectModal({ project, tasks, initialTab, onClose, onUp
             <HarvestTab form={form} tasks={harvestTasks} project={project} stage={stage} onUpdate={upd}
               onAdd={d => onAddTask('harvest', d)} onUpdateTask={onUpdateTask} onDeleteTask={onDeleteTask} />
           )}
+          {tab === 'smart' && <SmartTab form={form} onUpdate={upd} />}
         </div>
 
         {/* Footer */}

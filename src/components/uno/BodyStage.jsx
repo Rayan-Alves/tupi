@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Plus, Check } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import EnhancedTaskRow from './EnhancedTaskRow'
 import KanbanView from './KanbanView'
 import TimelineView from './TimelineView'
@@ -111,6 +112,7 @@ function Accordion({ label, children, accentColor='#4A0E8F' }) {
 }
 
 export default function BodyStage({ project, tasks, saveField, addTask, updateTask, deleteTask }) {
+  const { t } = useTranslation()
   const [view, setView]         = useState('list')
   const [startDate, setStartDate] = useState(project.project_start_date || '')
   const [endDate, setEndDate]   = useState(project.project_end_date || '')
@@ -134,10 +136,10 @@ export default function BodyStage({ project, tasks, saveField, addTask, updateTa
 
   return (
     <>
-      <Accordion label="Ver respostas do Espírito →" accentColor="#1B3A5C">
+      <Accordion label={t('uno.seeSpiritAnswers')} accentColor="#1B3A5C">
         {SPIRIT_QUESTIONS.map(q => <ReadonlyField key={q.field} label={q.label} value={project[q.field]} />)}
       </Accordion>
-      <Accordion label="Ver respostas da Mente →" accentColor="#D4890A">
+      <Accordion label={t('uno.seeMindAnswers')} accentColor="#D4890A">
         {MIND_QUESTIONS.map(q => <ReadonlyField key={q.field} label={q.label} value={project[q.field]} />)}
       </Accordion>
 

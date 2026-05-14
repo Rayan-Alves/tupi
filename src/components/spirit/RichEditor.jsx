@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 const CSS = `
 .re-wrap { font-family: 'Georgia', 'Times New Roman', serif; }
@@ -61,6 +62,7 @@ function injectStyles() {
 }
 
 export default function RichEditor({ value, onChange, placeholder }) {
+  const { t } = useTranslation()
   const ref = useRef(null)
   const initRef = useRef(false)
   const lastSaved = useRef(value || '')
@@ -133,7 +135,7 @@ export default function RichEditor({ value, onChange, placeholder }) {
         </select>
         <div className="re-sep" />
         <button className="re-btn" onClick={() => exec('bold')} title="Negrito"><b>B</b></button>
-        <button className="re-btn" onClick={() => exec('italic')} title="Itálico"><i>I</i></button>
+        <button className="re-btn" onClick={() => exec('italic')} title={t('editor.italic')}><i>I</i></button>
         <button className="re-btn" onClick={() => exec('underline')} title="Sublinhado"><u>U</u></button>
         <div className="re-sep" />
         <button className="re-btn" onClick={() => exec('justifyLeft')} title="Alinhar à esquerda">⇤</button>
@@ -142,7 +144,7 @@ export default function RichEditor({ value, onChange, placeholder }) {
         <div className="re-sep" />
         <button className="re-btn" onClick={() => exec('insertUnorderedList')} title="Lista">•</button>
         <button className="re-btn" onClick={() => exec('insertOrderedList')} title="Lista numerada">1.</button>
-        <button className="re-btn" onClick={() => exec('formatBlock', 'BLOCKQUOTE')} title="Citação">"</button>
+        <button className="re-btn" onClick={() => exec('formatBlock', 'BLOCKQUOTE')} title={t('editor.quote')}>"</button>
         <div className="re-sep" />
         <button className="re-btn" onClick={insertImage} title="Imagem">🖼</button>
         <button className="re-btn" onClick={() => exec('removeFormat')} title="Limpar formatação">⌫</button>

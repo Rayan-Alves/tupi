@@ -146,7 +146,7 @@ function SkillItem({ skill, onUpdate, onDelete, onTurnIntoProject, t }) {
       <input 
         value={localName} 
         onChange={e => { setLocalName(e.target.value); setSaveStatus('dirty') }}
-        placeholder="Ex: Aprender React, Tocar Violão..."
+        placeholder={t('mind.skills.placeholderExt')}
         className="flex-1 bg-transparent text-sm text-zinc-800 placeholder-zinc-400 border-0 focus:ring-0 p-0 font-medium"
       />
       <div className="flex items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0 flex-wrap sm:flex-nowrap">
@@ -155,18 +155,18 @@ function SkillItem({ skill, onUpdate, onDelete, onTurnIntoProject, t }) {
           onChange={e => onUpdate(skill.id, { status: e.target.value })}
           className="text-xs bg-white border border-zinc-200 rounded-lg px-2 py-1.5 focus:ring-mind focus:border-mind outline-none"
         >
-          <option value="want_to_learn">Quero Aprender</option>
-          <option value="learning">Aprendendo</option>
-          <option value="mastered">Dominado</option>
+          <option value="want_to_learn">{t('mind.skills.status_want_to_learn')}</option>
+          <option value="learning">{t('mind.skills.status_learning')}</option>
+          <option value="mastered">{t('mind.skills.status_mastered')}</option>
         </select>
         <SaveButton status={saveStatus} onClick={handleSave} />
         <button 
           onClick={() => skill.name ? onTurnIntoProject(skill) : null}
           disabled={!skill.name}
-          title={!skill.name ? 'Salve a habilidade antes de transformar em meta' : ''}
+          title={!skill.name ? t('mind.skills.saveFirst') : ''}
           className={`flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg transition-all font-semibold ${skill.name ? 'bg-[#D4890A]/10 text-mind hover:bg-[#D4890A]/20 cursor-pointer' : 'bg-zinc-100 text-zinc-400 cursor-not-allowed opacity-50'}`}
         >
-          ✨ Transformar em Meta
+          {t('mind.skills.turnIntoGoal')}
         </button>
         <button onClick={() => onDelete(skill.id)} className="text-zinc-400 hover:text-red-500 transition-all p-1">
           <Trash2 size={13} />
@@ -311,7 +311,7 @@ export default function Mind() {
   }
 
   const handleTurnSkillIntoProject = async (skill) => {
-    await addGoal({ title: `Aprender: ${skill.name || 'Nova Habilidade'}` })
+    await addGoal({ title: `${t('mind.skills.learnPrefix')}${skill.name || t('mind.skills.newSkill')}` })
     if (skill.status === 'want_to_learn') {
       await updateSkill(skill.id, { status: 'learning' })
     }
@@ -368,7 +368,7 @@ export default function Mind() {
         {!unoLoading && (
           <UnoSection
             projects={unoProjects}
-            lockedMessage="Nenhum desejo de alma enviado para a Mente ainda. Complete a etapa no Espírito e clique em 'Enviar para Mente'."
+            lockedMessage={t('uno.lockedMind')}
           />
         )}
       </section>
@@ -377,15 +377,15 @@ export default function Mind() {
       {/* Skills Journey */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <SectionDivider label="Jornada de Aprendizado (Skills)" />
+          <SectionDivider label={t('mind.skills.journey')} />
           <button onClick={addSkill} className="btn-primary ml-4 flex-shrink-0">
-            Adicionar Habilidade
+            {t('mind.skills.addSkill')}
           </button>
         </div>
         
         {skills.length === 0 ? (
           <div className="spirit-card p-10 text-center">
-            <p className="text-zinc-400 text-sm">Nenhuma habilidade cadastrada ainda. O que você quer aprender?</p>
+            <p className="text-zinc-400 text-sm">{t('mind.skills.noSkills')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-3">

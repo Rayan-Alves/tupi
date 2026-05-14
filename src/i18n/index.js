@@ -9,7 +9,7 @@ const saved = localStorage.getItem('art_lang') || 'en'
 i18n.use(initReactI18next).init({
   resources: { pt: { translation: pt }, en: { translation: en }, es: { translation: es } },
   lng: saved,
-  fallbackLng: 'pt',
+  fallbackLng: 'en',
   interpolation: { escapeValue: false },
 })
 

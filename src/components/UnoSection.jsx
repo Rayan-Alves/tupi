@@ -1,7 +1,9 @@
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
-export default function UnoSection() {
+export default function UnoSection({ projects, lockedMessage }) {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   return (
     <div
       onClick={() => navigate('/uno')}
@@ -37,8 +39,13 @@ export default function UnoSection() {
         fontFamily: 'Georgia, serif',
         textAlign: 'center',
       }}>
-        Jornada dos Desejos Internos da Alma
+        {t('uno.listTitle')}
       </span>
+      {projects && projects.length === 0 && lockedMessage && (
+        <div style={{ marginTop: 8, fontSize: 13, color: '#a1a1aa', textAlign: 'center', maxWidth: 320 }}>
+          {lockedMessage}
+        </div>
+      )}
     </div>
   )
 }

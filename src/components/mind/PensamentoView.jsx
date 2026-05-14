@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useLayoutEffect, useEffect } from 'react'
 import { ArrowLeft, Trash2, Check, Save } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 function AutoTextarea({ value, onChange, placeholder, className = '' }) {
   const ref = useRef(null)
@@ -23,6 +24,7 @@ function AutoTextarea({ value, onChange, placeholder, className = '' }) {
 }
 
 export default function PensamentoView({ pensamento, onBack, onSave, onDelete }) {
+  const { t } = useTranslation()
   const [title, setTitle] = useState(pensamento.title || '')
   const [body, setBody] = useState(pensamento.body || '')
   const [status, setStatus] = useState('clean')
@@ -88,7 +90,7 @@ export default function PensamentoView({ pensamento, onBack, onSave, onDelete })
           ref={titleRef}
           value={title}
           onChange={e => { setTitle(e.target.value); markDirty() }}
-          placeholder="Título do pensamento…"
+          placeholder={t('mind.thought.placeholder')}
           className="w-full bg-transparent border-0 focus:ring-0 p-0 font-display text-2xl font-semibold text-zinc-900 placeholder-zinc-300"
         />
         <div className="border-t border-zinc-100 pt-6">

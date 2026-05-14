@@ -41,7 +41,11 @@
     "greeting_evening": "Buenas noches",
     "today": "Hoy",
     "completed": "Completadas",
-    "tabs": { "month": "Mes", "week": "Semana", "day": "Día" },
+    "tabs": {
+      "month": "Mes",
+      "week": "Semana",
+      "day": "Día"
+    },
     "day": {
       "todoList": "Lista de Tareas",
       "routine": "Rutina",
@@ -132,7 +136,9 @@
       "saved": "Guardado",
       "saving": "Guardando...",
       "notFound": "Documento no encontrado",
-      "timeAgo": { "now": "ahora" },
+      "timeAgo": {
+        "now": "ahora"
+      },
       "prompts": {
         "1": "Escribe libremente tus historias y/o momentos específicos de tu pasado, sin reglas, como prefieras.",
         "2": "¿Qué sentimientos de esta historia aún llevas contigo (buenos o malos)? ¿Qué efectos, síntomas, reflejos o cualquier otra cosa todavía resuenan en el presente? ¿De qué manera?\n\nExprésalos como creas conveniente.",
@@ -154,7 +160,9 @@
       "saved": "Guardado",
       "saving": "Guardando...",
       "notFound": "Documento no encontrado",
-      "timeAgo": { "now": "ahora" },
+      "timeAgo": {
+        "now": "ahora"
+      },
       "prompts": {
         "1": "Escribe libremente sobre ti, como salga, cuantas veces quieras."
       }
@@ -174,7 +182,9 @@
       "saved": "Guardado",
       "saving": "Guardando...",
       "notFound": "Deseo no encontrado",
-      "timeAgo": { "now": "ahora" },
+      "timeAgo": {
+        "now": "ahora"
+      },
       "prompts": {
         "1": "Espacio para escribir sobre este deseo.",
         "2": "Dónde estoy en relación a él.",
@@ -193,7 +203,33 @@
       "selectPlaceholder": "Selecciona un valor…",
       "customOption": "Otro (escribir)",
       "customPlaceholder": "Escribe tu propio valor…",
-      "presets": ["Honestidad","Integridad","Respeto","Responsabilidad","Libertad","Justicia","Empatía","Valentía","Lealtad","Gratitud","Disciplina","Autenticidad","Humildad","Perseverancia","Compasión","Generosidad","Creatividad","Sabiduría","Equilibrio","Familia","Salud","Espiritualidad","Aprendizaje continuo","Seguridad","Realización personal"]
+      "presets": [
+        "Honestidad",
+        "Integridad",
+        "Respeto",
+        "Responsabilidad",
+        "Libertad",
+        "Justicia",
+        "Empatía",
+        "Valentía",
+        "Lealtad",
+        "Gratitud",
+        "Disciplina",
+        "Autenticidad",
+        "Humildad",
+        "Perseverancia",
+        "Compasión",
+        "Generosidad",
+        "Creatividad",
+        "Sabiduría",
+        "Equilibrio",
+        "Familia",
+        "Salud",
+        "Espiritualidad",
+        "Aprendizaje continuo",
+        "Seguridad",
+        "Realización personal"
+      ]
     },
     "direction": "Dirección",
     "whereIAm": {
@@ -262,13 +298,26 @@
     },
     "skills": {
       "label": "Habilidades que quiero aprender",
-      "placeholder": "Lista las habilidades que deseas desarrollar…"
+      "placeholder": "Lista las habilidades que deseas desarrollar…",
+      "placeholderExt": "Ej: Aprender React, Tocar la guitarra...",
+      "status_want_to_learn": "Quiero Aprender",
+      "status_learning": "Aprendiendo",
+      "status_mastered": "Dominado",
+      "turnIntoGoal": "✨ Convertir en Meta",
+      "journey": "Viaje de Aprendizaje (Habilidades)",
+      "addSkill": "Añadir Habilidad",
+      "noSkills": "Aún no hay habilidades. ¿Qué quieres aprender?",
+      "learnPrefix": "Aprender: ",
+      "newSkill": "Nueva Habilidad",
+      "saveFirst": "Guarda la habilidad antes de convertirla en meta"
     },
     "tips": {
       "label": "Tips que quiero aprender",
       "placeholder": "Contenidos, técnicas, aprendizajes que quieres buscar…"
     },
-    "goals": { "title": "Mis Objetivos" },
+    "goals": {
+      "title": "Mis Objetivos"
+    },
     "routine": {
       "title": "Rutina Mental",
       "noRoutines": "Sin rutinas mentales aún. ¡Agrega la primera!"
@@ -279,7 +328,10 @@
     "loading": "cargando...",
     "count_one": "{{count}} proyecto",
     "count_other": "{{count}} proyectos",
-    "view": { "kanban": "Kanban", "list": "Lista" },
+    "view": {
+      "kanban": "Kanban",
+      "list": "Lista"
+    },
     "newProject": "+ Nuevo proyecto",
     "noProjects": "Aún no hay proyectos — haz clic en \"+ Nuevo proyecto\" para empezar.",
     "noProjectsKanban": "Cambia a Kanban para crear el primero.",
@@ -351,7 +403,9 @@
       "usingTaskDates": "usando fechas de la actividad",
       "usingProjectDates": "usando fechas del proyecto"
     },
-    "list": { "projectHeader": "PROYECTO" }
+    "list": {
+      "projectHeader": "PROYECTO"
+    }
   },
   "body": {
     "title": "Cuerpo",
@@ -360,10 +414,14 @@
       "label": "Trátate con amabilidad",
       "placeholder": "¿Qué estás haciendo para cuidar tu cuerpo y bienestar…"
     },
-    "examCheck": { "title": "Control de Exámenes" },
+    "examCheck": {
+      "title": "Control de Exámenes"
+    },
     "lastExam": "Último examen",
     "nextExam": "Próximo examen",
-    "goals": { "title": "Mis Objetivos" },
+    "goals": {
+      "title": "Mis Objetivos"
+    },
     "routine": {
       "title": "Actividades & Rutina Corporal",
       "noRoutines": "Sin actividades aún. ¡Agrega la primera!"

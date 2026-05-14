@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Check, Trash2, Plus } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import RecurrenceModal, { formatRecurrence, parseRecurrence } from './RecurrenceModal'
 
 const STATUS_NEXT = { todo: 'doing', doing: 'done', done: 'todo' }
@@ -92,6 +93,7 @@ function DateChip({ value, onChange, placeholder, color = '#71717a' }) {
 
 /* ── Subtask row ──────────────────────────────────────────── */
 function SubtaskRow({ task, onUpdate, onDelete }) {
+  const { t } = useTranslation()
   const [title, setTitle] = useState(task.title || '')
   useEffect(() => { setTitle(task.title || '') }, [task.id])
   function flush() { if (title !== task.title) onUpdate(task.id, { title }) }
@@ -129,7 +131,7 @@ function SubtaskRow({ task, onUpdate, onDelete }) {
       <DateChip
         value={task.due_date || ''}
         onChange={e => onUpdate(task.id, { due_date: e.target.value || null })}
-        placeholder="Prazo"
+        placeholder={t('tasks.end')}
       />
 
       <button
@@ -146,6 +148,7 @@ function SubtaskRow({ task, onUpdate, onDelete }) {
 
 /* ── Main task row ────────────────────────────────────────── */
 export default function EnhancedTaskRow({ task, subtasks = [], totalOcc = 1, onUpdate, onDelete, onAddSubtask }) {
+  const { t } = useTranslation()
   const [title, setTitle]       = useState(task.title || '')
   const [notes, setNotes]       = useState(task.notes || '')
   const [showNotes, setShowNotes]       = useState(false)
@@ -204,7 +207,7 @@ export default function EnhancedTaskRow({ task, subtasks = [], totalOcc = 1, onU
           onChange={e => setTitle(e.target.value)}
           onBlur={flush}
           onKeyDown={e => e.key === 'Enter' && flush()}
-          placeholder="Nome da tarefa…"
+          placeholder={t('tasks.newTaskPlaceholder')}
           style={{
             flex: 1, minWidth: 120, border: 'none', background: 'transparent',
             fontSize: 14, outline: 'none',
@@ -227,13 +230,13 @@ export default function EnhancedTaskRow({ task, subtasks = [], totalOcc = 1, onU
           <DateChip
             value={task.start_date || ''}
             onChange={e => onUpdate(task.id, { start_date: e.target.value || null })}
-            placeholder="Início"
+            placeholder={t('tasks.start')}
           />
           {(task.start_date || task.due_date) && <span style={{ color: '#d4d4d8', fontSize: 12 }}>→</span>}
           <DateChip
             value={task.due_date || ''}
             onChange={e => onUpdate(task.id, { due_date: e.target.value || null })}
-            placeholder="Prazo"
+            placeholder={t('tasks.end')}
           />
         </div>
 
@@ -262,7 +265,7 @@ export default function EnhancedTaskRow({ task, subtasks = [], totalOcc = 1, onU
         {/* Add subtask */}
         <button
           onClick={() => onAddSubtask(task.id)}
-          title="Adicionar subtarefa"
+          title={t('tasks.addTask')}
           style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#c4c4c7', display: 'flex', padding: 3, borderRadius: 6 }}
           onMouseEnter={e => e.currentTarget.style.color = '#4A0E8F'}
           onMouseLeave={e => e.currentTarget.style.color = '#c4c4c7'}

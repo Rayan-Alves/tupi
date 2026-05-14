@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { playProgress } from '../../lib/sounds'
 import { isRecurringTracked, totalOccurrences, computeCheckUpdate, computeProgress } from '../../lib/recurring'
+import { isSmartComplete } from './SmartTab'
 
 export const STAGES = [
   { key: 'soil',    color: '#C4A882', bg: '#FDF6EC', hdr: '#FAF0E0', text: '#633806', dot: '#C8841A' },
@@ -259,11 +260,16 @@ export default function KanbanBoard({ projects, tasks, addProject, updateProject
                     >
                       {/* Card header */}
                       <div style={{ padding: '11px 13px 8px', background: stage.hdr + '88' }}>
-                        <div onClick={e => { e.stopPropagation(); onOpenModal(project.id) }}
-                          style={{ fontSize: '13px', fontWeight: 600, color: '#1a1a1a', lineHeight: 1.3, cursor: 'pointer', textDecoration: 'underline', textDecorationColor: 'transparent', textDecorationThickness: '1px', textUnderlineOffset: '2px', transition: 'text-decoration-color .15s' }}
-                          onMouseEnter={e => e.currentTarget.style.textDecorationColor = stage.color}
-                          onMouseLeave={e => e.currentTarget.style.textDecorationColor = 'transparent'}>
-                          {project.title || t('projects.untitled')}
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: 2 }}>
+                          <div onClick={e => { e.stopPropagation(); onOpenModal(project.id) }}
+                            style={{ fontSize: '13px', fontWeight: 600, color: '#1a1a1a', lineHeight: 1.3, cursor: 'pointer', flex: 1, textDecoration: 'underline', textDecorationColor: 'transparent', textDecorationThickness: '1px', textUnderlineOffset: '2px', transition: 'text-decoration-color .15s' }}
+                            onMouseEnter={e => e.currentTarget.style.textDecorationColor = stage.color}
+                            onMouseLeave={e => e.currentTarget.style.textDecorationColor = 'transparent'}>
+                            {project.title || t('projects.untitled')}
+                          </div>
+                          {isSmartComplete(project) && (
+                            <span style={{ fontSize: 8, fontWeight: 800, color: '#15803d', background: '#F0FDF4', padding: '2px 5px', borderRadius: 99, border: '1px solid #BBF7D0', flexShrink: 0, marginTop: 1 }}>S✓</span>
+                          )}
                         </div>
                         {(project.start_date || project.end_date) && (
                           <div style={{ fontSize: '10px', color: '#a1a1aa', marginTop: '3px' }}>

@@ -667,7 +667,7 @@ export default function Spirit() {
         {!unoLoading && (
           <UnoSection
             projects={unoProjects}
-            lockedMessage="Inicie em Deepest Desire — abra um desejo, vá até a última página e clique em 'Trabalhar nesse desejo agora'."
+            lockedMessage={t('uno.lockedSpirit')}
           />
         )}
       </section>

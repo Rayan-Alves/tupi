@@ -249,6 +249,7 @@ function RoutineItem({ routine, onSaveField, onDelete, t }) {
 }
 
 function AffirmationsSection() {
+  const { t } = useTranslation()
   const { user } = useAuth()
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
@@ -290,7 +291,7 @@ function AffirmationsSection() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Sparkles size={16} style={{ color: '#D97706' }} />
-            <span className="text-[11px] font-semibold tracking-[0.18em]" style={{ color: '#92400E' }}>AFIRMAÇÕES POSITIVAS</span>
+            <span className="text-[11px] font-semibold tracking-[0.18em]" style={{ color: '#92400E' }}>{t('body.affirmations.title')}</span>
           </div>
           <button onClick={add}
             className="flex items-center justify-center rounded-xl text-white transition-all"
@@ -302,7 +303,7 @@ function AffirmationsSection() {
 
         {items.length === 0 ? (
           <p className="text-[13px] italic text-center py-4" style={{ color: '#B45309' }}>
-            clique em + para escrever sua primeira afirmação ✨
+            {t('body.affirmations.empty')}
           </p>
         ) : (
           <div className="space-y-2">
@@ -318,6 +319,7 @@ function AffirmationsSection() {
 }
 
 function AffirmationRow({ item, inputRef, onUpdate, onRemove, onEnter }) {
+  const { t } = useTranslation()
   const [text, setText] = useState(item.text || '')
   const dirty = useRef(false)
   useEffect(() => { setText(item.text || '') }, [item.id])
@@ -337,7 +339,7 @@ function AffirmationRow({ item, inputRef, onUpdate, onRemove, onEnter }) {
         onChange={e => { setText(e.target.value); dirty.current = true }}
         onBlur={flush}
         onKeyDown={handleKeyDown}
-        placeholder="Eu sou..."
+        placeholder={t('body.affirmations.placeholder')}
         className="flex-1 bg-transparent border-0 focus:ring-0 p-0 text-sm italic"
         style={{ color: '#7C2D12' }} />
       <button onClick={() => onRemove(item.id)}
@@ -376,7 +378,7 @@ export default function Body() {
         {!unoLoading && (
           <UnoSection
             projects={unoProjects}
-            lockedMessage="Nenhum projeto pronto para o Corpo ainda. Complete as etapas no Espírito e na Mente antes de continuar."
+            lockedMessage={t('uno.lockedBody')}
           />
         )}
       </section>

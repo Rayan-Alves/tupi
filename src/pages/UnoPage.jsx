@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useLayoutEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useUnoProject } from '../hooks/useUno'
 import { ArrowLeft, Check, Save, ChevronDown, ChevronRight } from 'lucide-react'
 import BodyStage from '../components/uno/BodyStage'
@@ -176,10 +177,11 @@ function SpiritStage({ project, saveField, advanceStage }) {
 }
 
 function MindStage({ project, saveField, advanceStage }) {
+  const { t } = useTranslation()
   const allFilled = MIND_QUESTIONS.every(q => project[q.field]?.trim())
   return (
     <>
-      <Accordion label="Ver respostas do Espírito →" accentColor="#1B3A5C">
+      <Accordion label={t('uno.seeSpiritAnswers')} accentColor="#1B3A5C">
         {SPIRIT_QUESTIONS.map(q => <ReadonlyField key={q.field} label={q.label} value={project[q.field]} />)}
       </Accordion>
 

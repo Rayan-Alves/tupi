@@ -41,7 +41,11 @@
     "greeting_evening": "Good evening",
     "today": "Today",
     "completed": "Completed",
-    "tabs": { "month": "Month", "week": "Week", "day": "Day" },
+    "tabs": {
+      "month": "Month",
+      "week": "Week",
+      "day": "Day"
+    },
     "day": {
       "todoList": "To Do List",
       "routine": "Routine",
@@ -132,7 +136,9 @@
       "saved": "Saved",
       "saving": "Saving...",
       "notFound": "Document not found",
-      "timeAgo": { "now": "just now" },
+      "timeAgo": {
+        "now": "just now"
+      },
       "prompts": {
         "1": "Write freely about your stories and/or specific moments from your past — no rules, your way.",
         "2": "What feelings from this story do you still carry with you (good or bad)? What effects, symptoms, reflections — or anything else — still resonate in the present? In what way?\n\nExpress them however you see fit.",
@@ -154,7 +160,9 @@
       "saved": "Saved",
       "saving": "Saving...",
       "notFound": "Document not found",
-      "timeAgo": { "now": "just now" },
+      "timeAgo": {
+        "now": "just now"
+      },
       "prompts": {
         "1": "Write freely about yourself, however it comes, as many times as you want."
       }
@@ -174,7 +182,9 @@
       "saved": "Saved",
       "saving": "Saving...",
       "notFound": "Desire not found",
-      "timeAgo": { "now": "just now" },
+      "timeAgo": {
+        "now": "just now"
+      },
       "prompts": {
         "1": "Space to write about this desire.",
         "2": "Where I am in relation to it.",
@@ -193,7 +203,33 @@
       "selectPlaceholder": "Select a value…",
       "customOption": "Other (write your own)",
       "customPlaceholder": "Write your own value…",
-      "presets": ["Honesty","Integrity","Respect","Responsibility","Freedom","Justice","Empathy","Courage","Loyalty","Gratitude","Discipline","Authenticity","Humility","Perseverance","Compassion","Generosity","Creativity","Wisdom","Balance","Family","Health","Spirituality","Continuous learning","Security","Personal fulfillment"]
+      "presets": [
+        "Honesty",
+        "Integrity",
+        "Respect",
+        "Responsibility",
+        "Freedom",
+        "Justice",
+        "Empathy",
+        "Courage",
+        "Loyalty",
+        "Gratitude",
+        "Discipline",
+        "Authenticity",
+        "Humility",
+        "Perseverance",
+        "Compassion",
+        "Generosity",
+        "Creativity",
+        "Wisdom",
+        "Balance",
+        "Family",
+        "Health",
+        "Spirituality",
+        "Continuous learning",
+        "Security",
+        "Personal fulfillment"
+      ]
     },
     "direction": "Direction",
     "whereIAm": {
@@ -262,13 +298,26 @@
     },
     "skills": {
       "label": "Skills I want to learn",
-      "placeholder": "List the skills you want to develop…"
+      "placeholder": "List the skills you want to develop…",
+      "placeholderExt": "E.g.: Learn React, Play Guitar...",
+      "status_want_to_learn": "Want to Learn",
+      "status_learning": "Learning",
+      "status_mastered": "Mastered",
+      "turnIntoGoal": "✨ Turn into Goal",
+      "journey": "Learning Journey (Skills)",
+      "addSkill": "Add Skill",
+      "noSkills": "No skills added yet. What do you want to learn?",
+      "learnPrefix": "Learn: ",
+      "newSkill": "New Skill",
+      "saveFirst": "Save the skill before turning it into a goal"
     },
     "tips": {
       "label": "Tips I want to learn",
       "placeholder": "Content, techniques, learnings you want to pursue…"
     },
-    "goals": { "title": "My Goals" },
+    "goals": {
+      "title": "My Goals"
+    },
     "routine": {
       "title": "Mental Routine",
       "noRoutines": "No mental routines yet. Add your first!"
@@ -279,7 +328,10 @@
     "loading": "loading...",
     "count_one": "{{count}} project",
     "count_other": "{{count}} projects",
-    "view": { "kanban": "Kanban", "list": "List" },
+    "view": {
+      "kanban": "Kanban",
+      "list": "List"
+    },
     "newProject": "+ New project",
     "noProjects": "No projects yet — click \"+ New project\" to start.",
     "noProjectsKanban": "Switch to Kanban to create the first one.",
@@ -351,7 +403,9 @@
       "usingTaskDates": "using activity dates",
       "usingProjectDates": "using project dates"
     },
-    "list": { "projectHeader": "PROJECT" }
+    "list": {
+      "projectHeader": "PROJECT"
+    }
   },
   "body": {
     "title": "Body",
@@ -360,10 +414,14 @@
       "label": "Treat yourself with kindness",
       "placeholder": "What are you doing to take care of your body and well-being…"
     },
-    "examCheck": { "title": "Exam Control" },
+    "examCheck": {
+      "title": "Exam Control"
+    },
     "lastExam": "Last exam",
     "nextExam": "Next exam",
-    "goals": { "title": "My Goals" },
+    "goals": {
+      "title": "My Goals"
+    },
     "routine": {
       "title": "Activities & Body Routine",
       "noRoutines": "No activities yet. Add your first!"
