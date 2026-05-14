@@ -27,7 +27,7 @@ export function useDayDashboard() {
       supabase.from('dashboard_routines').select('*').eq('user_id', user.id),
       supabase.from('routine_completions').select('routine_id').eq('user_id', user.id).eq('completed_date', TODAY),
       supabase.from('day_tasks').select('*').eq('user_id', user.id).eq('task_date', TODAY).order('created_at'),
-      supabase.from('tasks').select('id,title,completed,project_id,phase,due_date,projects(title,stage)').eq('user_id', user.id).eq('completed', false).order('created_at'),
+      supabase.from('kanban_tasks').select('id,title,completed,project_id,phase,due_date,kanban_projects(title,stage)').eq('user_id', user.id).eq('completed', false).order('sort_order'),
       supabase.from('day_notes').select('*').eq('user_id', user.id).eq('note_date', TODAY).maybeSingle(),
     ]).then(([sr, mr, br, dr, comp, dt, pt, dn]) => {
       setSpiritR(sr.value?.data || [])
@@ -36,9 +36,8 @@ export function useDayDashboard() {
       setDashR(dr.value?.data || [])
       setComp(new Set((comp.value?.data || []).map(c => c.routine_id)))
       setDayTasks(dt.value?.data || [])
-      const ACTIVE_STAGES = new Set(['plant', 'water', 'harvest'])
-      const filtered = (pt.value?.data || []).filter(t => t.projects && ACTIVE_STAGES.has(t.projects.stage))
-      setProjT(filtered)
+      const filtered = (pt.value?.data || [])
+      setProjT(filtered.map(t => ({ ...t, projects: t.kanban_projects })))
       if (dn.value?.data) setNote({ id: dn.value.data.id, content: dn.value.data.content || '' })
       setLoading(false)
     })
@@ -94,7 +93,7 @@ export function useDayDashboard() {
     if (!task) return
     const next = !task.completed
     setProjT(prev => prev.map(t => t.id === id ? {...t, completed: next} : t))
-    await supabase.from('tasks').update({ completed: next }).eq('id', id).eq('user_id', user.id)
+    await supabase.from('kanban_tasks').update({ completed: next }).eq('id', id).eq('user_id', user.id)
     // Remove from list when completed
     if (next) setProjT(prev => prev.filter(t => t.id !== id))
   }
