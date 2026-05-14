@@ -426,5 +426,15 @@
       "title": "Actividades & Rutina Corporal",
       "noRoutines": "Sin actividades aún. ¡Agrega la primera!"
     }
+  },
+  "uno": {
+    "listTitle": "Viaje de los Deseos Internos del Alma",
+    "listSubtitle": "Tus deseos del alma en transformación",
+    "emptyListTitle": "Ningún proyecto todavía",
+    "emptyListDesc": "Ve a <strong>Espíritu → Deseo Profundo</strong>, abre un deseo, ve a la última página y haz clic en <em>\"Trabajar en este deseo ahora\"</em>.",
+    "soulDesire": "Deseo del Alma",
+    "seeMindAnswers": "Ver respuestas de la Mente →",
+    "seeSpiritAnswers": "Ver respuestas del Espíritu →",
+    "lockedSpirit": "Comienza en Deseo Profundo — abre un deseo, ve a la última página y haz clic en \"Trabajar en este deseo ahora\"."
   }
 }

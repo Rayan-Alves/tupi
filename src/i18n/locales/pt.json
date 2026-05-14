@@ -426,5 +426,15 @@
       "title": "Atividades & Rotina Corporal",
       "noRoutines": "Nenhuma atividade ainda. Adicione a primeira!"
     }
+  },
+  "uno": {
+    "listTitle": "Jornada dos Desejos Internos da Alma",
+    "listSubtitle": "Seus desejos de alma em transformação",
+    "emptyListTitle": "Nenhum projeto ainda",
+    "emptyListDesc": "Vá em <strong>Espírito → Deepest Desire</strong>, abra um desejo, vá até a última página e clique em <em>\"Trabalhar nesse desejo agora\"</em>.",
+    "soulDesire": "Desejo de Alma",
+    "seeMindAnswers": "Ver respostas da Mente →",
+    "seeSpiritAnswers": "Ver respostas do Espírito →",
+    "lockedSpirit": "Inicie em Deepest Desire — abra um desejo, vá até a última página e clique em \"Trabalhar nesse desejo agora\"."
   }
 }

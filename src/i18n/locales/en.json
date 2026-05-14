@@ -426,5 +426,15 @@
       "title": "Activities & Body Routine",
       "noRoutines": "No activities yet. Add your first!"
     }
+  },
+  "uno": {
+    "listTitle": "Inner Soul Desires Journey",
+    "listSubtitle": "Your soul desires in transformation",
+    "emptyListTitle": "No projects yet",
+    "emptyListDesc": "Go to <strong>Spirit → Deepest Desire</strong>, open a desire, go to the last page and click <em>\"Work on this desire now\"</em>.",
+    "soulDesire": "Soul Desire",
+    "seeMindAnswers": "View Mind answers →",
+    "seeSpiritAnswers": "View Spirit answers →",
+    "lockedSpirit": "Start in Deepest Desire — open a desire, go to the last page and click \"Work on this desire now\"."
   }
 }
