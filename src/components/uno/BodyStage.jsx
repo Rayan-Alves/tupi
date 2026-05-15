@@ -95,7 +95,7 @@ function Accordion({ label, children, accentColor='#4A0E8F' }) {
   return (
     <div style={{ marginBottom:16 }}>
       <button onClick={() => setOpen(o=>!o)}
-        style={{ width:'100%', background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'space-between',
+        style={{ width:'100%', background:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'space-between',
           padding:'12px 16px', borderRadius:10, border:'1px solid #f0f0f0', transition:'all .15s' }}
         onMouseEnter={e=>e.currentTarget.style.background='#fafafa'}
         onMouseLeave={e=>e.currentTarget.style.background='none'}>
