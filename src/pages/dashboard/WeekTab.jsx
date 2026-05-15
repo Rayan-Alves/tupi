@@ -1,91 +1,330 @@
-import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ChevronLeft, ChevronRight, Plus, Trash2, Check, Save } from 'lucide-react'
-import { useWeek, getCurrentWeekPeriod, navigateWeek, formatWeekLabel } from '../../hooks/useWeek'
+import { ChevronLeft, ChevronRight, Plus, Check, Trash2 } from 'lucide-react'
+import { format } from 'date-fns'
+import { ptBR, enUS, es } from 'date-fns/locale'
+import { useWeekData, getMondayOf, shiftWeek } from '../../hooks/useWeekData'
 
-function SaveButton({ status, onClick }) {
-  const styles = { clean: 'bg-zinc-100 text-zinc-400 cursor-default', dirty: 'bg-spirit hover:bg-[#152e4a] text-white cursor-pointer', saving: 'bg-[#3a6490] text-white cursor-wait', saved: 'bg-emerald-500 text-white cursor-default' }
-  const labels = { clean: 'Salvo', dirty: 'Salvar', saving: 'Salvando…', saved: 'Salvo ✓' }
+const SOURCE_COLOR = {
+  spirit:    '#5a8ab8',
+  mind:      '#d4890a',
+  body:      '#6aaa30',
+  dashboard: '#c4c4c4',
+}
+
+const isToday = (date) => {
+  const t = new Date(); t.setHours(0,0,0,0)
+  const d = new Date(date); d.setHours(0,0,0,0)
+  return t.getTime() === d.getTime()
+}
+
+const isPast = (date) => {
+  const t = new Date(); t.setHours(0,0,0,0)
+  const d = new Date(date); d.setHours(0,0,0,0)
+  return d.getTime() < t.getTime()
+}
+
+/* ── Primitives ────────────────────────────── */
+
+function CheckCircle({ done, onToggle, size = 16 }) {
   return (
-    <button onClick={status === 'dirty' ? onClick : undefined} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${styles[status]}`}>
-      {status === 'saved' ? <Check size={11} /> : <Save size={11} />}{labels[status]}
+    <button
+      onClick={onToggle}
+      className="flex-shrink-0 flex items-center justify-center rounded-full transition-all"
+      style={{
+        width: size, height: size,
+        border: `1.5px solid ${done ? '#10b981' : '#dadada'}`,
+        background: done ? '#10b981' : 'transparent',
+      }}
+    >
+      {done && <Check size={size * 0.55} strokeWidth={2.5} color="#fff" />}
     </button>
   )
 }
 
-function SaveableTextarea({ initialValue, onSave, placeholder }) {
-  const [value, setValue] = useState(initialValue || '')
-  const [status, setStatus] = useState('clean')
-  const ref = useRef(null)
-  const resize = useCallback(() => { const el = ref.current; if (!el) return; el.style.height = '1px'; el.style.height = el.scrollHeight + 'px' }, [])
-  useLayoutEffect(() => { resize() })
-  useEffect(() => { setValue(initialValue || ''); setStatus('clean') }, [initialValue])
-  async function handleSave() { setStatus('saving'); await onSave(value); setStatus('saved'); setTimeout(() => setStatus('clean'), 2500) }
+/* ── Week summary chart ────────────────────── */
+
+function WeekSummary({ stats, byDay, locale, t }) {
   return (
-    <div className="space-y-2">
-      <textarea ref={ref} value={value} onChange={e => { setValue(e.target.value); setStatus('dirty') }} placeholder={placeholder} rows={1} className="auto-textarea" />
-      <div className="flex justify-end"><SaveButton status={status} onClick={handleSave} /></div>
+    <section className="bg-white rounded-3xl border border-zinc-100 px-7 py-6 mb-5">
+      <div className="flex items-end justify-between mb-5 gap-4 flex-wrap">
+        <div>
+          <div className="text-[11px] tracking-[0.22em] uppercase text-zinc-400 font-medium mb-1">
+            {t('dashboard.week.summary')}
+          </div>
+          <h2 className="font-display text-[28px] font-medium text-zinc-900 leading-none tracking-tight">
+            {stats.done} / {stats.total} {t('dashboard.week.done')}
+          </h2>
+        </div>
+        <div className="flex items-center gap-6 text-[12px]">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-amber-600" />
+            <span className="text-zinc-500">{t('dashboard.day.routine')}</span>
+            <span className="text-zinc-900 font-semibold tabular-nums">{stats.doneRoutines}/{stats.totalRoutines}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-zinc-700" />
+            <span className="text-zinc-500">{t('dashboard.day.todoList')}</span>
+            <span className="text-zinc-900 font-semibold tabular-nums">{stats.doneTasks}/{stats.totalTasks}</span>
+          </div>
+          <div>
+            <span className="font-display text-[28px] font-medium text-emerald-700 tabular-nums">{stats.pct}%</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Bar chart per day */}
+      <div className="grid grid-cols-7 gap-2 items-end" style={{ height: 80 }}>
+        {byDay.map(day => {
+          const total = day.routines.length + day.tasks.length
+          const done  = day.completedRoutines.size + day.completedTasksCount
+          const pct   = total > 0 ? (done / total) * 100 : 0
+          const today = isToday(day.date)
+          const past  = isPast(day.date)
+          const empty = total === 0
+          return (
+            <div key={day.iso} className="flex flex-col items-center gap-2 h-full">
+              <div className="flex-1 w-full flex items-end relative">
+                <div
+                  className="w-full rounded-md transition-all duration-500"
+                  style={{
+                    height: empty ? '6px' : `${Math.max(6, pct)}%`,
+                    background: empty
+                      ? '#f4f4f5'
+                      : pct === 100 ? '#10b981'
+                      : today ? '#a87a3e'
+                      : past ? '#d4d4d8'
+                      : '#e4e4e7',
+                  }}
+                  title={`${done}/${total}`}
+                />
+              </div>
+              <div className={`text-[10px] font-bold uppercase tracking-wider ${today ? 'text-amber-700' : 'text-zinc-400'}`}>
+                {format(day.date, 'EEEEEE', { locale })}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
+
+/* ── Routine row (compact) ─────────────────── */
+
+function RoutineRow({ routine, done, dateISO, onToggle }) {
+  const dotColor = SOURCE_COLOR[routine.source] || SOURCE_COLOR.dashboard
+  return (
+    <div className="flex items-center gap-2 py-1.5 group">
+      <CheckCircle done={done} onToggle={() => onToggle(routine.id, routine.source, dateISO)} />
+      <span className={`flex-1 text-[12px] truncate ${done ? 'text-zinc-400 line-through' : 'text-zinc-800'}`}>
+        {routine.title || '—'}
+      </span>
+      <span style={{ background: dotColor }} className="w-1.5 h-1.5 rounded-full flex-shrink-0" />
     </div>
   )
 }
 
-export default function WeekTab() {
-  const { t } = useTranslation()
-  const [period, setPeriod] = useState(() => getCurrentWeekPeriod())
-  const { profile, saveProfileField, tasks, addTask, updateTask, deleteTask, loading } = useWeek(period)
+/* ── Task row (compact, inline editable) ───── */
+
+function TaskRow({ task, autoFocus, onToggle, onChange, onDelete, onDoneEditing, t }) {
+  const [title, setTitle] = useState(task.title || '')
+  const inputRef = useRef(null)
+  const dirty = useRef(false)
+
+  useEffect(() => { setTitle(task.title || '') }, [task.id])
+  useEffect(() => { if (autoFocus && inputRef.current) inputRef.current.focus() }, [autoFocus])
+
+  function flush() {
+    if (dirty.current) { onChange(task.id, { title }); dirty.current = false }
+    if (onDoneEditing) onDoneEditing()
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Period nav */}
-      <div className="flex items-center justify-between bg-white rounded-2xl border border-zinc-100 shadow-card px-5 py-3">
-        <button onClick={() => setPeriod(p => navigateWeek(p, -1))} className="p-1.5 hover:bg-zinc-100 rounded-lg transition-colors"><ChevronLeft size={16} /></button>
-        <span className="text-sm font-semibold text-zinc-700">{formatWeekLabel(period)}</span>
-        <button onClick={() => setPeriod(p => navigateWeek(p, 1))} className="p-1.5 hover:bg-zinc-100 rounded-lg transition-colors"><ChevronRight size={16} /></button>
+    <div className="flex items-center gap-2 py-1.5 group">
+      <CheckCircle done={task.completed} onToggle={() => onToggle(task.id, { completed: !task.completed })} />
+      <input
+        ref={inputRef}
+        value={title}
+        onChange={e => { setTitle(e.target.value); dirty.current = true }}
+        onBlur={flush}
+        onKeyDown={e => e.key === 'Enter' && e.currentTarget.blur()}
+        placeholder={t('dashboard.day.taskPlaceholder')}
+        className={`flex-1 bg-transparent border-0 outline-none text-[12px] min-w-0 ${
+          task.completed ? 'text-zinc-400 line-through' : 'text-zinc-800'
+        }`}
+      />
+      <button
+        onClick={() => onDelete(task.id)}
+        className="opacity-0 group-hover:opacity-100 text-zinc-300 hover:text-red-500 transition-all flex-shrink-0"
+      >
+        <Trash2 size={11} />
+      </button>
+    </div>
+  )
+}
+
+/* ── Day column ────────────────────────────── */
+
+function DayColumn({ day, locale, focusTaskId, onToggleRoutine, onAddTask, onUpdateTask, onDeleteTask, onTaskCreated, t }) {
+  const total = day.routines.length + day.tasks.length
+  const done  = day.completedRoutines.size + day.completedTasksCount
+  const pct   = total > 0 ? Math.round((done / total) * 100) : 0
+  const today = isToday(day.date)
+
+  async function handleAdd() {
+    const created = await onAddTask(day.iso)
+    if (created) onTaskCreated(created.id)
+  }
+
+  return (
+    <div
+      className="bg-white rounded-2xl border border-zinc-100 p-4 flex flex-col min-h-[280px]"
+      style={today ? { boxShadow: '0 0 0 1.5px #C8841A' } : undefined}
+    >
+      {/* Header */}
+      <div className="mb-3">
+        <div className="flex items-baseline justify-between gap-1">
+          <h3 className="font-display text-[18px] font-medium text-zinc-900 leading-none capitalize tracking-tight">
+            {format(day.date, 'EEEE', { locale })}
+          </h3>
+          {today && (
+            <span className="text-[8px] tracking-[0.18em] uppercase text-amber-700 font-bold">
+              {t('dashboard.today')}
+            </span>
+          )}
+        </div>
+        <div className="text-[11px] text-zinc-500 mt-0.5">
+          {format(day.date, 'd MMM', { locale })}
+        </div>
+        {total > 0 && (
+          <div className="mt-2.5 h-[3px] bg-zinc-100 rounded-full overflow-hidden">
+            <div
+              className="h-full transition-all duration-500"
+              style={{ width: `${pct}%`, background: pct === 100 ? '#10b981' : '#a87a3e' }}
+            />
+          </div>
+        )}
       </div>
 
-      {/* Questions */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-white rounded-2xl border border-zinc-100 shadow-card p-5">
-          <label className="field-label">{t('dashboard.week.howStart')}</label>
-          <SaveableTextarea initialValue={profile.how_start} onSave={v => saveProfileField('how_start', v)} placeholder={t('dashboard.week.howStartPlaceholder')} />
+      {/* Routines */}
+      {day.routines.length > 0 && (
+        <div className="mb-3">
+          <div className="text-[9px] tracking-[0.18em] uppercase text-zinc-400 font-bold mb-1">
+            {t('dashboard.day.routine')}
+          </div>
+          {day.routines.map(r => (
+            <RoutineRow
+              key={r.id}
+              routine={r}
+              done={day.completedRoutines.has(r.id)}
+              dateISO={day.iso}
+              onToggle={onToggleRoutine}
+            />
+          ))}
         </div>
-        <div className="bg-white rounded-2xl border border-zinc-100 shadow-card p-5 border-l-4 border-l-spirit">
-          <label className="field-label">{t('dashboard.week.howEnd')}</label>
-          <SaveableTextarea initialValue={profile.how_end} onSave={v => saveProfileField('how_end', v)} placeholder={t('dashboard.week.howEndPlaceholder')} />
-        </div>
-      </div>
+      )}
 
       {/* Tasks */}
-      <div className="bg-white rounded-2xl border border-zinc-100 shadow-card p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-zinc-700">{t('dashboard.week.tasks')}</h3>
-          <button onClick={addTask} className="btn-ghost text-[12px]"><Plus size={13} />{t('common.add')}</button>
+      <div className="flex-1 flex flex-col">
+        {(day.tasks.length > 0 || day.routines.length === 0) && (
+          <div className="text-[9px] tracking-[0.18em] uppercase text-zinc-400 font-bold mb-1">
+            {t('dashboard.day.todoList')}
+          </div>
+        )}
+        <div className="flex-1">
+          {day.tasks.map(task => (
+            <TaskRow
+              key={task.id}
+              task={task}
+              autoFocus={task.id === focusTaskId}
+              onToggle={onUpdateTask}
+              onChange={onUpdateTask}
+              onDelete={onDeleteTask}
+              onDoneEditing={() => focusTaskId === task.id && onTaskCreated(null)}
+              t={t}
+            />
+          ))}
         </div>
-        {loading ? <p className="text-sm text-zinc-400">{t('common.loading')}</p>
-          : tasks.length === 0 ? <p className="text-sm text-zinc-400 py-2">{t('dashboard.week.noTasks')}</p>
-          : (
-            <ul className="space-y-2">
-              {tasks.map(task => (
-                <li key={task.id} className="group flex items-center gap-2">
-                  <button
-                    onClick={() => updateTask(task.id, 'completed', !task.completed)}
-                    className={`flex-shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${task.completed ? 'bg-spirit border-spirit' : 'border-zinc-300 hover:border-[#3a6490]'}`}
-                  >
-                    {task.completed && <Check size={9} className="text-white" />}
-                  </button>
-                  <input
-                    value={task.title}
-                    onChange={e => updateTask(task.id, 'title', e.target.value)}
-                    placeholder={t('dashboard.week.taskPlaceholder')}
-                    className={`flex-1 bg-transparent text-sm border-0 focus:ring-0 p-0 placeholder-zinc-400 ${task.completed ? 'line-through text-zinc-400' : 'text-zinc-800'}`}
-                  />
-                  <button onClick={() => deleteTask(task.id)} className="opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-red-500 transition-all">
-                    <Trash2 size={13} />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
+        <button
+          onClick={handleAdd}
+          className="flex items-center gap-1 mt-2 text-[11px] text-zinc-400 hover:text-zinc-900 transition-colors"
+        >
+          <Plus size={11} strokeWidth={2} /> {t('dashboard.day.addTask')}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+/* ── Main WeekTab ──────────────────────────── */
+
+export default function WeekTab() {
+  const { t, i18n } = useTranslation()
+  const [monday, setMonday] = useState(() => getMondayOf(new Date()))
+  const { byDay, stats, loading, toggleRoutine, addTask, updateTask, deleteTask } = useWeekData(monday)
+  const [focusTaskId, setFocusTaskId] = useState(null)
+
+  const localeMap = { pt: ptBR, en: enUS, es }
+  const locale = localeMap[i18n.language] || ptBR
+
+  const sunday = byDay[6]?.date
+  const label  = byDay[0] && byDay[6]
+    ? `${format(byDay[0].date, 'd MMM', { locale })} – ${format(byDay[6].date, 'd MMM', { locale })}`
+    : ''
+
+  if (loading) {
+    return <div className="text-center py-16 text-zinc-400 text-sm">{t('common.loading')}</div>
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto">
+      {/* Period nav */}
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="font-display text-3xl font-medium text-zinc-900 tracking-tight capitalize">
+          {label}
+        </h1>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setMonday(m => shiftWeek(m, -1))}
+            className="p-2 hover:bg-zinc-100 rounded-full transition-colors text-zinc-600"
+          >
+            <ChevronLeft size={16} />
+          </button>
+          <button
+            onClick={() => setMonday(getMondayOf(new Date()))}
+            className="text-[11px] uppercase tracking-[0.18em] text-zinc-500 hover:text-zinc-900 transition-colors px-3 py-1.5 rounded-full hover:bg-zinc-100"
+          >
+            {t('dashboard.today')}
+          </button>
+          <button
+            onClick={() => setMonday(m => shiftWeek(m, 1))}
+            className="p-2 hover:bg-zinc-100 rounded-full transition-colors text-zinc-600"
+          >
+            <ChevronRight size={16} />
+          </button>
+        </div>
+      </div>
+
+      {/* Summary */}
+      <WeekSummary stats={stats} byDay={byDay} locale={locale} t={t} />
+
+      {/* Day columns */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+        {byDay.map(day => (
+          <DayColumn
+            key={day.iso}
+            day={day}
+            locale={locale}
+            focusTaskId={focusTaskId}
+            onToggleRoutine={toggleRoutine}
+            onAddTask={addTask}
+            onUpdateTask={updateTask}
+            onDeleteTask={deleteTask}
+            onTaskCreated={setFocusTaskId}
+            t={t}
+          />
+        ))}
       </div>
     </div>
   )

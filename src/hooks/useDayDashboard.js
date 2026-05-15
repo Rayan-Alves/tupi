@@ -73,18 +73,42 @@ export function useDayDashboard() {
   }
 
   async function addDayTask(parentId = null) {
-    const { data } = await supabase.from('day_tasks').insert({ user_id: user.id, title: '', completed: false, parent_id: parentId, task_date: TODAY }).select().single()
-    if (data) setDayTasks(prev => [...prev, data])
-    return data
+    // 1. Add immediately (optimistic)
+    const tempId = `temp-${Date.now()}`
+    const tempTask = {
+      id: tempId, title: '', completed: false,
+      parent_id: parentId, task_date: TODAY,
+      created_at: new Date().toISOString(),
+    }
+    setDayTasks(prev => [...prev, tempTask])
+
+    // 2. Persist to DB in background
+    try {
+      const { data, error } = await supabase
+        .from('day_tasks')
+        .insert({ user_id: user.id, title: '', completed: false, parent_id: parentId, task_date: TODAY })
+        .select().single()
+      if (data) {
+        // Replace temp with real DB row
+        setDayTasks(prev => prev.map(t => t.id === tempId ? data : t))
+        return data
+      }
+      if (error) console.warn('day_tasks insert error:', error.message)
+    } catch (e) {
+      console.warn('day_tasks unavailable, using local-only mode')
+    }
+    return tempTask
   }
 
   async function updateDayTask(id, changes) {
     setDayTasks(prev => prev.map(t => t.id === id ? {...t, ...changes} : t))
+    if (id.startsWith('temp-')) return // Not in DB yet
     await supabase.from('day_tasks').update(changes).eq('id', id).eq('user_id', user.id)
   }
 
   async function deleteDayTask(id) {
     setDayTasks(prev => prev.filter(t => t.id !== id && t.parent_id !== id))
+    if (id.startsWith('temp-')) return // Not in DB yet
     await supabase.from('day_tasks').delete().eq('id', id).eq('user_id', user.id)
   }
 

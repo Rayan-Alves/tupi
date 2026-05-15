@@ -72,7 +72,9 @@
       "howEndPlaceholder": "What do you want to have achieved...",
       "tasks": "Weekly Tasks",
       "noTasks": "No tasks yet. Add your first!",
-      "taskPlaceholder": "Describe the task..."
+      "taskPlaceholder": "Describe the task...",
+      "summary": "Week summary",
+      "done": "done"
     },
     "month": {
       "howStart": "How do I start this month?",

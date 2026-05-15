@@ -72,7 +72,9 @@
       "howEndPlaceholder": "O que quer ter conquistado ao final...",
       "tasks": "Tarefas da Semana",
       "noTasks": "Nenhuma tarefa. Adicione a primeira!",
-      "taskPlaceholder": "Descreva a tarefa..."
+      "taskPlaceholder": "Descreva a tarefa...",
+      "summary": "Resumo da semana",
+      "done": "feitos"
     },
     "month": {
       "howStart": "Como inicio esse mês?",
