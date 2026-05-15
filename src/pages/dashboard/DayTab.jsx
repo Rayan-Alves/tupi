@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { format } from 'date-fns'
 import { ptBR, enUS, es } from 'date-fns/locale'
 import { useDayDashboard } from '../../hooks/useDayDashboard'
+import ReadingWidget from '../../components/library/ReadingWidget'
 
 const SOURCE_COLOR = {
   spirit:    '#5a8ab8',
@@ -187,12 +188,23 @@ function RoutineRow({ routine, done, onToggle, onDelete }) {
   )
 }
 
-function TaskRow({ task, subtasks, onToggle, onTitleChange, onDelete, onAddSub, t }) {
+function TaskRow({ task, subtasks, onToggle, onTitleChange, onDelete, onAddSub, autoFocus, onDoneEditing, t }) {
   const [title, setTitle] = useState(task.title || '')
   const [expanded, setExpanded] = useState(false)
+  const inputRef = useRef(null)
   const dirty = useRef(false)
+
   useEffect(() => { setTitle(task.title || '') }, [task.id])
-  function flush() { if (dirty.current) { onTitleChange(task.id, title); dirty.current = false } }
+
+  // Focus when this task is freshly created
+  useEffect(() => {
+    if (autoFocus && inputRef.current) inputRef.current.focus()
+  }, [autoFocus])
+
+  function flush() {
+    if (dirty.current) { onTitleChange(task.id, title); dirty.current = false }
+    if (onDoneEditing) onDoneEditing()
+  }
 
   return (
     <div className="group">
@@ -210,10 +222,11 @@ function TaskRow({ task, subtasks, onToggle, onTitleChange, onDelete, onAddSub, 
           </button>
         )}
         <input
+          ref={inputRef}
           value={title}
           onChange={e => { setTitle(e.target.value); dirty.current = true }}
           onBlur={flush}
-          onKeyDown={e => e.key === 'Enter' && flush()}
+          onKeyDown={e => { if (e.key === 'Enter') { flush(); onAddSub && addDayTask && null } }}
           placeholder={t('dashboard.day.taskPlaceholder')}
           className={`flex-1 bg-transparent border-0 outline-none text-[14px] ${
             task.completed ? 'text-zinc-400 line-through' : 'text-zinc-800'
@@ -334,8 +347,13 @@ export default function DayTab() {
   const [showTPct, setShowTPct]   = useState(false)
   const [showPPct, setShowPPct]   = useState(false)
   const [addingR,  setAddingR]    = useState(false)
-  // 'hide' = tasks desaparecem ao dar check | 'strike' = ficam riscadas
   const [projView, setProjView]   = useState('strike')
+  const [newTaskId, setNewTaskId] = useState(null)
+
+  async function handleAddTask() {
+    const task = await addDayTask(null)
+    if (task) setNewTaskId(task.id)
+  }
 
   if (loading) {
     return <div className="text-center py-16 text-zinc-400 text-sm">{t('common.loading')}</div>
@@ -358,9 +376,9 @@ export default function DayTab() {
     : format(today, "EEEE, d 'de' MMMM", { locale: dateLocale })
 
   return (
-    <div className="flex flex-col gap-4 max-w-2xl mx-auto">
+    <div className="max-w-5xl mx-auto">
       {/* Date header */}
-      <div className="mb-2 px-1">
+      <div className="mb-6 px-1">
         <div className="text-[11px] tracking-[0.22em] uppercase text-zinc-400 mb-1.5 font-medium">
           {t('dashboard.today')}
         </div>
@@ -369,6 +387,7 @@ export default function DayTab() {
         </h1>
       </div>
 
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
       {/* Routines */}
       <Section
         title={t('dashboard.day.routine')}
@@ -407,13 +426,24 @@ export default function DayTab() {
             onTitleChange={(id, title) => updateDayTask(id, { title })}
             onDelete={deleteDayTask}
             onAddSub={addDayTask}
+            autoFocus={task.id === newTaskId}
+            onDoneEditing={() => setNewTaskId(null)}
             t={t}
           />
         ))}
-        <AddBtn label={t('dashboard.day.addTask')} onClick={() => addDayTask(null)} />
+        <AddBtn label={t('dashboard.day.addTask')} onClick={handleAddTask} />
       </Section>
 
-      {/* Projects */}
+      {/* Reading widget — paired with Routines */}
+      <ReadingWidget />
+
+      {/* Notes — paired with Tasks */}
+      <Section title={t('dashboard.day.notes')}>
+        <NoteArea content={note.content} onSave={saveNote} placeholder={t('dashboard.day.notesPlaceholder')} />
+      </Section>
+
+      {/* Projects — full width */}
+      <div className="lg:col-span-2">
       <Section
         title={t('dashboard.day.projectsToday')}
         done={pDone} total={projTasks.length} barColor="#C8841A"
@@ -457,10 +487,8 @@ export default function DayTab() {
         )}
       </Section>
 
-      {/* Notes */}
-      <Section title={t('dashboard.day.notes')}>
-        <NoteArea content={note.content} onSave={saveNote} placeholder={t('dashboard.day.notesPlaceholder')} />
-      </Section>
+      </div>
+    </div>
     </div>
   )
 }

@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { LayoutDashboard, Sparkles, Brain, Dumbbell, Plane, Sprout, Compass, LogOut, Globe } from 'lucide-react'
+import { LayoutDashboard, Sparkles, Brain, Dumbbell, Library as LibraryIcon, Plane, Sprout, Compass, LogOut, Globe } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useProfile } from '../../hooks/useProfile'
 import i18n from '../../i18n'
@@ -17,6 +17,7 @@ const NAV = [
   { to: '/spirit',    icon: Sparkles,        key: 'nav.spirit',    color: 'text-[#5a8ab8]' },
   { to: '/mind',      icon: Brain,           key: 'nav.mind',      color: 'text-[#e0a840]' },
   { to: '/body',      icon: Dumbbell,        key: 'nav.body',      color: 'text-[#6aaa30]' },
+  { to: '/library',   icon: LibraryIcon,     key: 'nav.library',   color: 'text-[#a87a3e]' },
   { to: '/travels',   icon: Plane,           key: 'nav.travels',   color: 'text-[#8B5A2B]', comingSoon: true },
   { to: '/projects',  icon: Sprout,          key: 'nav.projects',  color: 'text-[#C4A882]' },
 ]

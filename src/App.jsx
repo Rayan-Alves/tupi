@@ -13,6 +13,8 @@ import Jornada from './pages/Jornada'
 import PadraoMental from './pages/PadraoMental'
 import DocList from './pages/DocList'
 import DocEditor from './pages/DocEditor'
+import Library from './pages/Library'
+import BookDetail from './pages/BookDetail'
 import UnoPage from './pages/UnoPage'
 import UnoListPage from './pages/UnoListPage'
 
@@ -56,6 +58,7 @@ export default function App() {
           <Route path="/presente/:id"    element={<ProtectedRoute><DocEditor {...PRESENT} /></ProtectedRoute>} />
           <Route path="/desejos/:id"     element={<ProtectedRoute><DocEditor {...DESIRES} /></ProtectedRoute>} />
           <Route path="/uno/:projectId"  element={<ProtectedRoute><UnoPage /></ProtectedRoute>} />
+          <Route path="/library/:id"     element={<ProtectedRoute><BookDetail /></ProtectedRoute>} />
 
           <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<Navigate to="/dashboard" replace />} />
@@ -68,6 +71,7 @@ export default function App() {
             <Route path="/passado"   element={<DocList {...PAST} />} />
             <Route path="/presente"  element={<DocList {...PRESENT} />} />
             <Route path="/uno"       element={<UnoListPage />} />
+            <Route path="/library"   element={<Library />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
