@@ -54,15 +54,22 @@ export function useProjects() {
   }
 
   async function updateTask(id, changes) {
-    // Optimistic: update UI immediately so inputs never revert
+    // 1. Optimistic: apply changes immediately so UI never reverts
     setTasks(prev => prev.map(x => x.id === id ? { ...x, ...changes } : x))
+
     const { data: t, error } = await supabase
       .from('kanban_tasks').update(changes).eq('id', id).eq('user_id', user.id).select().single()
+
     if (error) {
-      console.warn('updateTask error:', error.message, '— changes:', changes)
-      // Keep optimistic state; don't revert the user's input
+      console.warn('updateTask error:', error.message, '— fields:', Object.keys(changes))
+      // Keep optimistic state — don't revert
     } else if (t) {
-      setTasks(prev => prev.map(x => x.id === id ? t : x))
+      // 2. Merge ONLY the changed fields from DB (+ server-computed fields).
+      //    Never do a full replace — that would wipe fields set by other concurrent saves.
+      const safeSync = { ...changes }
+      if ('completed_count' in t) safeSync.completed_count = t.completed_count
+      if ('recurring'       in t) safeSync.recurring       = t.recurring
+      setTasks(prev => prev.map(x => x.id === id ? { ...x, ...safeSync } : x))
     }
     return t
   }
