@@ -4,6 +4,7 @@ import { useProjects } from '../../hooks/useProjects'
 import KanbanBoard, { STAGES, NewProjectForm } from '../../components/projects/KanbanBoard'
 import ProjectModal from '../../components/projects/ProjectModal'
 import ProjectsTimeline from '../../components/projects/ProjectsTimeline'
+import ListView from '../../components/projects/ListView'
 import { isSmartComplete } from '../../components/projects/SmartTab'
 import { playCheck, playCelebration, playProgress } from '../../lib/sounds'
 import { hasRecurrence, totalOccurrences, computeCheckUpdate, computeProgress } from '../../lib/recurring'
@@ -105,44 +106,7 @@ function ProjectCard({ project, tasks, onOpenModal, onDelete }) {
 }
 
 /* ─── List View ───────────────────────────────────────────── */
-function ListView({ projects, tasks, addProject, deleteProject, onOpenModal }) {
-  const { t } = useTranslation()
-  const [creating, setCreating] = useState(false)
-
-  async function handleCreate(form) {
-    const created = await addProject({ ...form, stage: 'soil' })
-    setCreating(false)
-    if (created) onOpenModal(created.id, 'soil')
-  }
-
-  if (projects.length === 0 && !creating) {
-    return (
-      <div style={{ padding: '60px 20px', textAlign: 'center' }}>
-        <div style={{ fontSize: 40, marginBottom: 12 }}>🌱</div>
-        <p style={{ fontSize: 14, color: '#a1a1aa', marginBottom: 20 }}>Nenhum projeto ainda.</p>
-        <button onClick={() => setCreating(true)}
-          style={{ padding: '10px 24px', borderRadius: 99, background: STAGES[0].dot, color: '#fff', border: 'none', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-          + Novo Projeto
-        </button>
-      </div>
-    )
-  }
-
-  return (
-    <div style={{ padding: '0 20px 40px' }}>
-      {creating && (
-        <div style={{ marginBottom: 16 }}>
-          <NewProjectForm onSave={handleCreate} onCancel={() => setCreating(false)} stage={STAGES[0]} />
-        </div>
-      )}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 12 }}>
-        {projects.map(p => (
-          <ProjectCard key={p.id} project={p} tasks={tasks} onOpenModal={onOpenModal} onDelete={deleteProject} />
-        ))}
-      </div>
-    </div>
-  )
-}
+// (Old inline ListView removed — replaced by imported ListView from components/projects/ListView.jsx)
 
 /* ─── Main Tab ────────────────────────────────────────────── */
 const VIEWS = [
@@ -157,6 +121,7 @@ export default function ProjectsTab() {
   const [view, setView]         = useState('kanban')
   const [modalState, setModal]  = useState(null)
   const [creating, setCreating] = useState(false)
+  const [triggerCreate, setTriggerCreate] = useState(0)
 
   function openModal(id, initialTab) { setModal({ id, initialTab }) }
   function closeModal() { setModal(null) }
@@ -194,95 +159,64 @@ export default function ProjectsTab() {
     )
   }
 
+  const smartCount = data.projects.filter(p => isSmartComplete(p)).length
+  const eyebrow = data.projects.length === 0
+    ? 'nenhum projeto · em quatro campos'
+    : `${data.projects.length} projeto${data.projects.length > 1 ? 's' : ''} · em quatro campos${smartCount > 0 ? ` · ${smartCount} smart ✓` : ''}`
+
   return (
-    <div style={{ minHeight: '100%', background: '#FAFAF8', fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" }}>
-
-      {/* ─── Premium Header ───────────────────────────────── */}
-      <div style={{ padding: '24px 20px 16px', borderBottom: '1px solid #EBEBEB', background: '#fff' }}>
-        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-          {/* Left */}
-          <div>
-            <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 26, fontWeight: 700, color: '#0a0a0a', margin: 0, letterSpacing: '-0.02em', lineHeight: 1 }}>
-              {t('projects.title')}
-            </h1>
-            <p style={{ fontSize: 12, color: '#a1a1aa', margin: '4px 0 0' }}>
-              {data.projects.length === 0 ? 'Nenhum projeto ainda' : `${data.projects.length} projeto${data.projects.length > 1 ? 's' : ''}`}
-              {data.projects.filter(p => isSmartComplete(p)).length > 0 && (
-                <span style={{ color: '#15803d', fontWeight: 600 }}>
-                  {' '}· {data.projects.filter(p => isSmartComplete(p)).length} SMART ✓
-                </span>
-              )}
-            </p>
-          </div>
-
-          {/* Right */}
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            {/* View switcher */}
-            <div style={{ display: 'flex', background: '#F4F4F5', borderRadius: 10, padding: 3, gap: 2 }}>
-              {VIEWS.map(v => (
-                <button key={v.id} onClick={() => setView(v.id)}
-                  style={{
-                    padding: '5px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                    fontSize: 11, fontWeight: view === v.id ? 700 : 400,
-                    background: view === v.id ? '#fff' : 'transparent',
-                    color: view === v.id ? '#1a1a1a' : '#71717a',
-                    boxShadow: view === v.id ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-                    transition: 'all .15s', fontFamily: 'inherit',
-                  }}>
-                  {v.label}
-                </button>
-              ))}
-            </div>
-
-            {/* New project */}
-            <button
-              onClick={() => { if (view !== 'kanban') setView('kanban') }}
-              style={{
-                padding: '7px 18px', borderRadius: 99, border: 'none',
-                background: STAGES[0].dot, color: '#fff',
-                fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                fontFamily: 'inherit', transition: 'all .15s',
-                display: 'flex', alignItems: 'center', gap: 5,
-              }}
-              onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-              onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-              title="Novo projeto (abre no Kanban)"
-            >
-              + Projeto
-            </button>
-          </div>
+    <div className="kb-root" style={{ minHeight: '100%' }}>
+      {/* ─── Header (variant A) ───────────────────────────── */}
+      <div className="kb-header">
+        <div>
+          <h1 className="kb-title">
+            {t('projects.title')} <em></em>
+          </h1>
+          <div className="kb-eyebrow">{eyebrow}</div>
         </div>
-
-        {/* Stage summary pills */}
-        {data.projects.length > 0 && (
-          <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
-            {STAGES.map(s => {
-              const count = data.projects.filter(p => p.stage === s.key).length
-              if (count === 0) return null
-              return (
-                <div key={s.key} onClick={() => setView('kanban')} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 99, background: s.bg, border: `1px solid ${s.color}55`, cursor: 'pointer', transition: 'all .15s' }}
-                  onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
-                  onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: s.dot }} />
-                  <span style={{ fontSize: 11, fontWeight: 600, color: s.dot }}>{t(`projects.stages.${s.key}`)}</span>
-                  <span style={{ fontSize: 10, color: s.dot, background: s.color + '33', borderRadius: 99, padding: '0 5px', fontWeight: 700 }}>{count}</span>
-                </div>
-              )
-            })}
+        <div className="kb-headerR">
+          <div className="kb-viewtoggle">
+            {VIEWS.map(v => (
+              <button key={v.id} onClick={() => setView(v.id)} className={view === v.id ? 'is-active' : ''}>
+                {v.label}
+              </button>
+            ))}
           </div>
-        )}
+          <button className="kb-newbtn" onClick={() => { setView('kanban'); setTriggerCreate(c => c + 1) }}>
+            novo projeto
+          </button>
+        </div>
       </div>
+
+      {/* Stage chips */}
+      {data.projects.length > 0 && (
+        <div className="kb-chips">
+          {STAGES.map(s => {
+            const count = data.projects.filter(p => p.stage === s.key).length
+            return (
+              <span key={s.key} onClick={() => setView('kanban')}
+                className="kb-chip"
+                style={{ '--c': s.deep, '--bg': s.soft, cursor: 'pointer' }}
+              >
+                <span className="kb-chip__dot" style={{ background: s.color }} />
+                {t(`projects.stages.${s.key}`)}
+                <span className="kb-chip__n">· {count}</span>
+              </span>
+            )
+          })}
+        </div>
+      )}
 
       {/* ─── Views ────────────────────────────────────────── */}
       <div style={{ paddingTop: 16 }}>
         {view === 'kanban' && (
-          <KanbanBoard {...dataWithCelebration} onOpenModal={openModal} />
+          <KanbanBoard {...dataWithCelebration} onOpenModal={openModal} triggerCreate={triggerCreate} />
         )}
         {view === 'list' && (
           <ListView
             projects={data.projects}
             tasks={data.tasks}
-            addProject={data.addProject}
+            updateProject={data.updateProject}
             deleteProject={data.deleteProject}
             onOpenModal={openModal}
           />

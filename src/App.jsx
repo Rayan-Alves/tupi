@@ -15,8 +15,10 @@ import DocList from './pages/DocList'
 import DocEditor from './pages/DocEditor'
 import Library from './pages/Library'
 import BookDetail from './pages/BookDetail'
+import DeepDesires from './pages/DeepDesires'
 import UnoPage from './pages/UnoPage'
 import UnoListPage from './pages/UnoListPage'
+import PrivacyPolicy from './pages/PrivacyPolicy'
 
 const PAST = { table: 'past_documents', basePath: '/passado', i18nNs: 'spirit.past', introKey: 'tupi.past.introHidden', introPromptKey: 'spirit.past.prompts.1', pages: 3 }
 const PRESENT = { table: 'present_documents', basePath: '/presente', i18nNs: 'spirit.present', introKey: 'tupi.present.introHidden', introPromptKey: 'spirit.present.prompts.1', pages: 1 }
@@ -51,6 +53,7 @@ export default function App() {
         <Routes>
           <Route path="/login"    element={<GuestRoute><Login /></GuestRoute>} />
           <Route path="/register" element={<GuestRoute><Register /></GuestRoute>} />
+          <Route path="/privacy"  element={<PrivacyPolicy />} />
           <Route path="/jornada"       element={<Jornada />} />
           <Route path="/padrao-mental"   element={<ProtectedRoute><PadraoMental /></ProtectedRoute>} />
           <Route path="/padrao-mental-2" element={<ProtectedRoute><PadraoMental table="mental_patterns_2" /></ProtectedRoute>} />
@@ -70,8 +73,9 @@ export default function App() {
             <Route path="/profile"   element={<Profile />} />
             <Route path="/passado"   element={<DocList {...PAST} />} />
             <Route path="/presente"  element={<DocList {...PRESENT} />} />
-            <Route path="/uno"       element={<UnoListPage />} />
-            <Route path="/library"   element={<Library />} />
+            <Route path="/uno"               element={<UnoListPage />} />
+            <Route path="/desejos-profundos" element={<DeepDesires />} />
+            <Route path="/library"           element={<Library />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

@@ -74,7 +74,8 @@
       "noTasks": "No tasks yet. Add your first!",
       "taskPlaceholder": "Describe the task...",
       "summary": "Week summary",
-      "done": "done"
+      "done": "done",
+      "projects": "Projects"
     },
     "month": {
       "howStart": "How do I start this month?",
@@ -121,7 +122,13 @@
     "city": "City",
     "cityPlaceholder": "Select a city…",
     "occupation": "Occupation",
-    "occupationPlaceholder": "E.g. Designer, Entrepreneur…"
+    "occupationPlaceholder": "E.g. Designer, Entrepreneur…",
+    "dangerZone": "Danger zone",
+    "deleteAccount": "Delete account",
+    "deleteAccountDesc": "Permanently delete your account and all your data. This cannot be undone.",
+    "deleteConfirmPrompt": "Type DELETE to confirm",
+    "deleteConfirming": "Deleting…",
+    "deleteCancel": "Cancel"
   },
   "spirit": {
     "title": "Spirit",
@@ -184,6 +191,15 @@
     },
     "desires": {
       "sectionTitle": "My deep desires",
+      "sectionHeader": "DEEP DESIRES · 02",
+      "title": "Deep desires",
+      "subtitle": "what sleeps in you and has not yet asked for a word.",
+      "savedLabel": "KEPT IN YOU",
+      "savedCount_one": "{{count}} desire",
+      "savedCount_other": "{{count}} desires",
+      "firstWhisper": "FIRST WHISPER",
+      "send": "SEND",
+      "newPlaceholder": "write a desire you haven't told anyone yet…",
       "placeholder": "Write a desire...",
       "add": "Add",
       "untitled": "Unnamed desire",

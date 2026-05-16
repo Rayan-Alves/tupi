@@ -74,7 +74,8 @@
       "noTasks": "Sin tareas aún. ¡Agrega la primera!",
       "taskPlaceholder": "Describe la tarea...",
       "summary": "Resumen de la semana",
-      "done": "hechos"
+      "done": "hechos",
+      "projects": "Proyectos"
     },
     "month": {
       "howStart": "¿Cómo inicio este mes?",
@@ -121,7 +122,13 @@
     "city": "Ciudad",
     "cityPlaceholder": "Selecciona una ciudad…",
     "occupation": "Ocupación",
-    "occupationPlaceholder": "Ej: Diseñador, Emprendedor…"
+    "occupationPlaceholder": "Ej: Diseñador, Emprendedor…",
+    "dangerZone": "Zona de peligro",
+    "deleteAccount": "Eliminar cuenta",
+    "deleteAccountDesc": "Elimina permanentemente tu cuenta y todos tus datos. Esto no se puede deshacer.",
+    "deleteConfirmPrompt": "Escribe DELETE para confirmar",
+    "deleteConfirming": "Eliminando…",
+    "deleteCancel": "Cancelar"
   },
   "spirit": {
     "title": "Espíritu",
@@ -184,6 +191,15 @@
     },
     "desires": {
       "sectionTitle": "Mis deseos profundos",
+      "sectionHeader": "DESEOS PROFUNDOS · 02",
+      "title": "Deseos profundos",
+      "subtitle": "lo que duerme en ti y aún no ha pedido palabra.",
+      "savedLabel": "GUARDADOS EN TI",
+      "savedCount_one": "{{count}} deseo",
+      "savedCount_other": "{{count}} deseos",
+      "firstWhisper": "PRIMER SUSURRO",
+      "send": "ENVIAR",
+      "newPlaceholder": "escribe un deseo que aún no le has dicho a nadie…",
       "placeholder": "Escribe un deseo...",
       "add": "Añadir",
       "untitled": "Deseo sin nombre",

@@ -54,9 +54,16 @@ export function useProjects() {
   }
 
   async function updateTask(id, changes) {
-    const { data: t } = await supabase
+    // Optimistic: update UI immediately so inputs never revert
+    setTasks(prev => prev.map(x => x.id === id ? { ...x, ...changes } : x))
+    const { data: t, error } = await supabase
       .from('kanban_tasks').update(changes).eq('id', id).eq('user_id', user.id).select().single()
-    if (t) setTasks(prev => prev.map(x => x.id === id ? t : x))
+    if (error) {
+      console.warn('updateTask error:', error.message, '— changes:', changes)
+      // Keep optimistic state; don't revert the user's input
+    } else if (t) {
+      setTasks(prev => prev.map(x => x.id === id ? t : x))
+    }
     return t
   }
 

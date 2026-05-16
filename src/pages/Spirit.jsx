@@ -642,8 +642,23 @@ export default function Spirit() {
 
       {/* ── DEEP DESIRES ── */}
       <section className="space-y-4">
-        <SectionDivider label={t('spirit.desires.sectionTitle')} />
-        <DesireList />
+        <div className="bg-[#F5F0E8] rounded-3xl p-8 mt-6">
+          <div className="mb-6">
+            <div className="flex items-center gap-4 mb-3">
+              <span className="text-[10px] font-bold tracking-[0.15em] text-zinc-500 uppercase">
+                {t('spirit.desires.sectionHeader')}
+              </span>
+              <div className="h-px bg-zinc-300 flex-1 max-w-[100px]"></div>
+            </div>
+            <h2 className="font-display text-4xl font-semibold text-[#2D2A26] mb-1">
+              {t('spirit.desires.title')}
+            </h2>
+            <p className="text-[#5C5C5C] text-sm italic" style={{ fontFamily: 'Cormorant Garamond, Georgia, serif', fontSize: 16 }}>
+              {t('spirit.desires.subtitle')}
+            </p>
+          </div>
+          <DesireList />
+        </div>
       </section>
 
       {/* ── UNO ── */}

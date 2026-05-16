@@ -36,6 +36,7 @@ export function useWeekData(monday) {
   const [routines,    setRoutines]    = useState([])
   const [completions, setCompletions] = useState(new Set())
   const [tasks,       setTasks]       = useState([])
+  const [projTasks,   setProjTasks]   = useState([])
   const [loading,     setLoading]     = useState(true)
 
   const dates    = useMemo(() => getWeekDates(monday), [monday])
@@ -45,7 +46,7 @@ export function useWeekData(monday) {
   const refresh = useCallback(async () => {
     if (!user) return
     setLoading(true)
-    const [sr, mr, br, dr, comp, dt] = await Promise.allSettled([
+    const [sr, mr, br, dr, comp, dt, pt] = await Promise.allSettled([
       supabase.from('spirit_routines').select('*').eq('user_id', user.id),
       supabase.from('mind_routines').select('*').eq('user_id', user.id),
       supabase.from('body_routines').select('*').eq('user_id', user.id),
@@ -54,6 +55,8 @@ export function useWeekData(monday) {
         .eq('user_id', user.id).gte('completed_date', startISO).lte('completed_date', endISO),
       supabase.from('day_tasks').select('*')
         .eq('user_id', user.id).gte('task_date', startISO).lte('task_date', endISO).order('created_at'),
+      supabase.from('kanban_tasks').select('id,title,completed,project_id,phase,due_date,kanban_projects(title,stage)')
+        .eq('user_id', user.id).gte('due_date', startISO).lte('due_date', endISO).order('sort_order'),
     ])
     setRoutines([
       ...(sr.value?.data || []).map(r => ({ ...r, source: 'spirit' })),
@@ -63,6 +66,10 @@ export function useWeekData(monday) {
     ])
     setCompletions(new Set((comp.value?.data || []).map(c => `${c.routine_id}_${c.completed_date}`)))
     setTasks(dt.value?.data || [])
+    const ACTIVE = new Set(['plant', 'water', 'harvest'])
+    setProjTasks((pt.value?.data || [])
+      .filter(t => t.kanban_projects && ACTIVE.has(t.kanban_projects.stage))
+      .map(t => ({ ...t, projects: t.kanban_projects })))
     setLoading(false)
   }, [user?.id, startISO, endISO])
 
@@ -77,15 +84,19 @@ export function useWeekData(monday) {
       const completedRoutines = dayRoutines.filter(r => completions.has(`${r.id}_${iso}`))
       const dayTasks = tasks.filter(t => t.task_date === iso && !t.parent_id)
       const completedTasks = dayTasks.filter(t => t.completed)
+      const dayProjTasks = projTasks.filter(t => t.due_date === iso)
+      const completedProjTasks = dayProjTasks.filter(t => t.completed)
       return {
         date, iso, dayKey,
         routines: dayRoutines,
         completedRoutines: new Set(completedRoutines.map(r => r.id)),
         tasks: dayTasks,
         completedTasksCount: completedTasks.length,
+        projTasks: dayProjTasks,
+        completedProjTasksCount: completedProjTasks.length,
       }
     })
-  }, [dates, routines, completions, tasks])
+  }, [dates, routines, completions, tasks, projTasks])
 
   /* Aggregated week stats */
   const stats = useMemo(() => {
@@ -93,10 +104,12 @@ export function useWeekData(monday) {
     const doneRoutines   = byDay.reduce((s, d) => s + d.completedRoutines.size, 0)
     const totalTasks     = byDay.reduce((s, d) => s + d.tasks.length, 0)
     const doneTasks      = byDay.reduce((s, d) => s + d.completedTasksCount, 0)
-    const total          = totalRoutines + totalTasks
-    const done           = doneRoutines + doneTasks
+    const totalProjTasks = byDay.reduce((s, d) => s + d.projTasks.length, 0)
+    const doneProjTasks  = byDay.reduce((s, d) => s + d.completedProjTasksCount, 0)
+    const total          = totalRoutines + totalTasks + totalProjTasks
+    const done           = doneRoutines + doneTasks + doneProjTasks
     const pct            = total > 0 ? Math.round((done / total) * 100) : 0
-    return { totalRoutines, doneRoutines, totalTasks, doneTasks, total, done, pct }
+    return { totalRoutines, doneRoutines, totalTasks, doneTasks, totalProjTasks, doneProjTasks, total, done, pct }
   }, [byDay])
 
   async function toggleRoutine(routineId, source, dateISO) {
@@ -133,5 +146,13 @@ export function useWeekData(monday) {
     await supabase.from('day_tasks').delete().eq('id', id).eq('user_id', user.id)
   }
 
-  return { byDay, dates, stats, loading, toggleRoutine, addTask, updateTask, deleteTask, refresh }
+  async function toggleProjTask(id) {
+    const t = projTasks.find(x => x.id === id)
+    if (!t) return
+    const next = !t.completed
+    setProjTasks(prev => prev.map(x => x.id === id ? { ...x, completed: next } : x))
+    await supabase.from('kanban_tasks').update({ completed: next }).eq('id', id).eq('user_id', user.id)
+  }
+
+  return { byDay, dates, stats, loading, toggleRoutine, addTask, updateTask, deleteTask, toggleProjTask, refresh }
 }

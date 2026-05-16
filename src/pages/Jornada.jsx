@@ -114,13 +114,152 @@ function NextButton({ onClick, label = 'next →' }) {
 
 // ── Step renderers ────────────────────────────────────────────────────────────
 
+const PROFUNDO_CSS = `
+.jornada-profundo {
+  min-height: 100vh;
+  background: radial-gradient(120% 90% at 50% 45%, oklch(0.22 0.03 155) 0%, oklch(0.18 0.025 155) 50%, oklch(0.11 0.02 155) 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 56px 24px;
+  gap: 56px;
+}
+.j-portal {
+  --size: 380px;
+  position: relative;
+  width: var(--size); height: var(--size);
+  border-radius: 50%;
+  border: none; background: transparent; padding: 0;
+  cursor: pointer; display: grid; place-items: center;
+  isolation: isolate;
+  transition: transform 600ms cubic-bezier(.22,1,.36,1);
+  -webkit-tap-highlight-color: transparent;
+}
+.j-portal:active { transform: scale(0.97); }
+.j-portal:focus-visible { outline: 2px solid oklch(0.78 0.14 145); outline-offset: 14px; }
+.j-portal .j-logo {
+  position: relative; z-index: 3;
+  width: 86%; height: 86%;
+  object-fit: contain;
+  pointer-events: none;
+  filter:
+    drop-shadow(0 0 18px color-mix(in oklch, oklch(0.78 0.14 145) 55%, transparent))
+    drop-shadow(0 0 4px color-mix(in oklch, oklch(0.78 0.14 145) 80%, transparent))
+    brightness(1.35) contrast(1.05);
+  transition: filter 600ms ease, transform 1.2s cubic-bezier(.22,1,.36,1);
+}
+.j-portal:hover .j-logo {
+  filter:
+    drop-shadow(0 0 26px color-mix(in oklch, oklch(0.78 0.14 145) 75%, transparent))
+    drop-shadow(0 0 8px color-mix(in oklch, oklch(0.78 0.14 145) 90%, transparent))
+    brightness(1.5) contrast(1.05);
+}
+.j-glow {
+  position: absolute; inset: -2%;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in oklch, oklch(0.78 0.14 145) 60%, transparent) 0%, transparent 60%);
+  filter: blur(28px);
+  opacity: 0.45;
+  z-index: 1;
+  animation: j-pulse 5s ease-in-out infinite;
+}
+.j-glow-2 {
+  inset: 12%;
+  background: radial-gradient(circle, color-mix(in oklch, oklch(0.78 0.14 145) 80%, transparent) 0%, transparent 65%);
+  filter: blur(12px);
+  opacity: 0.55;
+  animation-delay: -1.5s;
+}
+.j-mote {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 3px; height: 3px;
+  border-radius: 50%;
+  background: oklch(0.78 0.14 145);
+  box-shadow: 0 0 6px oklch(0.78 0.14 145), 0 0 14px color-mix(in oklch, oklch(0.78 0.14 145) 70%, transparent);
+  transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y)));
+  opacity: 0;
+  z-index: 4;
+  animation: j-mote-drift var(--d) ease-in-out infinite;
+  animation-delay: var(--delay);
+}
+.j-caption {
+  text-align: center;
+  color: color-mix(in oklch, oklch(0.78 0.14 145) 70%, transparent);
+}
+.j-caption-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 36px;
+  font-weight: 400;
+  letter-spacing: -0.005em;
+  font-style: italic;
+  margin: 0 0 10px;
+  color: color-mix(in oklch, oklch(0.78 0.14 145) 85%, white);
+}
+.j-caption-sub {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 17px;
+  font-style: italic;
+  letter-spacing: 0.03em;
+  color: color-mix(in oklch, oklch(0.78 0.14 145) 55%, transparent);
+}
+
+@keyframes j-pulse {
+  0%, 100% { opacity: 0.35; transform: scale(0.98); }
+  50%      { opacity: 0.7;  transform: scale(1.04); }
+}
+@keyframes j-mote-drift {
+  0%, 100% { opacity: 0; transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) scale(0.6); }
+  40%, 60% { opacity: 0.9; }
+  50%      { transform: translate(calc(-50% + var(--x) * 1.18), calc(-50% + var(--y) * 1.18)) scale(1.1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .j-glow, .j-mote { animation: none; }
+}
+@media (max-width: 640px) {
+  .j-portal { --size: 280px; }
+  .j-caption-title { font-size: 28px; }
+}
+`
+
+function injectProfundoStyles() {
+  const id = 'jornada-profundo-styles'
+  if (!document.getElementById(id)) {
+    const el = document.createElement('style')
+    el.id = id; el.textContent = PROFUNDO_CSS
+    document.head.appendChild(el)
+  }
+}
+
 function StepVideoLogo({ onNext }) {
-  const ref = useRef(null)
+  const motes = Array.from({ length: 14 })
+  useState(() => { injectProfundoStyles() })
+  if (typeof document !== 'undefined') injectProfundoStyles()
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center" style={FONT}>
-      <video ref={ref} src="/tupi-branco.mp4" autoPlay muted playsInline loop
-        className="w-full max-w-md mx-auto" />
-      <NextButton onClick={onNext} />
+    <div className="jornada-profundo">
+      <button className="j-portal" onClick={onNext} aria-label="adentrar">
+        <span className="j-glow" aria-hidden="true" />
+        <span className="j-glow j-glow-2" aria-hidden="true" />
+        {motes.map((_, i) => (
+          <span
+            key={i}
+            className="j-mote"
+            style={{
+              '--d': `${4 + (i % 5)}s`,
+              '--x': `${Math.cos((i / motes.length) * Math.PI * 2) * (110 + (i % 4) * 14)}px`,
+              '--y': `${Math.sin((i / motes.length) * Math.PI * 2) * (110 + (i % 4) * 14)}px`,
+              '--delay': `${-i * 0.4}s`,
+            }}
+          />
+        ))}
+        <img src="/tupi-logo.png" alt="" className="j-logo" draggable="false" />
+      </button>
+      <div className="j-caption">
+        <div className="j-caption-title">adentrar</div>
+        <div className="j-caption-sub">a mata respira</div>
+      </div>
     </div>
   )
 }

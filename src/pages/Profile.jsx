@@ -4,6 +4,8 @@ import { Camera, Check, Save, ChevronDown } from 'lucide-react'
 import { Country, State, City } from 'country-state-city'
 import { useProfile } from '../hooks/useProfile'
 import { useAuth } from '../contexts/AuthContext'
+import { supabase } from '../lib/supabase'
+import { useNavigate } from 'react-router-dom'
 
 const ALL_COUNTRIES = Country.getAllCountries().map(c => ({
   value: c.isoCode,
@@ -117,8 +119,9 @@ function Avatar({ url, name, onUpload }) {
 
 export default function Profile() {
   const { t } = useTranslation()
-  const { user } = useAuth()
+  const { user, signOut } = useAuth()
   const { profile, loading, saveProfile, uploadAvatar } = useProfile()
+  const navigate = useNavigate()
 
   const [form, setForm] = useState({
     full_name: '', bio: '', birth_date: '',
@@ -130,6 +133,9 @@ export default function Profile() {
   const [avatarUrl, setAvatarUrl] = useState(null)
   const [avatarFile, setAvatarFile] = useState(null)
   const [status, setStatus] = useState('clean')
+  const [deleteConfirm, setDeleteConfirm] = useState('')
+  const [deleteStep, setDeleteStep] = useState(0)
+  const [deleting, setDeleting] = useState(false)
 
   const stateOptions = form.country_code
     ? State.getStatesOfCountry(form.country_code).map(s => ({ value: s.isoCode, label: s.name, name: s.name }))
@@ -203,6 +209,13 @@ export default function Profile() {
     setAvatarFile(null)
     setStatus('saved')
     setTimeout(() => setStatus('clean'), 2500)
+  }
+
+  async function handleDeleteAccount() {
+    setDeleting(true)
+    await supabase.rpc('delete_own_account')
+    await supabase.auth.signOut()
+    navigate('/login')
   }
 
   if (loading) return <div className="text-sm text-zinc-400 p-6">{t('common.loading')}</div>
@@ -299,8 +312,49 @@ export default function Profile() {
         </div>
       </div>
 
-      <div className="flex justify-end pb-8">
+      <div className="flex justify-end pb-4">
         <SaveButton status={status} onClick={handleSave} />
+      </div>
+
+      {/* Danger zone */}
+      <div className="border border-red-100 rounded-2xl p-6 mb-8">
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-red-400 mb-1">{t('profile.dangerZone')}</h2>
+        <p className="text-sm text-zinc-500 mb-4">{t('profile.deleteAccountDesc')}</p>
+
+        {deleteStep === 0 && (
+          <button
+            onClick={() => setDeleteStep(1)}
+            className="text-sm text-red-500 border border-red-200 hover:bg-red-50 px-4 py-2 rounded-xl transition-colors"
+          >
+            {t('profile.deleteAccount')}
+          </button>
+        )}
+
+        {deleteStep === 1 && (
+          <div className="space-y-3">
+            <input
+              value={deleteConfirm}
+              onChange={e => setDeleteConfirm(e.target.value)}
+              placeholder={t('profile.deleteConfirmPrompt')}
+              className="w-full text-sm border border-red-200 rounded-xl px-3 py-2 focus:border-red-400 focus:ring-0 transition-colors text-zinc-700 placeholder-zinc-400"
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleteConfirm !== 'DELETE' || deleting}
+                className="text-sm bg-red-500 hover:bg-red-600 disabled:opacity-40 disabled:cursor-not-allowed text-white px-4 py-2 rounded-xl transition-colors"
+              >
+                {deleting ? t('profile.deleteConfirming') : t('profile.deleteAccount')}
+              </button>
+              <button
+                onClick={() => { setDeleteStep(0); setDeleteConfirm('') }}
+                className="text-sm text-zinc-400 hover:text-zinc-600 px-4 py-2 rounded-xl transition-colors"
+              >
+                {t('profile.deleteCancel')}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

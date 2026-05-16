@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, Plus, Check, Trash2 } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR, enUS, es } from 'date-fns/locale'
 import { useWeekData, getMondayOf, shiftWeek } from '../../hooks/useWeekData'
+import { FolderKanban } from 'lucide-react'
 
 const SOURCE_COLOR = {
   spirit:    '#5a8ab8',
@@ -67,6 +68,13 @@ function WeekSummary({ stats, byDay, locale, t }) {
             <span className="text-zinc-500">{t('dashboard.day.todoList')}</span>
             <span className="text-zinc-900 font-semibold tabular-nums">{stats.doneTasks}/{stats.totalTasks}</span>
           </div>
+          {stats.totalProjTasks > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full" style={{ background: '#C8841A' }} />
+              <span className="text-zinc-500">{t('dashboard.week.projects')}</span>
+              <span className="text-zinc-900 font-semibold tabular-nums">{stats.doneProjTasks}/{stats.totalProjTasks}</span>
+            </div>
+          )}
           <div>
             <span className="font-display text-[28px] font-medium text-emerald-700 tabular-nums">{stats.pct}%</span>
           </div>
@@ -166,9 +174,9 @@ function TaskRow({ task, autoFocus, onToggle, onChange, onDelete, onDoneEditing,
 
 /* ── Day column ────────────────────────────── */
 
-function DayColumn({ day, locale, focusTaskId, onToggleRoutine, onAddTask, onUpdateTask, onDeleteTask, onTaskCreated, t }) {
-  const total = day.routines.length + day.tasks.length
-  const done  = day.completedRoutines.size + day.completedTasksCount
+function DayColumn({ day, locale, focusTaskId, onToggleRoutine, onAddTask, onUpdateTask, onDeleteTask, onTaskCreated, onToggleProjTask, t }) {
+  const total = day.routines.length + day.tasks.length + day.projTasks.length
+  const done  = day.completedRoutines.size + day.completedTasksCount + day.completedProjTasksCount
   const pct   = total > 0 ? Math.round((done / total) * 100) : 0
   const today = isToday(day.date)
 
@@ -225,9 +233,31 @@ function DayColumn({ day, locale, focusTaskId, onToggleRoutine, onAddTask, onUpd
         </div>
       )}
 
+      {/* Project tasks */}
+      {day.projTasks.length > 0 && (
+        <div className="mb-3">
+          <div className="text-[9px] tracking-[0.18em] uppercase text-zinc-400 font-bold mb-1 flex items-center gap-1">
+            <FolderKanban size={9} /> {t('dashboard.week.projects')}
+          </div>
+          {day.projTasks.map(pt => (
+            <div key={pt.id} className="flex items-center gap-2 py-1.5 group">
+              <CheckCircle done={pt.completed} onToggle={() => onToggleProjTask(pt.id)} />
+              <div className="flex-1 min-w-0">
+                <div className={`text-[12px] truncate ${pt.completed ? 'text-zinc-400 line-through' : 'text-zinc-800'}`}>
+                  {pt.title || '—'}
+                </div>
+                {pt.projects?.title && (
+                  <div className="text-[10px] text-zinc-400 truncate italic">{pt.projects.title}</div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Tasks */}
       <div className="flex-1 flex flex-col">
-        {(day.tasks.length > 0 || day.routines.length === 0) && (
+        {(day.tasks.length > 0 || (day.routines.length === 0 && day.projTasks.length === 0)) && (
           <div className="text-[9px] tracking-[0.18em] uppercase text-zinc-400 font-bold mb-1">
             {t('dashboard.day.todoList')}
           </div>
@@ -262,7 +292,7 @@ function DayColumn({ day, locale, focusTaskId, onToggleRoutine, onAddTask, onUpd
 export default function WeekTab() {
   const { t, i18n } = useTranslation()
   const [monday, setMonday] = useState(() => getMondayOf(new Date()))
-  const { byDay, stats, loading, toggleRoutine, addTask, updateTask, deleteTask } = useWeekData(monday)
+  const { byDay, stats, loading, toggleRoutine, addTask, updateTask, deleteTask, toggleProjTask } = useWeekData(monday)
   const [focusTaskId, setFocusTaskId] = useState(null)
 
   const localeMap = { pt: ptBR, en: enUS, es }
@@ -322,6 +352,7 @@ export default function WeekTab() {
             onUpdateTask={updateTask}
             onDeleteTask={deleteTask}
             onTaskCreated={setFocusTaskId}
+            onToggleProjTask={toggleProjTask}
             t={t}
           />
         ))}
