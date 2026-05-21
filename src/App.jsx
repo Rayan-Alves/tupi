@@ -21,6 +21,7 @@ import UnoListPage from './pages/UnoListPage'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import Rotinas from './pages/Rotinas'
 import ArvoreVida from './pages/ArvoreVida'
+import ScrollRestorer from './components/ScrollRestorer'
 
 const PAST = { table: 'past_documents', basePath: '/passado', i18nNs: 'spirit.past', introKey: 'tupi.past.introHidden', introPromptKey: 'spirit.past.prompts.1', pages: 3 }
 const PRESENT = { table: 'present_documents', basePath: '/presente', i18nNs: 'spirit.present', introKey: 'tupi.present.introHidden', introPromptKey: 'spirit.present.prompts.1', pages: 1 }
@@ -52,6 +53,7 @@ export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <ScrollRestorer />
         <Routes>
           <Route path="/login"    element={<GuestRoute><Login /></GuestRoute>} />
           <Route path="/register" element={<GuestRoute><Register /></GuestRoute>} />
