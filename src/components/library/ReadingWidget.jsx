@@ -81,6 +81,7 @@ export default function ReadingWidget() {
   const navigate = useNavigate()
   const [books, setBooks] = useState([])
   const [loading, setLoading] = useState(true)
+  const [focusedId, setFocusedId] = useState(null) // which reading book is featured
 
   useEffect(() => {
     if (!user) return
@@ -117,7 +118,8 @@ export default function ReadingWidget() {
   if (loading) return null
 
   const noBooks = books.length === 0
-  const current = stats.reading[0]
+  // Featured book: the focused one (if still reading) or the most recently updated reading book
+  const current = stats.reading.find(b => b.id === focusedId) || stats.reading[0]
 
   return (
     <section
@@ -201,8 +203,17 @@ export default function ReadingWidget() {
             {stats.shelf.slice(0, 4).map(book => (
               <button
                 key={book.id}
-                onClick={() => navigate(`/library/${book.id}`)}
-                className="transition-transform hover:-translate-y-0.5 flex-shrink-0"
+                onClick={() => {
+                  if (book.status === 'reading') {
+                    // Swap to featured — don't navigate
+                    setFocusedId(book.id)
+                  } else {
+                    navigate(`/library/${book.id}`)
+                  }
+                }}
+                className={`transition-transform hover:-translate-y-0.5 flex-shrink-0 ${
+                  book.id === (current?.id) ? 'ring-2 ring-amber-600 ring-offset-1 rounded-[3px]' : ''
+                }`}
                 title={book.title}
               >
                 <CoverImg book={book} size={24} />

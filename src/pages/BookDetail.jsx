@@ -234,7 +234,7 @@ export default function BookDetail() {
       <div className="max-w-4xl mx-auto px-8 py-8">
         {/* Back */}
         <button
-          onClick={() => navigate('/library')}
+          onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-[13px] text-zinc-600 hover:text-zinc-900 mb-8 px-4 py-2 rounded-full bg-white border border-zinc-200 hover:border-zinc-400 transition-all"
         >
           <ArrowLeft size={14} /> {t('library.backToLibrary')}
@@ -347,10 +347,7 @@ export default function BookDetail() {
           <div className="text-[11px] tracking-[0.22em] uppercase text-zinc-500 mb-3 font-medium">
             {t('library.notesAndReviews')}
           </div>
-          <div className="flex items-end justify-between mb-8 gap-4">
-            <h2 className="font-display text-[36px] font-medium text-zinc-900 leading-tight tracking-tight">
-              {t('library.whatIWantToRemember')}
-            </h2>
+          <div className="flex items-center justify-between mb-8 gap-4">
             {!editingNote && (
               <button
                 onClick={startNew}
