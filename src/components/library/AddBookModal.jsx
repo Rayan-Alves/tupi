@@ -327,18 +327,6 @@ export default function AddBookModal({ open, onClose, onAdd }) {
               )}
             </div>
 
-            {/* Fixed footer — always visible when there's a query */}
-            {!searching && query.trim().length >= 2 && (
-              <div className="px-6 py-3 border-t border-zinc-100 flex items-center justify-between gap-4 bg-white">
-                <p className="text-[12px] text-zinc-400">{t('library.notMyBook')}</p>
-                <button
-                  onClick={() => pick({ title: query.trim(), author: null, year: null, cover_url: null, external_id: null, total_pages: null })}
-                  className="text-[12px] font-semibold text-zinc-700 hover:text-zinc-900 px-4 py-1.5 rounded-full border border-zinc-300 hover:border-zinc-600 transition-all flex-shrink-0"
-                >
-                  {t('library.addManually')}
-                </button>
-              </div>
-            )}
           </>
         )}
       </div>
