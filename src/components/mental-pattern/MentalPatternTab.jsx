@@ -85,22 +85,10 @@ export default function MentalPatternTab({
         </div>
         <button
           onClick={handleAdd}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full transition-all"
-          style={{
-            background: 'var(--ink)',
-            color: '#F5F0E8',
-            border: 0,
-            fontSize: 11,
-            letterSpacing: '0.16em',
-            textTransform: 'uppercase',
-            cursor: 'pointer',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'var(--ink-soft)'; e.currentTarget.style.transform = 'translateY(-1px)' }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'var(--ink)'; e.currentTarget.style.transform = 'none' }}
+          className="flex items-center justify-center w-10 h-10 bg-white border border-zinc-200 rounded-full text-zinc-800 hover:bg-zinc-50 transition-colors shadow-sm flex-shrink-0"
           aria-label={t('mentalPattern.newPattern')}
         >
-          <Plus size={13} strokeWidth={2} />
-          {t('mentalPattern.newPattern')}
+          <Plus size={18} />
         </button>
       </div>
 

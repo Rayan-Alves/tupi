@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { useLocation, useNavigationType } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 
 const MAIN_ID = 'main-scroll'
 
@@ -16,45 +16,44 @@ function setY(el, y) {
 
 export default function ScrollRestorer() {
   const { pathname } = useLocation()
-  const navType      = useNavigationType()
-  const timerRef     = useRef(null)
+  const timerRef = useRef(null)
 
   useEffect(() => {
     const key = `_scroll_${pathname}`
+    const saved = sessionStorage.getItem(key)
 
-    if (navType === 'POP') {
-      const saved = sessionStorage.getItem(key)
-      if (saved !== null) {
-        const target = parseInt(saved, 10) || 0
-        // Retry until the container has enough height (content may still be loading)
-        let attempts = 0
-        const tryRestore = () => {
-          const el = getEl()
-          const maxScroll = el === window
+    clearTimeout(timerRef.current)
+
+    if (saved !== null) {
+      // Page was visited before — restore its position.
+      // Retry until the container has enough height (content may still be loading).
+      const target = parseInt(saved, 10) || 0
+      let attempts = 0
+      const tryRestore = () => {
+        const el = getEl()
+        const maxScroll =
+          el === window
             ? document.body.scrollHeight - window.innerHeight
             : el.scrollHeight - el.clientHeight
-          if (maxScroll >= target || attempts >= 15) {
-            setY(el, target)
-          } else {
-            attempts++
-            timerRef.current = setTimeout(tryRestore, 60)
-          }
+        if (maxScroll >= target || attempts >= 20) {
+          setY(el, target)
+        } else {
+          attempts++
+          timerRef.current = setTimeout(tryRestore, 50)
         }
-        timerRef.current = setTimeout(tryRestore, 30)
       }
+      timerRef.current = setTimeout(tryRestore, 20)
     } else {
-      // New navigation — go to top
-      const el = getEl()
-      setY(el, 0)
+      // First visit to this route — start at top
+      setY(getEl(), 0)
     }
 
-    // Track scroll while on this page
+    // Save scroll position while on this page
     let rafId
-    const onScroll = (e) => {
+    const onScroll = () => {
       cancelAnimationFrame(rafId)
       rafId = requestAnimationFrame(() => {
-        const el = e?.currentTarget ?? getEl()
-        sessionStorage.setItem(key, String(getY(el)))
+        sessionStorage.setItem(key, String(getY(getEl())))
       })
     }
 
@@ -63,11 +62,12 @@ export default function ScrollRestorer() {
 
     return () => {
       clearTimeout(timerRef.current)
-      el.removeEventListener('scroll', onScroll)
       cancelAnimationFrame(rafId)
+      el.removeEventListener('scroll', onScroll)
+      // Save final position the moment we leave
       sessionStorage.setItem(key, String(getY(el)))
     }
-  }, [pathname, navType])
+  }, [pathname])
 
   return null
 }

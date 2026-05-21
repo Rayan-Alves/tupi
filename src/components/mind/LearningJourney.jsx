@@ -136,19 +136,10 @@ function ListView({ skills, onSelectSkill, onAddSkill }) {
         </div>
         <button
           onClick={onAddSkill}
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8,
-            background: T.green, color: T.mist,
-            border: 'none', borderRadius: 10, padding: '10px 18px',
-            fontFamily: T.sans, fontWeight: 500, fontSize: 13,
-            cursor: 'pointer', flexShrink: 0, marginTop: 4,
-            transition: 'opacity .15s',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.opacity = '0.82' }}
-          onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
+          className="flex items-center justify-center w-10 h-10 bg-white border border-zinc-200 rounded-full text-zinc-800 hover:bg-zinc-50 transition-colors shadow-sm flex-shrink-0"
+          aria-label={t('mind.lj.addSkill')}
         >
-          <Plus size={14} strokeWidth={2} />
-          {t('mind.lj.addSkill')}
+          <Plus size={18} />
         </button>
       </div>
 

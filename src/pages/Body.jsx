@@ -298,12 +298,9 @@ function AffirmationsSection() {
       <div className="flex items-end justify-between gap-4">
         <h2 className="type-h1">Positive Affirmations</h2>
         <button onClick={add}
-          className="flex items-center justify-center rounded-xl text-white transition-all duration-150 flex-shrink-0 mb-1"
-          style={{ width: '30px', height: '30px', background: '#2D5016' }}
-          onMouseEnter={e => e.currentTarget.style.background = '#1f380f'}
-          onMouseLeave={e => e.currentTarget.style.background = '#2D5016'}
+          className="flex items-center justify-center w-10 h-10 bg-white border border-zinc-200 rounded-full text-zinc-800 hover:bg-zinc-50 transition-colors shadow-sm flex-shrink-0"
           aria-label="add affirmation">
-          <Plus size={14} />
+          <Plus size={18} />
         </button>
       </div>
 

@@ -144,13 +144,10 @@ function Header({ t, view, onBack, onCreate }) {
         {!showBack && (
           <button
             onClick={onCreate}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-full text-white text-[12px] font-semibold transition-all"
-            style={{ background: T.green }}
-            onMouseEnter={e => e.currentTarget.style.background = '#0F2614'}
-            onMouseLeave={e => e.currentTarget.style.background = T.green}
+            className="flex items-center justify-center w-10 h-10 bg-white border border-zinc-200 rounded-full text-zinc-800 hover:bg-zinc-50 transition-colors shadow-sm flex-shrink-0"
+            aria-label={t('soltar.newHabit')}
           >
-            <Plus size={13} />
-            {t('soltar.newHabit')}
+            <Plus size={18} />
           </button>
         )}
         {showBack && (
