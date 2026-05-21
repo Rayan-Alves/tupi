@@ -1,63 +1,71 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useLocation, useNavigationType } from 'react-router-dom'
 
-/**
- * ScrollRestorer — placed inside <BrowserRouter>.
- * Targets #main-scroll (Layout pages) or window (full-page routes).
- * • PUSH / REPLACE  → scroll to top
- * • POP (back/fwd)  → restore saved position
- */
-function getScroller() {
-  return document.getElementById('main-scroll') || window
-}
+const MAIN_ID = 'main-scroll'
 
-function getScrollTop(el) {
+function getEl() {
+  return document.getElementById(MAIN_ID) || window
+}
+function getY(el) {
   return el === window ? window.scrollY : el.scrollTop
 }
-
-function scrollTo(el, y) {
-  if (el === window) {
-    window.scrollTo(0, y)
-  } else {
-    el.scrollTop = y
-  }
+function setY(el, y) {
+  if (el === window) window.scrollTo(0, y)
+  else el.scrollTop = y
 }
 
 export default function ScrollRestorer() {
   const { pathname } = useLocation()
-  const navType = useNavigationType()
+  const navType      = useNavigationType()
+  const timerRef     = useRef(null)
 
   useEffect(() => {
     const key = `_scroll_${pathname}`
-    const el = getScroller()
 
     if (navType === 'POP') {
       const saved = sessionStorage.getItem(key)
       if (saved !== null) {
-        // Double rAF: first frame mounts DOM, second frame applies scroll
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            scrollTo(el, parseInt(saved, 10) || 0)
-          })
-        })
+        const target = parseInt(saved, 10) || 0
+        // Retry until the container has enough height (content may still be loading)
+        let attempts = 0
+        const tryRestore = () => {
+          const el = getEl()
+          const maxScroll = el === window
+            ? document.body.scrollHeight - window.innerHeight
+            : el.scrollHeight - el.clientHeight
+          if (maxScroll >= target || attempts >= 15) {
+            setY(el, target)
+          } else {
+            attempts++
+            timerRef.current = setTimeout(tryRestore, 60)
+          }
+        }
+        timerRef.current = setTimeout(tryRestore, 30)
       }
     } else {
-      scrollTo(el, 0)
+      // New navigation — go to top
+      const el = getEl()
+      setY(el, 0)
     }
 
+    // Track scroll while on this page
     let rafId
-    const onScroll = () => {
+    const onScroll = (e) => {
       cancelAnimationFrame(rafId)
       rafId = requestAnimationFrame(() => {
-        sessionStorage.setItem(key, String(getScrollTop(el)))
+        const el = e?.currentTarget ?? getEl()
+        sessionStorage.setItem(key, String(getY(el)))
       })
     }
 
+    const el = getEl()
     el.addEventListener('scroll', onScroll, { passive: true })
+
     return () => {
+      clearTimeout(timerRef.current)
       el.removeEventListener('scroll', onScroll)
       cancelAnimationFrame(rafId)
-      sessionStorage.setItem(key, String(getScrollTop(el)))
+      sessionStorage.setItem(key, String(getY(el)))
     }
   }, [pathname, navType])
 

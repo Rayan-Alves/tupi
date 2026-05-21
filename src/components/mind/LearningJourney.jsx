@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Plus, ChevronLeft, ChevronRight, X, Trash2 } from 'lucide-react'
 import { useSkills } from '../../hooks/useSkills'
 
@@ -60,19 +61,18 @@ const T = {
 }
 
 /* ── Helpers ────────────────────────────────────────────────────────────── */
-const PT_MONTHS = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez']
-function fmtDate(iso) {
+function fmtDate(iso, lang) {
   if (!iso) return '—'
   const d = new Date(iso)
-  return `${d.getDate()} ${PT_MONTHS[d.getMonth()]} ${d.getFullYear()}`
-}
-function fmtNoteDate(iso) {
-  if (!iso) return ''
-  const d = new Date(iso)
-  return `${d.getDate()} ${PT_MONTHS[d.getMonth()].toUpperCase()} ${d.getFullYear()}`
+  try {
+    return d.toLocaleDateString(lang === 'pt' ? 'pt-BR' : lang === 'es' ? 'es-ES' : 'en-US', {
+      day: 'numeric', month: 'short', year: 'numeric',
+    })
+  } catch {
+    return iso.slice(0, 10)
+  }
 }
 
-const TYPE_LABEL = { 'quero-aprender': 'quero aprender', 'desenvolvendo': 'desenvolvendo' }
 const RESOURCE_ICON = {
   link:  { bg: T.g08,                        emoji: '🔗' },
   livro: { bg: 'rgba(196,168,130,0.15)',      emoji: '📖' },
@@ -82,7 +82,9 @@ const RESOURCE_ICON = {
 
 /* ── TypeTag ────────────────────────────────────────────────────────────── */
 function TypeTag({ type }) {
+  const { t } = useTranslation()
   const learn = type === 'quero-aprender'
+  const label = learn ? t('mind.lj.wantToLearn') : t('mind.lj.developing')
   return (
     <span style={{
       background: learn ? T.a10 : 'rgba(196,168,130,0.2)',
@@ -91,7 +93,7 @@ function TypeTag({ type }) {
       borderRadius: 20, padding: '2px 8px',
       letterSpacing: '0.04em', whiteSpace: 'nowrap',
     }}>
-      {TYPE_LABEL[type] ?? type}
+      {label}
     </span>
   )
 }
@@ -109,13 +111,15 @@ function ProgressBar({ value, height = 2, width = 72 }) {
    LIST VIEW
 ═══════════════════════════════════════════════════════════════════════════ */
 function ListView({ skills, onSelectSkill, onAddSkill }) {
+  const { t, i18n } = useTranslation()
+  const lang = (i18n.language || 'pt').slice(0, 2)
   const [filter, setFilter] = useState('todas')
 
   const visible = filter === 'todas' ? skills : skills.filter(s => s.type === filter)
   const chips = [
-    { key: 'todas',          label: 'todas' },
-    { key: 'quero-aprender', label: 'quero aprender' },
-    { key: 'desenvolvendo',  label: 'desenvolvendo' },
+    { key: 'todas',          label: t('mind.lj.filterAll') },
+    { key: 'quero-aprender', label: t('mind.lj.wantToLearn') },
+    { key: 'desenvolvendo',  label: t('mind.lj.developing') },
   ]
 
   return (
@@ -123,18 +127,12 @@ function ListView({ skills, onSelectSkill, onAddSkill }) {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 24 }}>
         <div>
-          <p style={{ fontFamily: T.sans, fontWeight: 500, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: T.amber, marginBottom: 6 }}>
-            mente
-          </p>
           <h2
-            className="lj-page-title"
-            style={{ fontFamily: T.serif, fontWeight: 400, fontSize: 26, color: T.green, lineHeight: 1.15, marginBottom: 6 }}
+            className="type-h1 lj-page-title"
+            style={{ marginBottom: 0 }}
           >
-            jornada de <em style={{ fontStyle: 'italic', color: T.amber }}>aprendizado</em>
+            {t('mind.lj.title')}
           </h2>
-          <p style={{ fontFamily: T.sans, fontWeight: 300, fontSize: 13, color: T.g40, lineHeight: 1.5, maxWidth: 480 }}>
-            Habilidades que você cultiva — as que quer aprender e as que já tem.
-          </p>
         </div>
         <button
           onClick={onAddSkill}
@@ -150,7 +148,7 @@ function ListView({ skills, onSelectSkill, onAddSkill }) {
           onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
         >
           <Plus size={14} strokeWidth={2} />
-          nova habilidade
+          {t('mind.lj.addSkill')}
         </button>
       </div>
 
@@ -184,19 +182,20 @@ function ListView({ skills, onSelectSkill, onAddSkill }) {
           border: `0.5px solid ${T.g15}`, borderRadius: 14, background: 'white',
         }}>
           <p style={{ fontFamily: T.serif, fontStyle: 'italic', fontSize: 15, color: T.g40 }}>
-            Nenhuma habilidade aqui ainda.
+            {t('mind.lj.noSkills')}
           </p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {visible.map(s => <SkillCard key={s.id} skill={s} onClick={() => onSelectSkill(s.id)} />)}
+          {visible.map(s => <SkillCard key={s.id} skill={s} onClick={() => onSelectSkill(s.id)} lang={lang} />)}
         </div>
       )}
     </div>
   )
 }
 
-function SkillCard({ skill, onClick }) {
+function SkillCard({ skill, onClick, lang }) {
+  const { t } = useTranslation()
   const [hov, setHov] = useState(false)
   return (
     <div
@@ -223,19 +222,19 @@ function SkillCard({ skill, onClick }) {
             marginBottom: 8, lineHeight: 1.3,
           }}
         >
-          {skill.name || <span style={{ color: T.g40 }}>sem nome</span>}
+          {skill.name || <span style={{ color: T.g40 }}>{t('mind.lj.clickToName')}</span>}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <TypeTag type={skill.type ?? 'quero-aprender'} />
           <span style={{ fontFamily: T.sans, fontSize: 11, color: T.g40 }}>
-            desde {fmtDate(skill.started_at ?? skill.created_at)}
+            {t('mind.lj.since')} {fmtDate(skill.started_at ?? skill.created_at, lang)}
           </span>
         </div>
       </div>
       {/* Right */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
         <span style={{ fontFamily: T.sans, fontSize: 10, color: T.g40, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-          progresso
+          {t('mind.lj.progress')}
         </span>
         <span style={{ fontFamily: T.serif, fontSize: 20, color: T.green, lineHeight: 1 }}>
           {skill.progress ?? 0}%
@@ -256,11 +255,12 @@ function DetailView({
   onAddMilestone, onUpdateMilestone, onDeleteMilestone,
   onAddNote, onAddResource, onDeleteResource,
 }) {
-  const [tab, setTab] = useState('progresso')
+  const { t, i18n } = useTranslation()
+  const lang = (i18n.language || 'pt').slice(0, 2)
+  const [tab, setTab] = useState('progress')
   const [localProgress, setLocalProgress] = useState(skill.progress ?? 0)
   const saveTimer = useRef(null)
 
-  // Sync progress if skill prop changes (e.g. after navigating back and re-entering)
   useEffect(() => { setLocalProgress(skill.progress ?? 0) }, [skill.id])
 
   const milestones = detail?.milestones ?? []
@@ -274,7 +274,6 @@ function DetailView({
     saveTimer.current = setTimeout(() => onUpdateSkill(skill.id, { progress: val }), 400)
   }
 
-  // Editable name
   const [editingName, setEditingName] = useState(false)
   const [localName, setLocalName]     = useState(skill.name ?? '')
   const nameRef = useRef(null)
@@ -286,9 +285,15 @@ function DetailView({
 
   const nextMilestone = milestones.find(m => !m.done)
 
+  const tabs = [
+    { key: 'progress', label: t('mind.lj.tabProgress') },
+    { key: 'notes',    label: t('mind.lj.tabNotes') },
+    { key: 'resources',label: t('mind.lj.tabResources') },
+  ]
+
   if (detailLoading) return (
     <div style={{ textAlign: 'center', padding: '48px 0', fontFamily: T.sans, fontSize: 13, color: T.g40 }}>
-      carregando…
+      {t('mind.lj.loading')}
     </div>
   )
 
@@ -306,7 +311,7 @@ function DetailView({
         onMouseEnter={e => { e.currentTarget.style.color = T.green }}
         onMouseLeave={e => { e.currentTarget.style.color = T.g40 }}
       >
-        <ChevronLeft size={14} /> voltar
+        <ChevronLeft size={14} /> {t('mind.lj.back')}
       </button>
 
       {/* Skill header */}
@@ -327,15 +332,15 @@ function DetailView({
                 cursor: 'pointer', transition: 'all .15s',
               }}
             >
-              {TYPE_LABEL[tp]}
+              {tp === 'quero-aprender' ? t('mind.lj.wantToLearn') : t('mind.lj.developing')}
             </button>
           ))}
           <button
-            onClick={() => { if (window.confirm('Excluir esta habilidade e todos os dados?')) onDeleteSkill(skill.id) }}
+            onClick={() => { if (window.confirm(t('mind.lj.deleteConfirm'))) onDeleteSkill(skill.id) }}
             style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: T.g30, padding: 4, transition: 'color .15s' }}
             onMouseEnter={e => { e.currentTarget.style.color = '#b14a4a' }}
             onMouseLeave={e => { e.currentTarget.style.color = T.g30 }}
-            title="Excluir habilidade"
+            title={t('mind.lj.deleteConfirm')}
           >
             <Trash2 size={13} />
           </button>
@@ -353,7 +358,7 @@ function DetailView({
               if (e.key === 'Enter') commitName()
               if (e.key === 'Escape') { setEditingName(false); setLocalName(skill.name ?? '') }
             }}
-            placeholder="Nome da habilidade…"
+            placeholder={t('mind.lj.skillNamePlaceholder')}
             style={{
               fontFamily: T.serif, fontStyle: 'italic',
               fontSize: 26, fontWeight: 400, color: T.amber,
@@ -365,7 +370,7 @@ function DetailView({
         ) : (
           <h2
             onClick={() => { setEditingName(true); setTimeout(() => nameRef.current?.select(), 10) }}
-            title="Clique para editar"
+            title={t('mind.lj.clickToName')}
             style={{
               fontFamily: T.serif, fontStyle: 'italic',
               fontSize: 26, fontWeight: 400, lineHeight: 1.2,
@@ -373,15 +378,15 @@ function DetailView({
               cursor: 'text', marginBottom: 6,
             }}
           >
-            {skill.name || 'clique para nomear'}
+            {skill.name || t('mind.lj.clickToName')}
           </h2>
         )}
 
         <p style={{ fontFamily: T.sans, fontSize: 12, color: T.g40 }}>
-          Desde {fmtDate(skill.started_at ?? skill.created_at)}
-          {' · '}{milestones.length} {milestones.length === 1 ? 'marco' : 'marcos'}
-          {' · '}{resources.length} recursos
-          {' · '}{notes.length} notas
+          {t('mind.lj.since2')} {fmtDate(skill.started_at ?? skill.created_at, lang)}
+          {' · '}{milestones.length} {t('mind.lj.milestones')}
+          {' · '}{resources.length} {t('mind.lj.resources')}
+          {' · '}{notes.length} {t('mind.lj.notes')}
         </p>
       </div>
 
@@ -391,12 +396,12 @@ function DetailView({
         <div style={{ background: 'white', border: `0.5px solid ${T.g08}`, borderRadius: 14, overflow: 'hidden' }}>
           {/* Tab bar */}
           <div style={{ display: 'flex', borderBottom: `0.5px solid ${T.g08}`, padding: '0 22px' }}>
-            {['progresso', 'notas', 'recursos'].map(t => {
-              const active = tab === t
+            {tabs.map(tb => {
+              const active = tab === tb.key
               return (
                 <button
-                  key={t}
-                  onClick={() => setTab(t)}
+                  key={tb.key}
+                  onClick={() => setTab(tb.key)}
                   style={{
                     background: 'none', border: 'none', cursor: 'pointer',
                     fontFamily: T.sans, fontWeight: active ? 500 : 400,
@@ -406,14 +411,14 @@ function DetailView({
                     marginBottom: -1, transition: 'all .15s',
                   }}
                 >
-                  {t}
+                  {tb.label}
                 </button>
               )
             })}
           </div>
 
           <div style={{ padding: 22 }}>
-            {tab === 'progresso' && (
+            {tab === 'progress' && (
               <ProgressTab
                 progress={localProgress}
                 onProgressChange={handleProgress}
@@ -423,13 +428,14 @@ function DetailView({
                 onDeleteMilestone={onDeleteMilestone}
               />
             )}
-            {tab === 'notas' && (
+            {tab === 'notes' && (
               <NotesTab
                 notes={notes}
+                lang={lang}
                 onAddNote={text => onAddNote(skill.id, text)}
               />
             )}
-            {tab === 'recursos' && (
+            {tab === 'resources' && (
               <ResourcesTab
                 resources={resources}
                 onAddResource={(name, type, url) => onAddResource(skill.id, name, type, url)}
@@ -448,16 +454,16 @@ function DetailView({
               textTransform: 'uppercase', letterSpacing: '0.1em',
               color: T.g40, marginBottom: 14,
             }}>
-              Visão Geral
+              {t('mind.lj.overview')}
             </p>
 
             {/* Stats 2×2 */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
               {[
-                { label: 'progresso', value: `${localProgress}%`,          color: T.amber },
-                { label: 'marcos',    value: `${doneCount}/${milestones.length}`, color: T.green },
-                { label: 'notas',     value: notes.length,                  color: T.green },
-                { label: 'recursos',  value: resources.length,              color: T.green },
+                { label: t('mind.lj.progress'),   value: `${localProgress}%`,          color: T.amber },
+                { label: t('mind.lj.milestones'), value: `${doneCount}/${milestones.length}`, color: T.green },
+                { label: t('mind.lj.notes'),      value: notes.length,                  color: T.green },
+                { label: t('mind.lj.resources'),  value: resources.length,              color: T.green },
               ].map(s => (
                 <div key={s.label} style={{ background: T.mist, borderRadius: 9, padding: '11px 13px' }}>
                   <div style={{ fontFamily: T.sans, fontSize: 10, color: T.g40, marginBottom: 4 }}>{s.label}</div>
@@ -468,14 +474,14 @@ function DetailView({
 
             {/* Next milestone */}
             <div style={{ borderTop: `0.5px solid ${T.g08}`, paddingTop: 14 }}>
-              <p style={{ fontFamily: T.sans, fontSize: 11, color: T.g40, marginBottom: 4 }}>Próximo marco:</p>
+              <p style={{ fontFamily: T.sans, fontSize: 11, color: T.g40, marginBottom: 4 }}>{t('mind.lj.nextMilestone')}</p>
               {nextMilestone ? (
                 <p style={{ fontFamily: T.serif, fontStyle: 'italic', fontSize: 13, color: T.green, lineHeight: 1.4 }}>
                   {nextMilestone.text || '—'}
                 </p>
               ) : (
                 <p style={{ fontFamily: T.serif, fontStyle: 'italic', fontSize: 13, color: T.g40 }}>
-                  {milestones.length === 0 ? 'nenhum marco ainda' : 'todos concluídos ✓'}
+                  {milestones.length === 0 ? t('mind.lj.noMilestones') : t('mind.lj.allDone')}
                 </p>
               )}
             </div>
@@ -489,7 +495,7 @@ function DetailView({
             {/* Ghost */}
             <div style={{ padding: '18px', opacity: 0.3, pointerEvents: 'none' }}>
               <p style={{ fontFamily: T.sans, fontWeight: 500, fontSize: 11, color: T.green, marginBottom: 12 }}>
-                vincular a projeto
+                {t('mind.lj.linkProject')}
               </p>
               <div style={{ height: 28, background: T.g08, borderRadius: 8, marginBottom: 8 }} />
               <div style={{ height: 28, background: T.g08, borderRadius: 8 }} />
@@ -507,9 +513,9 @@ function DetailView({
                 fontFamily: T.sans, fontWeight: 500, fontSize: 10,
                 textTransform: 'uppercase', letterSpacing: '0.1em',
                 borderRadius: 20, padding: '4px 10px',
-              }}>em breve</span>
+              }}>{t('mind.lj.comingSoon')}</span>
               <p style={{ fontFamily: T.serif, fontStyle: 'italic', fontSize: 13, color: T.g40 }}>
-                vincular a projetos
+                {t('mind.lj.linkProject')}
               </p>
             </div>
           </div>
@@ -521,19 +527,20 @@ function DetailView({
 
 /* ── ProgressTab ──────────────────────────────────────────────────────────── */
 function ProgressTab({ progress, onProgressChange, milestones, onAddMilestone, onUpdateMilestone, onDeleteMilestone }) {
+  const { t } = useTranslation()
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
       {/* Slider section */}
       <div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-          <span style={{ fontFamily: T.sans, fontWeight: 500, fontSize: 13, color: T.green }}>progresso geral</span>
+          <span style={{ fontFamily: T.sans, fontWeight: 500, fontSize: 13, color: T.green }}>{t('mind.lj.progressLabel')}</span>
           <span style={{ fontFamily: T.serif, fontSize: 20, color: T.amber }}>{progress}%</span>
         </div>
         <div style={{ height: 4, background: T.g08, borderRadius: 2, overflow: 'hidden', marginBottom: 10 }}>
           <div style={{ width: `${progress}%`, height: '100%', background: T.amber, borderRadius: 2, transition: 'width .08s' }} />
         </div>
         <p style={{ fontFamily: T.sans, fontSize: 11, color: T.g40, marginBottom: 12 }}>
-          Arraste para ajustar conforme avança
+          {t('mind.lj.progressHint')}
         </p>
         <input
           type="range" min={0} max={100} value={progress}
@@ -548,7 +555,7 @@ function ProgressTab({ progress, onProgressChange, milestones, onAddMilestone, o
           fontFamily: T.sans, fontWeight: 500, fontSize: 10,
           textTransform: 'uppercase', letterSpacing: '0.1em',
           color: T.g40, marginBottom: 14,
-        }}>MARCOS</p>
+        }}>{t('mind.lj.milestonesLabel')}</p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {milestones.map(m => (
@@ -572,7 +579,7 @@ function ProgressTab({ progress, onProgressChange, milestones, onAddMilestone, o
           onMouseEnter={e => { e.currentTarget.style.color = T.amber }}
           onMouseLeave={e => { e.currentTarget.style.color = T.g30 }}
         >
-          <Plus size={12} strokeWidth={2} /> adicionar marco
+          <Plus size={12} strokeWidth={2} /> {t('mind.lj.addMilestone')}
         </button>
       </div>
     </div>
@@ -580,11 +587,11 @@ function ProgressTab({ progress, onProgressChange, milestones, onAddMilestone, o
 }
 
 function MilestoneRow({ milestone, onUpdate, onDelete }) {
+  const { t } = useTranslation()
   const [text, setText]       = useState(milestone.text ?? '')
   const [editing, setEditing] = useState(!milestone.text)
   const timer = useRef(null)
 
-  // Sync text if the same milestone is re-used (shouldn't happen with key, but defensive)
   useEffect(() => { setText(milestone.text ?? '') }, [milestone.id])
 
   function handleChange(v) {
@@ -621,7 +628,7 @@ function MilestoneRow({ milestone, onUpdate, onDelete }) {
             if (e.key === 'Enter' && text.trim()) setEditing(false)
             if (e.key === 'Escape') setEditing(false)
           }}
-          placeholder="Descreva o marco…"
+          placeholder={t('mind.lj.milestonePlaceholder')}
           style={{
             flex: 1, background: 'transparent', border: 'none',
             borderBottom: `0.5px solid ${T.g15}`, outline: 'none',
@@ -658,7 +665,8 @@ function MilestoneRow({ milestone, onUpdate, onDelete }) {
 }
 
 /* ── NotesTab ─────────────────────────────────────────────────────────────── */
-function NotesTab({ notes, onAddNote }) {
+function NotesTab({ notes, lang, onAddNote }) {
+  const { t } = useTranslation()
   const [text, setText] = useState('')
 
   function save() {
@@ -667,13 +675,23 @@ function NotesTab({ notes, onAddNote }) {
     setText('')
   }
 
+  function fmtNoteDate(iso) {
+    if (!iso) return ''
+    const d = new Date(iso)
+    try {
+      return d.toLocaleDateString(lang === 'pt' ? 'pt-BR' : lang === 'es' ? 'es-ES' : 'en-US', {
+        day: 'numeric', month: 'short', year: 'numeric',
+      }).toUpperCase()
+    } catch { return iso.slice(0, 10) }
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div>
         <textarea
           value={text}
           onChange={e => setText(e.target.value)}
-          placeholder="Anote o que quiser — uma percepção, um bloqueio, algo que aprendeu hoje. Não precisa ser bonito."
+          placeholder={t('mind.lj.notePlaceholder')}
           rows={4}
           style={{
             width: '100%', boxSizing: 'border-box',
@@ -697,7 +715,7 @@ function NotesTab({ notes, onAddNote }) {
             transition: 'all .15s',
           }}
         >
-          salvar nota
+          {t('mind.lj.saveNote')}
         </button>
       </div>
 
@@ -727,6 +745,7 @@ function NotesTab({ notes, onAddNote }) {
 
 /* ── ResourcesTab ─────────────────────────────────────────────────────────── */
 function ResourcesTab({ resources, onAddResource, onDeleteResource }) {
+  const { t } = useTranslation()
   const [name, setName] = useState('')
   const [type, setType] = useState('outro')
 
@@ -796,7 +815,7 @@ function ResourcesTab({ resources, onAddResource, onDeleteResource }) {
           value={name}
           onChange={e => setName(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') handleAdd() }}
-          placeholder="Cole um link ou escreva o nome..."
+          placeholder={t('mind.lj.resourcePlaceholder')}
           style={{ ...inputStyle, flex: 1, minWidth: 140 }}
         />
         <select
@@ -805,9 +824,9 @@ function ResourcesTab({ resources, onAddResource, onDeleteResource }) {
           style={{ ...inputStyle, cursor: 'pointer' }}
         >
           <option value="link">link</option>
-          <option value="livro">livro</option>
-          <option value="curso">curso</option>
-          <option value="outro">outro</option>
+          <option value="livro">{t('mind.lj.book')}</option>
+          <option value="curso">{t('mind.lj.course')}</option>
+          <option value="outro">{t('mind.lj.other')}</option>
         </select>
         <button
           onClick={handleAdd}
@@ -820,7 +839,7 @@ function ResourcesTab({ resources, onAddResource, onDeleteResource }) {
           onMouseEnter={e => { e.currentTarget.style.opacity = '0.82' }}
           onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
         >
-          adicionar
+          {t('mind.lj.addResource')}
         </button>
       </div>
     </div>
@@ -831,6 +850,7 @@ function ResourcesTab({ resources, onAddResource, onDeleteResource }) {
    ROOT COMPONENT
 ═══════════════════════════════════════════════════════════════════════════ */
 export default function LearningJourney() {
+  const { t } = useTranslation()
   const {
     skills, loading,
     addSkill, updateSkill, deleteSkill,
@@ -871,7 +891,7 @@ export default function LearningJourney() {
 
   if (loading) return (
     <div style={{ textAlign: 'center', padding: '32px 0', fontFamily: T.sans, fontSize: 13, color: T.g40 }}>
-      carregando…
+      {t('mind.lj.loading')}
     </div>
   )
 

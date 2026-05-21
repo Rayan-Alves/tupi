@@ -372,6 +372,46 @@
       "title": "Rutina Mental",
       "subtitle": "lo que tu mente repite cada día",
       "noRoutines": "Sin rutinas mentales aún. ¡Agrega la primera!"
+    },
+    "lj": {
+      "title": "Jornada de Aprendizaje",
+      "addSkill": "nueva habilidad",
+      "filterAll": "todas",
+      "wantToLearn": "quiero aprender",
+      "developing": "desarrollando",
+      "noSkills": "Ninguna habilidad aquí todavía.",
+      "since": "desde",
+      "since2": "Desde",
+      "progress": "progreso",
+      "back": "volver",
+      "overview": "Resumen",
+      "milestones": "hitos",
+      "notes": "notas",
+      "resources": "recursos",
+      "nextMilestone": "Próximo hito:",
+      "noMilestones": "ningún hito todavía",
+      "allDone": "todos completados ✓",
+      "linkProject": "vincular a proyecto",
+      "comingSoon": "próximamente",
+      "tabProgress": "progreso",
+      "tabNotes": "notas",
+      "tabResources": "recursos",
+      "progressLabel": "progreso general",
+      "progressHint": "Arrastra para ajustar conforme avanzas",
+      "milestonesLabel": "HITOS",
+      "addMilestone": "agregar hito",
+      "loading": "cargando…",
+      "clickToName": "clic para nombrar",
+      "deleteConfirm": "¿Eliminar esta habilidad y todos sus datos?",
+      "saveNote": "guardar nota",
+      "notePlaceholder": "Anota lo que quieras — una percepción, un bloqueo, algo que aprendiste hoy.",
+      "resourcePlaceholder": "Pega un enlace o escribe el nombre...",
+      "addResource": "agregar",
+      "book": "libro",
+      "course": "curso",
+      "other": "otro",
+      "skillNamePlaceholder": "Nombre de la habilidad…",
+      "milestonePlaceholder": "Describe el hito…"
     }
   },
   "projects": {
@@ -543,38 +583,99 @@
     "today": "hoy",
     "yesterday": "ayer",
     "daysAgo": "hace {{n}} días",
-    "months": ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"],
+    "months": [
+      "ene",
+      "feb",
+      "mar",
+      "abr",
+      "may",
+      "jun",
+      "jul",
+      "ago",
+      "sep",
+      "oct",
+      "nov",
+      "dic"
+    ],
     "negFields": {
-      "belief":  { "label": "la creencia",              "prompt": "qué pensamiento o patrón quieres investigar" },
-      "action":  { "label": "la acción que causa",      "prompt": "qué acción te lleva a tomar este pensamiento" },
-      "feeling": { "label": "el sentimiento que genera", "prompt": "qué sentimiento despierta esta acción en ti" },
-      "result":  { "label": "el resultado",             "prompt": "dónde te deja, después de todo" }
+      "belief": {
+        "label": "la creencia",
+        "prompt": "qué pensamiento o patrón quieres investigar"
+      },
+      "action": {
+        "label": "la acción que causa",
+        "prompt": "qué acción te lleva a tomar este pensamiento"
+      },
+      "feeling": {
+        "label": "el sentimiento que genera",
+        "prompt": "qué sentimiento despierta esta acción en ti"
+      },
+      "result": {
+        "label": "el resultado",
+        "prompt": "dónde te deja, después de todo"
+      }
     },
     "posFields": {
-      "action":  { "label": "la acción que tomarías",   "prompt": "qué acción tomarías si el pensamiento fuera el opuesto" },
-      "feeling": { "label": "el sentimiento que nace",  "prompt": "qué sentimiento despertaría esta nueva acción" },
-      "impact":  { "label": "el impacto",               "prompt": "cómo cambia tu día, tu semana, tu vida" },
-      "belief":  { "label": "la creencia reescrita",    "prompt": "la misma creencia en positivo — una frase, tuya" }
+      "action": {
+        "label": "la acción que tomarías",
+        "prompt": "qué acción tomarías si el pensamiento fuera el opuesto"
+      },
+      "feeling": {
+        "label": "el sentimiento que nace",
+        "prompt": "qué sentimiento despertaría esta nueva acción"
+      },
+      "impact": {
+        "label": "el impacto",
+        "prompt": "cómo cambia tu día, tu semana, tu vida"
+      },
+      "belief": {
+        "label": "la creencia reescrita",
+        "prompt": "la misma creencia en positivo — una frase, tuya"
+      }
     },
     "shortLabels": {
-      "neg_belief":  "Creencia",
-      "neg_causes":  "Causas",
+      "neg_belief": "Creencia",
+      "neg_causes": "Causas",
       "neg_feeling": "Sentimiento",
-      "neg_result":  "Resultado",
-      "pos_action":  "Acción",
+      "neg_result": "Resultado",
+      "pos_action": "Acción",
       "pos_feeling": "Sentimiento",
-      "pos_impact":  "Impacto",
-      "pos_belief":  "Nueva creencia"
+      "pos_impact": "Impacto",
+      "pos_belief": "Nueva creencia"
     },
     "exerciseFields": {
-      "neg_belief":  { "label": "Creencia o patrón",  "placeholder": "Tu creencia o patrón negativo…" },
-      "neg_causes":  { "label": "Causas",              "placeholder": "Qué genera esta creencia…" },
-      "neg_feeling": { "label": "Sentimiento",         "placeholder": "Cómo te hace sentir…" },
-      "neg_result":  { "label": "Resultado",           "placeholder": "Lo que esta creencia te impide…" },
-      "pos_action":  { "label": "Acción",              "placeholder": "Un pequeño paso concreto…" },
-      "pos_feeling": { "label": "Nuevo sentimiento",   "placeholder": "La emoción que viene con esta acción…" },
-      "pos_impact":  { "label": "Impacto",             "placeholder": "Lo que cambia en tu vida…" },
-      "pos_belief":  { "label": "Nueva creencia",      "placeholder": "Tu nueva creencia…" }
+      "neg_belief": {
+        "label": "Creencia o patrón",
+        "placeholder": "Tu creencia o patrón negativo…"
+      },
+      "neg_causes": {
+        "label": "Causas",
+        "placeholder": "Qué genera esta creencia…"
+      },
+      "neg_feeling": {
+        "label": "Sentimiento",
+        "placeholder": "Cómo te hace sentir…"
+      },
+      "neg_result": {
+        "label": "Resultado",
+        "placeholder": "Lo que esta creencia te impide…"
+      },
+      "pos_action": {
+        "label": "Acción",
+        "placeholder": "Un pequeño paso concreto…"
+      },
+      "pos_feeling": {
+        "label": "Nuevo sentimiento",
+        "placeholder": "La emoción que viene con esta acción…"
+      },
+      "pos_impact": {
+        "label": "Impacto",
+        "placeholder": "Lo que cambia en tu vida…"
+      },
+      "pos_belief": {
+        "label": "Nueva creencia",
+        "placeholder": "Tu nueva creencia…"
+      }
     }
   },
   "library": {
@@ -686,26 +787,26 @@
     "modalAdvance": "avanzar a la próxima etapa",
     "modalRelease": "este hábito fue soltado",
     "pulse": {
-      "morning":   "mañana",
+      "morning": "mañana",
       "afternoon": "tarde",
-      "night":     "noche",
-      "always":    "siempre"
+      "night": "noche",
+      "always": "siempre"
     },
     "f": {
-      "name":     "qué hábito quieres soltar",
-      "namePh":   "ej: reducir el tiempo de celular",
-      "why":      "por qué importa para ti",
-      "whyPh":    "ej: quiero enfocarme más en mis proyectos",
-      "how":      "cómo vas a soltarlo",
-      "howPh":    "ej: reduciendo el uso poco a poco",
-      "pulse":    "cuándo aparece más este hábito",
-      "step":         "cuál es el primer paso concreto",
-      "nextStep":     "cuál es el próximo paso concreto",
-      "currentStep":  "paso de esta etapa",
-      "extendEnd":    "extender fecha fin",
-      "stepPh":       "ej: dejar de usar celular 2h antes de dormir",
-      "start":        "fecha inicio",
-      "end":          "fecha fin"
+      "name": "qué hábito quieres soltar",
+      "namePh": "ej: reducir el tiempo de celular",
+      "why": "por qué importa para ti",
+      "whyPh": "ej: quiero enfocarme más en mis proyectos",
+      "how": "cómo vas a soltarlo",
+      "howPh": "ej: reduciendo el uso poco a poco",
+      "pulse": "cuándo aparece más este hábito",
+      "step": "cuál es el primer paso concreto",
+      "nextStep": "cuál es el próximo paso concreto",
+      "currentStep": "paso de esta etapa",
+      "extendEnd": "extender fecha fin",
+      "stepPh": "ej: dejar de usar celular 2h antes de dormir",
+      "start": "fecha inicio",
+      "end": "fecha fin"
     }
   },
   "routineCommon": {

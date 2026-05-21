@@ -372,6 +372,46 @@
       "title": "Rotina Mental",
       "subtitle": "o que sua mente repete todos os dias",
       "noRoutines": "Nenhuma rotina mental ainda. Adicione a primeira!"
+    },
+    "lj": {
+      "title": "Jornada de aprendizado",
+      "addSkill": "nova habilidade",
+      "filterAll": "todas",
+      "wantToLearn": "quero aprender",
+      "developing": "desenvolvendo",
+      "noSkills": "Nenhuma habilidade aqui ainda.",
+      "since": "desde",
+      "since2": "Desde",
+      "progress": "progresso",
+      "back": "voltar",
+      "overview": "Visão Geral",
+      "milestones": "marcos",
+      "notes": "notas",
+      "resources": "recursos",
+      "nextMilestone": "Próximo marco:",
+      "noMilestones": "nenhum marco ainda",
+      "allDone": "todos concluídos ✓",
+      "linkProject": "vincular a projeto",
+      "comingSoon": "em breve",
+      "tabProgress": "progresso",
+      "tabNotes": "notas",
+      "tabResources": "recursos",
+      "progressLabel": "progresso geral",
+      "progressHint": "Arraste para ajustar conforme avança",
+      "milestonesLabel": "MARCOS",
+      "addMilestone": "adicionar marco",
+      "loading": "carregando…",
+      "clickToName": "clique para nomear",
+      "deleteConfirm": "Excluir esta habilidade e todos os dados?",
+      "saveNote": "salvar nota",
+      "notePlaceholder": "Anote o que quiser — uma percepção, um bloqueio, algo que aprendeu hoje.",
+      "resourcePlaceholder": "Cole um link ou escreva o nome...",
+      "addResource": "adicionar",
+      "book": "livro",
+      "course": "curso",
+      "other": "outro",
+      "skillNamePlaceholder": "Nome da habilidade…",
+      "milestonePlaceholder": "Descreva o marco…"
     }
   },
   "projects": {
@@ -543,38 +583,99 @@
     "today": "hoje",
     "yesterday": "ontem",
     "daysAgo": "{{n}} dias atrás",
-    "months": ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"],
+    "months": [
+      "jan",
+      "fev",
+      "mar",
+      "abr",
+      "mai",
+      "jun",
+      "jul",
+      "ago",
+      "set",
+      "out",
+      "nov",
+      "dez"
+    ],
     "negFields": {
-      "belief":  { "label": "a crença",              "prompt": "qual o pensamento ou padrão que você quer investigar" },
-      "action":  { "label": "a ação que causa",      "prompt": "que ação esse pensamento te leva a tomar" },
-      "feeling": { "label": "o sentimento que gera", "prompt": "qual sentimento essa ação faz nascer em você" },
-      "result":  { "label": "o resultado",           "prompt": "onde isso te deixa, depois de tudo" }
+      "belief": {
+        "label": "a crença",
+        "prompt": "qual o pensamento ou padrão que você quer investigar"
+      },
+      "action": {
+        "label": "a ação que causa",
+        "prompt": "que ação esse pensamento te leva a tomar"
+      },
+      "feeling": {
+        "label": "o sentimento que gera",
+        "prompt": "qual sentimento essa ação faz nascer em você"
+      },
+      "result": {
+        "label": "o resultado",
+        "prompt": "onde isso te deixa, depois de tudo"
+      }
     },
     "posFields": {
-      "action":  { "label": "a ação que tomaria",     "prompt": "que ação você tomaria se esse pensamento fosse o oposto" },
-      "feeling": { "label": "o sentimento que nasce", "prompt": "qual sentimento essa nova ação faria nascer" },
-      "impact":  { "label": "o impacto",              "prompt": "como isso muda o seu dia, sua semana, sua vida" },
-      "belief":  { "label": "a crença reescrita",     "prompt": "a mesma crença em positivo — uma frase, sua" }
+      "action": {
+        "label": "a ação que tomaria",
+        "prompt": "que ação você tomaria se esse pensamento fosse o oposto"
+      },
+      "feeling": {
+        "label": "o sentimento que nasce",
+        "prompt": "qual sentimento essa nova ação faria nascer"
+      },
+      "impact": {
+        "label": "o impacto",
+        "prompt": "como isso muda o seu dia, sua semana, sua vida"
+      },
+      "belief": {
+        "label": "a crença reescrita",
+        "prompt": "a mesma crença em positivo — uma frase, sua"
+      }
     },
     "shortLabels": {
-      "neg_belief":  "Crença",
-      "neg_causes":  "Causas",
+      "neg_belief": "Crença",
+      "neg_causes": "Causas",
       "neg_feeling": "Sentimento",
-      "neg_result":  "Resultado",
-      "pos_action":  "Ação",
+      "neg_result": "Resultado",
+      "pos_action": "Ação",
       "pos_feeling": "Sentimento",
-      "pos_impact":  "Impacto",
-      "pos_belief":  "Nova crença"
+      "pos_impact": "Impacto",
+      "pos_belief": "Nova crença"
     },
     "exerciseFields": {
-      "neg_belief":  { "label": "Crença ou padrão",  "placeholder": "Sua crença ou padrão negativo…" },
-      "neg_causes":  { "label": "Causas",             "placeholder": "O que gera essa crença…" },
-      "neg_feeling": { "label": "Sentimento",         "placeholder": "Como isso te faz sentir…" },
-      "neg_result":  { "label": "Resultado",          "placeholder": "O que essa crença te impede…" },
-      "pos_action":  { "label": "Ação",               "placeholder": "Um pequeno passo concreto…" },
-      "pos_feeling": { "label": "Novo sentimento",    "placeholder": "A emoção que vem com essa ação…" },
-      "pos_impact":  { "label": "Impacto",            "placeholder": "O que muda na sua vida…" },
-      "pos_belief":  { "label": "Nova crença",        "placeholder": "Sua nova crença…" }
+      "neg_belief": {
+        "label": "Crença ou padrão",
+        "placeholder": "Sua crença ou padrão negativo…"
+      },
+      "neg_causes": {
+        "label": "Causas",
+        "placeholder": "O que gera essa crença…"
+      },
+      "neg_feeling": {
+        "label": "Sentimento",
+        "placeholder": "Como isso te faz sentir…"
+      },
+      "neg_result": {
+        "label": "Resultado",
+        "placeholder": "O que essa crença te impede…"
+      },
+      "pos_action": {
+        "label": "Ação",
+        "placeholder": "Um pequeno passo concreto…"
+      },
+      "pos_feeling": {
+        "label": "Novo sentimento",
+        "placeholder": "A emoção que vem com essa ação…"
+      },
+      "pos_impact": {
+        "label": "Impacto",
+        "placeholder": "O que muda na sua vida…"
+      },
+      "pos_belief": {
+        "label": "Nova crença",
+        "placeholder": "Sua nova crença…"
+      }
     }
   },
   "library": {
@@ -686,26 +787,26 @@
     "modalAdvance": "avançar para próxima etapa",
     "modalRelease": "esse hábito foi soltado",
     "pulse": {
-      "morning":   "manhã",
+      "morning": "manhã",
       "afternoon": "tarde",
-      "night":     "noite",
-      "always":    "sempre"
+      "night": "noite",
+      "always": "sempre"
     },
     "f": {
-      "name":     "qual hábito você quer soltar",
-      "namePh":   "ex: reduzir o tempo de celular",
-      "why":      "por que isso importa para você",
-      "whyPh":    "ex: quero focar mais nos meus projetos",
-      "how":      "como você vai soltar esse hábito",
-      "howPh":    "ex: reduzindo aos poucos o uso",
-      "pulse":    "quando esse hábito aparece mais",
-      "step":         "qual o primeiro passo concreto",
-      "nextStep":     "qual o próximo passo concreto",
-      "currentStep":  "passo desta etapa",
-      "extendEnd":    "estender data fim",
-      "stepPh":       "ex: parar de usar celular 2h antes de dormir",
-      "start":        "data início",
-      "end":          "data fim"
+      "name": "qual hábito você quer soltar",
+      "namePh": "ex: reduzir o tempo de celular",
+      "why": "por que isso importa para você",
+      "whyPh": "ex: quero focar mais nos meus projetos",
+      "how": "como você vai soltar esse hábito",
+      "howPh": "ex: reduzindo aos poucos o uso",
+      "pulse": "quando esse hábito aparece mais",
+      "step": "qual o primeiro passo concreto",
+      "nextStep": "qual o próximo passo concreto",
+      "currentStep": "passo desta etapa",
+      "extendEnd": "estender data fim",
+      "stepPh": "ex: parar de usar celular 2h antes de dormir",
+      "start": "data início",
+      "end": "data fim"
     }
   },
   "routineCommon": {
