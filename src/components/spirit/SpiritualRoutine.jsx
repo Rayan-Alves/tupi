@@ -480,10 +480,10 @@ export default function SpiritualRoutine({
         <div className="mb-6">
           <div className="flex items-end justify-between gap-4 flex-wrap">
             <div>
-              <h2 className="type-h2 mb-1" style={{ color: '#6B6258' }}>
+              <h2 className="type-h1 mb-1">
                 {t(titleKey)}
               </h2>
-              <p className="text-[#8B8378] text-xs">
+              <p className="text-[#5C5C5C] text-sm">
                 {t(subtitleKey)}
               </p>
             </div>
