@@ -85,8 +85,8 @@ export default function MentalPatternTab({
         </div>
         <button
           onClick={handleAdd}
-          className="flex items-center justify-center w-10 h-10 bg-white border border-zinc-200 rounded-full text-zinc-800 hover:bg-zinc-50 transition-colors shadow-sm flex-shrink-0"
           aria-label={t('mentalPattern.newPattern')}
+          className="flex items-center justify-center w-10 h-10 bg-white border border-zinc-200 rounded-full text-zinc-800 hover:bg-zinc-50 transition-colors shadow-sm flex-shrink-0"
         >
           <Plus size={18} />
         </button>

@@ -144,8 +144,8 @@ function Header({ t, view, onBack, onCreate }) {
         {!showBack && (
           <button
             onClick={onCreate}
-            className="flex items-center justify-center w-10 h-10 bg-white border border-zinc-200 rounded-full text-zinc-800 hover:bg-zinc-50 transition-colors shadow-sm flex-shrink-0"
             aria-label={t('soltar.newHabit')}
+            className="flex items-center justify-center w-10 h-10 bg-white border border-zinc-200 rounded-full text-zinc-800 hover:bg-zinc-50 transition-colors shadow-sm flex-shrink-0"
           >
             <Plus size={18} />
           </button>
@@ -282,19 +282,21 @@ function HabitList({ t, habits, stages, onOpenHabit, onCreate, onDelete }) {
         {tab === 'active' && (
           <button
             onClick={onCreate}
-            className="p-6 rounded-2xl flex items-center justify-center gap-2 transition-all"
             style={{
+              padding: 24, borderRadius: 18,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
               border: `1.5px dashed ${T.clay}`,
               background: 'transparent',
               color: T.clay,
               fontFamily: T.fontHead, fontStyle: 'italic',
-              fontSize: 14,
-              minHeight: 140,
+              fontSize: 14, minHeight: 140,
+              cursor: 'pointer', transition: 'all .2s',
+              width: '100%',
             }}
             onMouseEnter={e => { e.currentTarget.style.background = 'rgba(196,168,130,0.06)'; e.currentTarget.style.color = T.green }}
             onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.clay }}
           >
-            <Plus size={16} />
+            <Plus size={16} style={{ marginRight: 8 }} />
             {t('soltar.newHabit')}
           </button>
         )}
