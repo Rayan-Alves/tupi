@@ -311,7 +311,7 @@ export default function WeekTab() {
     <div className="max-w-7xl mx-auto">
       {/* Period nav */}
       <div className="flex items-center justify-between mb-6">
-        <h1 className="font-display text-3xl font-medium text-zinc-900 tracking-tight capitalize">
+        <h1 className="type-h1 tracking-tight capitalize">
           {label}
         </h1>
         <div className="flex items-center gap-1">

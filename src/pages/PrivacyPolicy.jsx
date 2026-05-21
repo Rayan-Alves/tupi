@@ -25,7 +25,7 @@ export default function PrivacyPolicy() {
           <Link to="/login">
             <img src="/tupi-logo.png" alt="TUPI" className="w-28 h-auto mb-10 opacity-80 hover:opacity-100 transition-opacity" />
           </Link>
-          <h1 className="font-display text-4xl text-zinc-900 mb-2">Privacy Policy</h1>
+          <h1 className="type-h1 mb-2">Privacy Policy</h1>
           <p className="text-sm text-zinc-400 font-mono">Last updated: {LAST_UPDATED}</p>
         </div>
 

@@ -6,6 +6,8 @@ import { useUno } from '../hooks/useUno'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import UnoSection from '../components/UnoSection'
+import SpiritualRoutine from '../components/spirit/SpiritualRoutine'
+import SoltarSection from '../components/soltar/SoltarSection'
 
 const WEEK_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 
@@ -20,13 +22,19 @@ function SectionDivider({ label }) {
 }
 
 function SaveButton({ status, onClick }) {
+  const { t } = useTranslation()
   const styles = {
     clean:  'bg-zinc-100 text-zinc-400 cursor-default',
     dirty:  'bg-body hover:bg-[#1f380f] text-white shadow-sm cursor-pointer',
     saving: 'bg-[#4a8024] text-white cursor-wait',
     saved:  'bg-emerald-500 text-white cursor-default',
   }
-  const labels = { clean: 'Salvo', dirty: 'Salvar', saving: 'Salvando…', saved: 'Salvo ✓' }
+  const labels = {
+    clean:  t('common.saved'),
+    dirty:  t('common.save'),
+    saving: t('common.saving'),
+    saved:  t('common.saved') + ' ✓',
+  }
   return (
     <button
       onClick={status === 'dirty' ? onClick : undefined}
@@ -286,34 +294,29 @@ function AffirmationsSection() {
   if (loading) return null
 
   return (
-    <section>
-      <div className="rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%)', border: '1px solid #FED7AA' }}>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Sparkles size={16} style={{ color: '#D97706' }} />
-            <span className="text-[11px] font-semibold tracking-[0.18em]" style={{ color: '#92400E' }}>{t('body.affirmations.title')}</span>
-          </div>
-          <button onClick={add}
-            className="flex items-center justify-center rounded-xl text-white transition-all"
-            style={{ width: '36px', height: '36px', background: '#D97706', fontSize: '20px', lineHeight: 1, flexShrink: 0 }}
-            onMouseEnter={e => e.currentTarget.style.background = '#B45309'}
-            onMouseLeave={e => e.currentTarget.style.background = '#D97706'}
-            aria-label="adicionar afirmação">+</button>
-        </div>
-
-        {items.length === 0 ? (
-          <p className="text-[13px] italic text-center py-4" style={{ color: '#B45309' }}>
-            {t('body.affirmations.empty')}
-          </p>
-        ) : (
-          <div className="space-y-2">
-            {items.map(a => (
-              <AffirmationRow key={a.id} item={a} inputRef={el => { refs.current[a.id] = el }}
-                onUpdate={update} onRemove={remove} onEnter={add} />
-            ))}
-          </div>
-        )}
+    <section className="space-y-4">
+      <div className="flex items-end justify-between gap-4">
+        <h2 className="type-h1">Positive Affirmations</h2>
+        <button onClick={add}
+          className="flex items-center justify-center rounded-xl text-white transition-all duration-150 flex-shrink-0 mb-1"
+          style={{ width: '30px', height: '30px', background: '#2D5016' }}
+          onMouseEnter={e => e.currentTarget.style.background = '#1f380f'}
+          onMouseLeave={e => e.currentTarget.style.background = '#2D5016'}
+          aria-label="add affirmation">
+          <Plus size={14} />
+        </button>
       </div>
+
+      {items.length === 0 ? (
+        <p className="text-center text-zinc-400 text-sm italic py-2">Add your first affirmation…</p>
+      ) : (
+        <div className="space-y-2">
+          {items.map(a => (
+            <AffirmationRow key={a.id} item={a} inputRef={el => { refs.current[a.id] = el }}
+              onUpdate={update} onRemove={remove} onEnter={add} />
+          ))}
+        </div>
+      )}
     </section>
   )
 }
@@ -333,22 +336,24 @@ function AffirmationRow({ item, inputRef, onUpdate, onRemove, onEnter }) {
   }
 
   return (
-    <div className="group flex items-center gap-3 px-4 py-3 rounded-xl bg-white/70 hover:bg-white border" style={{ borderColor: '#FDE3C7' }}>
-      <span className="flex-shrink-0" style={{ color: '#D97706', fontSize: '14px' }}>❝</span>
+    <div className="group flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all" style={{ background: 'rgba(255,255,255,0.7)', border: '1px solid #b8ccaa' }}
+      onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.95)'}
+      onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.7)'}>
+      <span className="flex-shrink-0 font-serif text-lg leading-none" style={{ color: '#8aad6a' }}>❝</span>
       <input ref={inputRef} value={text}
         onChange={e => { setText(e.target.value); dirty.current = true }}
         onBlur={flush}
         onKeyDown={handleKeyDown}
-        placeholder={t('body.affirmations.placeholder')}
-        className="flex-1 bg-transparent border-0 focus:ring-0 p-0 text-sm italic"
-        style={{ color: '#7C2D12' }} />
+        placeholder={t('body.affirmations.placeholder', 'I am...')}
+        className="flex-1 bg-transparent border-0 focus:ring-0 p-0 text-sm"
+        style={{ color: '#2D5016', fontStyle: 'italic' }} />
       <button onClick={() => onRemove(item.id)}
-        className="opacity-0 group-hover:opacity-100 transition-all p-1"
-        style={{ color: '#FCA5A5' }}
-        onMouseEnter={e => e.currentTarget.style.color = '#EF4444'}
-        onMouseLeave={e => e.currentTarget.style.color = '#FCA5A5'}
-        aria-label="excluir">
-        <Trash2 size={13} />
+        className="opacity-0 group-hover:opacity-100 transition-all p-1 rounded-lg"
+        style={{ color: '#8aad6a' }}
+        onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
+        onMouseLeave={e => e.currentTarget.style.color = '#8aad6a'}
+        aria-label="remove">
+        <Trash2 size={12} />
       </button>
     </div>
   )
@@ -364,24 +369,10 @@ export default function Body() {
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-10 space-y-10">
-      <div className="flex items-center gap-2">
-        <Dumbbell size={20} className="text-body" />
-        <div>
-          <h1 className="font-display text-3xl font-semibold text-zinc-900">{t('body.title')}</h1>
-          <p className="text-sm text-zinc-400">{t('body.subtitle')}</p>
-        </div>
+      <div className="text-center w-full">
+        <h1 className="type-h1">O bem-fazer</h1>
+        <p className="text-sm text-zinc-400 mt-1">{t('body.subtitle')}</p>
       </div>
-
-      {/* UNO */}
-      <section className="space-y-4">
-        <SectionDivider label="UNO" />
-        {!unoLoading && (
-          <UnoSection
-            projects={unoProjects}
-            lockedMessage={t('uno.lockedBody')}
-          />
-        )}
-      </section>
 
       {/* Treat yourself with kindness */}
       <section>
@@ -391,24 +382,32 @@ export default function Body() {
         </div>
       </section>
 
+      {/* UNO */}
+      <section className="space-y-4">
+        <h2 className="type-h1">UNO</h2>
+        {!unoLoading && (
+          <UnoSection
+            projects={unoProjects}
+            lockedMessage={t('uno.lockedBody')}
+          />
+        )}
+      </section>
+
       {/* Positive affirmations */}
       <AffirmationsSection />
 
+      {/* Soltar — breaking habits */}
+      <SoltarSection />
+
       {/* Routine / Activities */}
-      <section className="space-y-4 pb-16">
-        <div className="flex items-center justify-between">
-          <SectionDivider label={t('body.routine.title')} />
-          <button onClick={addRoutine} className="btn-primary ml-4 flex-shrink-0">
-            {t('spirit.routine.add')}
-          </button>
-        </div>
-        {routines.length === 0
-          ? <div className="spirit-card p-10 text-center"><p className="text-zinc-400 text-sm">{t('body.routine.noRoutines')}</p></div>
-          : <div className="space-y-2">
-              {routines.map(r => <RoutineItem key={r.id} routine={r} onSaveField={saveRoutineField} onDelete={deleteRoutine} t={t} />)}
-            </div>
-        }
-      </section>
+      <SpiritualRoutine
+        routines={routines}
+        addRoutine={addRoutine}
+        saveRoutineField={saveRoutineField}
+        deleteRoutine={deleteRoutine}
+        titleKey="body.routine.title"
+        subtitleKey="body.routine.subtitle"
+      />
     </div>
   )
 }

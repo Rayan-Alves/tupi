@@ -26,7 +26,7 @@ export default function Dashboard() {
     <div className="max-w-5xl mx-auto px-6 py-10 space-y-6">
       {/* Greeting */}
       <div>
-        <h1 className="font-display text-3xl font-semibold text-zinc-900">
+        <h1 className="type-h1">
           {greet(t)}{name ? `, ${name}` : ''} 👋
         </h1>
         <p className="text-sm text-zinc-400 mt-1">

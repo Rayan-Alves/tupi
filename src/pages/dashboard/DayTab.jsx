@@ -5,6 +5,8 @@ import { format } from 'date-fns'
 import { ptBR, enUS, es } from 'date-fns/locale'
 import { useDayDashboard } from '../../hooks/useDayDashboard'
 import ReadingWidget from '../../components/library/ReadingWidget'
+import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../contexts/AuthContext'
 
 const SOURCE_COLOR = {
   spirit:    '#5a8ab8',
@@ -87,16 +89,30 @@ function AddBtn({ label, onClick }) {
 
 /* ── Add Routine Form ─────────────────────── */
 
-function AddRoutineForm({ onSave, onCancel, t }) {
-  const [title, setTitle] = useState('')
-  const [days, setDays]   = useState([])
-  const [start, setStart] = useState('')
-  const [end, setEnd]     = useState('')
+const AREA_OPTIONS = [
+  { key: 'dashboard', labelKey: 'dashboard.day.areaGeneral', color: SOURCE_COLOR.dashboard },
+  { key: 'spirit',    labelKey: 'dashboard.day.areaSpirit',  color: SOURCE_COLOR.spirit    },
+  { key: 'mind',      labelKey: 'dashboard.day.areaMind',    color: SOURCE_COLOR.mind      },
+  { key: 'body',      labelKey: 'dashboard.day.areaBody',    color: SOURCE_COLOR.body      },
+]
+
+const AREA_TABLE = { spirit: 'spirit_routines', mind: 'mind_routines', body: 'body_routines' }
+
+function AddRoutineForm({ onSave, onCancel, t, userId }) {
+  const [title,  setTitle]  = useState('')
+  const [days,   setDays]   = useState([])
+  const [area,   setArea]   = useState('dashboard')
 
   function toggleDay(k) { setDays(d => d.includes(k) ? d.filter(x => x !== k) : [...d, k]) }
-  function save() {
+
+  async function save() {
     if (!title.trim()) return
-    onSave({ title, days, start_date: start || null, end_date: end || null })
+    if (area === 'dashboard') {
+      onSave({ title, days, start_date: null, end_date: null })
+    } else {
+      const table = AREA_TABLE[area]
+      await supabase.from(table).insert({ user_id: userId, title: title.trim(), days, start_time: null, end_time: null })
+    }
     onCancel()
   }
 
@@ -110,6 +126,28 @@ function AddRoutineForm({ onSave, onCancel, t }) {
         className="w-full bg-transparent border-0 border-b border-zinc-200 outline-none text-sm text-zinc-900 placeholder-zinc-400 pb-2"
         onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') onCancel() }}
       />
+      {/* Area picker */}
+      <div className="flex gap-1.5 flex-wrap">
+        {AREA_OPTIONS.map(opt => {
+          const active = area === opt.key
+          return (
+            <button
+              key={opt.key}
+              onClick={() => setArea(opt.key)}
+              className="text-[10px] font-semibold px-2.5 py-1 rounded-full transition-all"
+              style={{
+                background: active ? opt.color : 'transparent',
+                color: active ? '#fff' : '#a1a1aa',
+                border: `1px solid ${active ? opt.color : '#e4e4e7'}`,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+              }}
+            >
+              {t(opt.labelKey)}
+            </button>
+          )
+        })}
+      </div>
       <div className="flex gap-1.5">
         {DAY_KEYS.map(k => {
           const active = days.includes(k)
@@ -125,21 +163,6 @@ function AddRoutineForm({ onSave, onCancel, t }) {
             </button>
           )
         })}
-      </div>
-      <div className="flex items-center gap-2">
-        <input
-          type="date"
-          value={start}
-          onChange={e => setStart(e.target.value)}
-          className="text-xs border border-zinc-200 rounded-lg px-2 py-1 text-zinc-600 outline-none bg-white"
-        />
-        <span className="text-zinc-300 text-xs">→</span>
-        <input
-          type="date"
-          value={end}
-          onChange={e => setEnd(e.target.value)}
-          className="text-xs border border-zinc-200 rounded-lg px-2 py-1 text-zinc-600 outline-none bg-white"
-        />
       </div>
       <div className="flex justify-end gap-3 pt-1">
         <button onClick={onCancel} className="text-xs text-zinc-400 hover:text-zinc-700 transition-colors">
@@ -335,6 +358,7 @@ function NoteArea({ content, onSave, placeholder }) {
 
 export default function DayTab() {
   const { t, i18n } = useTranslation()
+  const { user } = useAuth()
   const {
     loading,
     routinesToday, completions, toggleRoutine, addDashRoutine, deleteDashRoutine,
@@ -382,7 +406,7 @@ export default function DayTab() {
         <div className="text-[11px] tracking-[0.22em] uppercase text-zinc-400 mb-1.5 font-medium">
           {t('dashboard.today')}
         </div>
-        <h1 className="font-display text-3xl font-medium text-zinc-900 capitalize tracking-tight">
+        <h1 className="type-h1 capitalize tracking-tight">
           {dateStr}
         </h1>
       </div>
@@ -403,7 +427,7 @@ export default function DayTab() {
           <RoutineRow key={r.id} routine={r} done={completions.has(r.id)} onToggle={toggleRoutine} onDelete={deleteDashRoutine} />
         ))}
         {addingR
-          ? <AddRoutineForm onSave={addDashRoutine} onCancel={() => setAddingR(false)} t={t} />
+          ? <AddRoutineForm onSave={addDashRoutine} onCancel={() => setAddingR(false)} t={t} userId={user?.id} />
           : <AddBtn label={t('dashboard.day.addRoutine')} onClick={() => setAddingR(true)} />
         }
       </Section>

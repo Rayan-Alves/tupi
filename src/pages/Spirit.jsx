@@ -6,6 +6,7 @@ import { useSpirit } from '../hooks/useSpirit'
 import { useUno } from '../hooks/useUno'
 import DesireList from '../components/spirit/DesireList'
 import IdentitySection from '../components/spirit/IdentitySection'
+import SpiritualRoutine from '../components/spirit/SpiritualRoutine'
 import UnoSection from '../components/UnoSection'
 
 function PortalCard({ icon, label, color, onClick, disabled, comingSoonLabel }) {
@@ -93,7 +94,7 @@ function ValueCard({ card, presets, onSave, onDelete, t }) {
           value={custom}
           onChange={e => { setCustom(e.target.value); setStatus('dirty') }}
           placeholder={t('spirit.values.customPlaceholder')}
-          className="w-full bg-transparent border-0 p-0 text-[32px] font-display text-[#2D2A26] placeholder-zinc-300 focus:ring-0 transition-all outline-none leading-none tracking-tight"
+          className="w-full bg-transparent border-0 p-0 text-[20px] font-display text-[#2D2A26] placeholder-zinc-300 focus:ring-0 transition-all outline-none leading-snug"
         />
         <datalist id={`presets-${card.id}`}>
           {presets.map(v => (
@@ -152,6 +153,7 @@ function SectionDivider({ label }) {
 }
 
 function SaveButton({ status, onClick }) {
+  const { t } = useTranslation()
   const styles = {
     clean:   'bg-zinc-100 text-zinc-400 cursor-default',
     dirty:   'bg-spirit hover:bg-[#152e4a] text-white shadow-sm cursor-pointer',
@@ -159,7 +161,10 @@ function SaveButton({ status, onClick }) {
     saved:   'bg-emerald-500 text-white cursor-default',
   }
   const labels = {
-    clean: 'Salvo', dirty: 'Salvar', saving: 'Salvando…', saved: 'Salvo ✓',
+    clean:  t('common.saved'),
+    dirty:  t('common.save'),
+    saving: t('common.saving'),
+    saved:  t('common.saved') + ' ✓',
   }
   return (
     <button
@@ -441,92 +446,6 @@ function GoalCard({ goal, tasks, onSave, onDelete, onAddTask, onUpdateTask, onDe
   )
 }
 
-function RoutineItem({ routine, onSaveField, onDelete, t }) {
-  const [title, setTitle] = useState(routine.title || '')
-  const [titleStatus, setTitleStatus] = useState('clean')
-  const days = routine.days || []
-
-  useEffect(() => {
-    setTitle(routine.title || '')
-    setTitleStatus('clean')
-  }, [routine.id])
-
-  function handleTitleChange(val) {
-    setTitle(val)
-    setTitleStatus('dirty')
-  }
-
-  async function handleTitleSave() {
-    setTitleStatus('saving')
-    await onSaveField(routine.id, 'title', title)
-    setTitleStatus('saved')
-    setTimeout(() => setTitleStatus('clean'), 2500)
-  }
-
-  function toggleDay(day) {
-    const next = days.includes(day) ? days.filter(d => d !== day) : [...days, day]
-    onSaveField(routine.id, 'days', next)
-  }
-
-  return (
-    <div className="group spirit-card p-4 space-y-3">
-      <div className="flex items-center gap-2">
-        <input
-          value={title}
-          onChange={e => handleTitleChange(e.target.value)}
-          placeholder={t('spirit.routine.whatPlaceholder')}
-          className="flex-1 input-inline text-[14px]"
-        />
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <SaveButton status={titleStatus} onClick={handleTitleSave} />
-          <button
-            onClick={() => onDelete(routine.id)}
-            className="text-zinc-400 hover:text-red-500 transition-colors p-1"
-          >
-            <Trash2 size={13} />
-          </button>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-3 flex-wrap">
-        <div className="flex gap-1">
-          {WEEK_DAYS.map(day => (
-            <button
-              key={day}
-              onClick={() => toggleDay(day)}
-              className={`pill-day ${days.includes(day) ? 'pill-day-on' : 'pill-day-off'}`}
-            >
-              {t(`spirit.tasks.days.${day}`)}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-2 ml-auto">
-          <div className="flex items-center gap-1">
-            <span className="text-[11px] text-zinc-400">{t('spirit.routine.startTime')}</span>
-            <input
-              type="time"
-              value={routine.start_time || ''}
-              onChange={e => onSaveField(routine.id, 'start_time', e.target.value || null)}
-              className="date-input"
-            />
-          </div>
-          <span className="text-zinc-300 text-sm">→</span>
-          <div className="flex items-center gap-1">
-            <span className="text-[11px] text-zinc-400">{t('spirit.routine.endTime')}</span>
-            <input
-              type="time"
-              value={routine.end_time || ''}
-              onChange={e => onSaveField(routine.id, 'end_time', e.target.value || null)}
-              className="date-input"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 function parseValues(raw) {
   if (!raw) return []
   try { return JSON.parse(raw) } catch { return [] }
@@ -591,12 +510,9 @@ export default function Spirit() {
   return (
     <div className="max-w-4xl mx-auto px-6 py-10 space-y-10">
       {/* Page header */}
-      <div className="flex items-center gap-2">
-        <Sparkles size={20} className="text-spirit" />
-        <div>
-          <h1 className="font-display text-3xl font-semibold text-zinc-900">{t('spirit.title')}</h1>
-          <p className="text-sm text-zinc-400">{t('spirit.subtitle')}</p>
-        </div>
+      <div className="text-center w-full">
+        <h1 className="type-h1">O bem-sentir</h1>
+        <p className="text-sm text-zinc-400 mt-1">{t('spirit.subtitle')}</p>
       </div>
 
       {/* ── IDENTITY ── */}
@@ -604,66 +520,46 @@ export default function Spirit() {
 
       {/* ── VALUES ── */}
       <section className="space-y-4">
-        {/* Values grid */}
-        <div className="bg-[#F5F0E8] rounded-3xl p-8 mt-6">
-          <div className="mb-8">
-            <div className="flex items-center gap-4 mb-3">
-              <span className="text-[10px] font-bold tracking-[0.15em] text-zinc-500 uppercase">{t('spirit.values.sectionHeader')}</span>
-              <div className="h-px bg-zinc-300 flex-1 max-w-[100px]"></div>
-            </div>
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-              <div>
-                <h2 className="font-display text-4xl font-semibold text-[#2D2A26] mb-1">{t('spirit.values.title')}</h2>
-                <p className="text-[#5C5C5C] text-sm">{t('spirit.values.subtitle')}</p>
-              </div>
-              <button 
-                onClick={addValueCard} 
-                className="flex items-center justify-center w-10 h-10 bg-white border border-zinc-200 rounded-full text-zinc-800 hover:bg-zinc-50 transition-colors shadow-sm flex-shrink-0"
-              >
-                <Plus size={18} />
-              </button>
-            </div>
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div>
+            <h2 className="type-h1 mb-1">{t('spirit.values.title')}</h2>
+            <p className="text-[#5C5C5C] text-sm">{t('spirit.values.subtitle')}</p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {valueCards.map(card => (
-              <ValueCard
-                key={card.id}
-                card={card}
-                presets={presets}
-                onSave={saveValueCard}
-                onDelete={deleteValueCard}
-                t={t}
-              />
-            ))}
-          </div>
+          <button
+            onClick={addValueCard}
+            className="flex items-center justify-center w-10 h-10 bg-white border border-zinc-200 rounded-full text-zinc-800 hover:bg-zinc-50 transition-colors shadow-sm flex-shrink-0"
+          >
+            <Plus size={18} />
+          </button>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {valueCards.map(card => (
+            <ValueCard
+              key={card.id}
+              card={card}
+              presets={presets}
+              onSave={saveValueCard}
+              onDelete={deleteValueCard}
+              t={t}
+            />
+          ))}
         </div>
       </section>
 
       {/* ── DEEP DESIRES ── */}
       <section className="space-y-4">
-        <div className="bg-[#F5F0E8] rounded-3xl p-8 mt-6">
-          <div className="mb-6">
-            <div className="flex items-center gap-4 mb-3">
-              <span className="text-[10px] font-bold tracking-[0.15em] text-zinc-500 uppercase">
-                {t('spirit.desires.sectionHeader')}
-              </span>
-              <div className="h-px bg-zinc-300 flex-1 max-w-[100px]"></div>
-            </div>
-            <h2 className="font-display text-4xl font-semibold text-[#2D2A26] mb-1">
-              {t('spirit.desires.title')}
-            </h2>
-            <p className="text-[#5C5C5C] text-sm italic" style={{ fontFamily: 'Cormorant Garamond, Georgia, serif', fontSize: 16 }}>
-              {t('spirit.desires.subtitle')}
-            </p>
-          </div>
-          <DesireList />
+        <div>
+          <h2 className="type-h1 mb-1">{t('spirit.desires.title')}</h2>
+          <p className="text-[#5C5C5C] text-sm italic" style={{ fontFamily: 'Libre Baskerville, Georgia, serif', fontSize: 14 }}>
+            {t('spirit.desires.subtitle')}
+          </p>
         </div>
+        <DesireList />
       </section>
 
       {/* ── UNO ── */}
       <section className="space-y-4">
-        <SectionDivider label="UNO" />
+        <h2 className="type-h1">UNO</h2>
         {!unoLoading && (
           <UnoSection
             projects={unoProjects}
@@ -674,32 +570,14 @@ export default function Spirit() {
 
 
       {/* ── ROUTINE ── */}
-      <section className="space-y-4 pb-16">
-        <div className="flex items-center justify-between">
-          <SectionDivider label={t('spirit.routine.title')} />
-          <button onClick={addRoutine} className="btn-primary ml-4 flex-shrink-0">
-            {t('spirit.routine.add')}
-          </button>
-        </div>
-
-        {routines.length === 0 ? (
-          <div className="spirit-card p-10 text-center">
-            <p className="text-zinc-400 text-sm">{t('spirit.routine.noRoutines')}</p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {routines.map(routine => (
-              <RoutineItem
-                key={routine.id}
-                routine={routine}
-                onSaveField={saveRoutineField}
-                onDelete={deleteRoutine}
-                t={t}
-              />
-            ))}
-          </div>
-        )}
-      </section>
+      <SpiritualRoutine
+        routines={routines}
+        addRoutine={addRoutine}
+        saveRoutineField={saveRoutineField}
+        deleteRoutine={deleteRoutine}
+        titleKey="spirit.routine.title"
+        subtitleKey="spirit.routine.subtitle"
+      />
     </div>
   )
 }

@@ -44,7 +44,7 @@ function ArchCard({ chapter, chapterLabel, title, description, color, soft, coun
       </div>
 
       {/* Title */}
-      <div className="font-display text-[40px] font-medium text-zinc-900 leading-none mb-5" style={{ letterSpacing: '-0.01em' }}>
+      <div className="font-serif text-[20px] text-zinc-900 leading-snug mb-5">
         {title}
       </div>
 
@@ -103,13 +103,7 @@ export default function IdentitySection() {
     <section>
       {/* Section header */}
       <div className="mb-10">
-        <div className="flex items-center gap-3 mb-4">
-          <span className="text-[11px] tracking-[0.22em] uppercase text-zinc-500 font-sans">Chapter One</span>
-          <div className="h-px flex-1 bg-zinc-300 max-w-[280px]" />
-        </div>
-        <h2 className="font-display text-[56px] font-medium text-zinc-900 leading-none mb-3" style={{ letterSpacing: '-0.02em' }}>
-          Identity
-        </h2>
+        <h2 className="type-h1 mb-3">Identity</h2>
         <p className="text-[14px] text-zinc-600 font-sans">
           Three doorways into who you are, where you've been, and where you're going.
         </p>

@@ -1,10 +1,12 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useProjects } from '../../hooks/useProjects'
 import KanbanBoard, { STAGES, NewProjectForm } from '../../components/projects/KanbanBoard'
 import ProjectModal from '../../components/projects/ProjectModal'
 import ProjectsTimeline from '../../components/projects/ProjectsTimeline'
 import ListView from '../../components/projects/ListView'
+import FluxoView from '../../components/projects/FluxoView'
 import { isSmartComplete } from '../../components/projects/SmartTab'
 import { playCheck, playCelebration, playProgress } from '../../lib/sounds'
 import { hasRecurrence, totalOccurrences, computeCheckUpdate, computeProgress } from '../../lib/recurring'
@@ -113,9 +115,11 @@ const VIEWS = [
   { id: 'kanban',   label: '⊞  Kanban' },
   { id: 'list',     label: '≡  Lista' },
   { id: 'timeline', label: '──  Timeline' },
+  { id: 'fluxo',    label: '⌇  Fluxo' },
 ]
 
 export default function ProjectsTab() {
+  const navigate = useNavigate()
   const { t } = useTranslation()
   const data = useProjects()
   const [view, setView]         = useState('kanban')
@@ -228,6 +232,18 @@ export default function ProjectsTab() {
             onOpenModal={openModal}
           />
         )}
+        {view === 'fluxo' && (
+          <FluxoView
+            projects={data.projects}
+            tasks={data.tasks}
+            updateTask={updateTaskWithCelebration}
+            updateProject={data.updateProject}
+            addTask={data.addTask}
+            deleteTask={data.deleteTask}
+            addProject={data.addProject}
+            deleteProject={data.deleteProject}
+          />
+        )}
       </div>
 
       {/* ─── Project Modal ────────────────────────────────── */}
@@ -244,6 +260,7 @@ export default function ProjectsTab() {
           onDeleteTask={data.deleteTask}
         />
       )}
+
     </div>
   )
 }

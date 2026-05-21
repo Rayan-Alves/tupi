@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 const PORTAL_CSS = `
 .uno-portal-stage {
@@ -74,7 +75,7 @@ const PORTAL_CSS = `
 
 .uno-portal-title {
   margin-top: 22px;
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: 'Libre Baskerville', Georgia, serif;
   font-size: 20px;
   font-weight: 500;
   letter-spacing: 0.14em;
@@ -114,6 +115,7 @@ function injectStyles() {
 
 export default function UnoSection({ projects, lockedMessage }) {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [hover, setHover] = useState(false)
 
   useEffect(() => { injectStyles() }, [])
@@ -126,17 +128,17 @@ export default function UnoSection({ projects, lockedMessage }) {
           onClick={() => navigate('/uno')}
           onMouseEnter={() => setHover(true)}
           onMouseLeave={() => setHover(false)}
-          aria-label="Inner Soul Journey"
+          aria-label={t('uno.portalTitle')}
         >
           <span className="uno-vortice-swirl" aria-hidden="true" />
           <span className="uno-vortice-dust" aria-hidden="true" />
           <img src="/tupi-logo.png" alt="" className="uno-logo" draggable="false" />
         </button>
-        <h2 className="uno-portal-title">Inner Soul Journey</h2>
-        <p className="uno-portal-sub">toque o portal para começar</p>
+        <h2 className="uno-portal-title">{t('uno.portalTitle')}</h2>
+        <p className="uno-portal-sub">{t('uno.portalSub')}</p>
       </div>
       {projects && projects.length === 0 && lockedMessage && (
-        <div style={{ marginTop: 16, fontSize: 13, color: '#8B8378', textAlign: 'center', maxWidth: 320, fontStyle: 'italic', fontFamily: 'Cormorant Garamond, Georgia, serif' }}>
+        <div style={{ marginTop: 16, fontSize: 13, color: '#8B8378', textAlign: 'center', maxWidth: 320, fontStyle: 'italic', fontFamily: 'Libre Baskerville, Georgia, serif' }}>
           {lockedMessage}
         </div>
       )}

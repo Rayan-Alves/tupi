@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -27,19 +28,32 @@ const EMPTY_DRAFT = {
   pos: { action: '', feeling: '', impact: '', belief: '' },
 }
 
-const NEG_FIELDS = [
-  { key: 'belief',  step: 'I',   label: 'a crença',             prompt: 'qual o pensamento ou padrão que você quer investigar' },
-  { key: 'action',  step: 'II',  label: 'a ação que causa',     prompt: 'que ação esse pensamento te leva a tomar' },
-  { key: 'feeling', step: 'III', label: 'o sentimento que gera', prompt: 'qual sentimento essa ação faz nascer em você' },
-  { key: 'result',  step: 'IV',  label: 'o resultado',          prompt: 'onde isso te deixa, depois de tudo', multiline: true },
+const NEG_META = [
+  { key: 'belief',  step: 'I',   multiline: false },
+  { key: 'action',  step: 'II',  multiline: false },
+  { key: 'feeling', step: 'III', multiline: false },
+  { key: 'result',  step: 'IV',  multiline: true  },
 ]
-
-const POS_FIELDS = [
-  { key: 'action',  step: 'I',   label: 'a ação que tomaria',    prompt: 'que ação você tomaria se esse pensamento fosse o oposto' },
-  { key: 'feeling', step: 'II',  label: 'o sentimento que nasce', prompt: 'qual sentimento essa nova ação faria nascer' },
-  { key: 'impact',  step: 'III', label: 'o impacto',             prompt: 'como isso muda o seu dia, sua semana, sua vida' },
-  { key: 'belief',  step: 'IV',  label: 'a crença reescrita',    prompt: 'a mesma crença em positivo — uma frase, sua', multiline: true },
+const POS_META = [
+  { key: 'action',  step: 'I',   multiline: false },
+  { key: 'feeling', step: 'II',  multiline: false },
+  { key: 'impact',  step: 'III', multiline: false },
+  { key: 'belief',  step: 'IV',  multiline: true  },
 ]
+function negFieldsT(t) {
+  return NEG_META.map(m => ({
+    ...m,
+    label:  t(`mentalPattern.negFields.${m.key}.label`),
+    prompt: t(`mentalPattern.negFields.${m.key}.prompt`),
+  }))
+}
+function posFieldsT(t) {
+  return POS_META.map(m => ({
+    ...m,
+    label:  t(`mentalPattern.posFields.${m.key}.label`),
+    prompt: t(`mentalPattern.posFields.${m.key}.prompt`),
+  }))
+}
 
 /* ─── CSS ───────────────────────────────────── */
 
@@ -369,7 +383,7 @@ function Field({ field, value, locked, onChange }) {
   )
 }
 
-function PoleHead({ side }) {
+function PoleHead({ side, t }) {
   const isShadow = side === 'shadow'
   const accent = isShadow ? 'var(--shadow)' : 'var(--light-deep)'
   return (
@@ -377,13 +391,11 @@ function PoleHead({ side }) {
       <div className="pm-pole-head-text">
         <div className="pm-pole-chapter">
           <span className="num">{isShadow ? 'I.' : 'II.'}</span>
-          <span>{isShadow ? 'Sombra' : 'Luz'}</span>
+          <span>{isShadow ? t('mentalPattern.shadow') : t('mentalPattern.light')}</span>
         </div>
-        <h2 className="pm-pole-title">{isShadow ? 'sombra' : 'luz'}</h2>
+        <h2 className="pm-pole-title">{isShadow ? t('mentalPattern.shadow') : t('mentalPattern.light')}</h2>
         <p className="pm-pole-caption">
-          {isShadow
-            ? 'o pensamento e tudo o que ele puxa atrás de si.'
-            : 'a mesma chave girada do outro lado.'}
+          {isShadow ? t('mentalPattern.shadowCaption') : t('mentalPattern.lightCaption')}
         </p>
       </div>
       <div className="pm-pole-glyph">
@@ -393,14 +405,14 @@ function PoleHead({ side }) {
   )
 }
 
-function EclipseCover({ progress }) {
+function EclipseCover({ progress, t }) {
   const offset = progress * 110
   const revealed = progress >= 1
   const captionLine =
-    progress === 0  ? 'complete a sombra primeiro. a luz ainda não tem onde se apoiar.' :
-    progress < 0.5  ? 'fique com o que está descendo. não se apresse para a saída.' :
-    progress < 1    ? 'a fresta começa a se abrir. respire e termine.' :
-                      'agora.'
+    progress === 0  ? t('mentalPattern.eclipseEmpty') :
+    progress < 0.5  ? t('mentalPattern.eclipseSlow') :
+    progress < 1    ? t('mentalPattern.eclipseAlmost') :
+                      t('mentalPattern.eclipseDone')
 
   return (
     <div className="pm-eclipse-cover" data-revealed={revealed ? '1' : '0'}>
@@ -413,11 +425,11 @@ function EclipseCover({ progress }) {
       <div className="pm-eclipse-caption">
         <div className="micro">
           <span className="rule" />
-          <span>luz eclipsada</span>
+          <span>{t('mentalPattern.eclipseLabel')}</span>
           <span className="rule" />
         </div>
         <div className="line">{captionLine}</div>
-        <div className="progress" aria-label={`${Math.round(progress * 4)} de 4 preenchidos`}>
+        <div className="progress" aria-label={`${Math.round(progress * 4)} / 4`}>
           {[0,1,2,3].map(i => (
             <span key={i} className="pip" data-filled={i < progress * 4 ? '1' : '0'} />
           ))}
@@ -434,6 +446,9 @@ export default function PadraoMental({ table = 'mental_patterns', onBack, initEd
   const editId = initEditId !== undefined ? initEditId : params.get('id')
   const goBack = () => (onBack ? onBack() : (window.location.href = '/mind'))
   const { user } = useAuth()
+  const { t, i18n } = useTranslation()
+  const NEG_FIELDS = useMemo(() => negFieldsT(t), [i18n.language])
+  const POS_FIELDS = useMemo(() => posFieldsT(t), [i18n.language])
 
   // Default view: list when standalone & no editId, editor otherwise
   const defaultView = startSaved ? 'detail' : (editId || embedded ? 'editor' : 'list')
@@ -474,7 +489,7 @@ export default function PadraoMental({ table = 'mental_patterns', onBack, initEd
   }
   async function deleteFromList(e, id) {
     e.stopPropagation()
-    if (!window.confirm('Excluir esta crença?')) return
+    if (!window.confirm(t('mentalPattern.deleteBelief'))) return
     setAllBeliefs(prev => prev.filter(b => b.id !== id))
     await supabase.from(table).delete().eq('id', id).eq('user_id', user.id)
   }
@@ -524,7 +539,7 @@ export default function PadraoMental({ table = 'mental_patterns', onBack, initEd
 
   async function remove() {
     if (!editingId) return
-    if (!window.confirm('Excluir esta crença?')) return
+    if (!window.confirm(t('mentalPattern.deleteBelief'))) return
     await supabase.from(table).delete().eq('id', editingId).eq('user_id', user.id)
     if (embedded) goBack()
     else { setView('list'); setSaved(null); setEditingId(null) }
@@ -555,16 +570,18 @@ export default function PadraoMental({ table = 'mental_patterns', onBack, initEd
       <div className="pm-head">
         <div className="pm-head-l">
           <h1 className="pm-page-title">
-            {isEditing ? <>Editando <em>crença.</em></> : <>Nova <em>crença.</em></>}
+            {isEditing
+              ? <>{t('mentalPattern.editingBelief')} <em>{t('mentalPattern.beliefEm')}</em></>
+              : <>{t('mentalPattern.newBelief')} <em>{t('mentalPattern.beliefEm')}</em></>}
           </h1>
           <p className="pm-page-sub">
-            "Tudo é duplo; tudo tem dois pólos. Os opostos são idênticos em natureza, mas diferentes em grau."
-            <span className="quote-source">— O Caibalion</span>
+            {t('mentalPattern.caibalionQuote')}
+            <span className="quote-source">{t('mentalPattern.caibalionSource')}</span>
           </p>
         </div>
         <div className="pm-head-r">
           <div className="pm-progress-line">
-            <span>preenchidos</span>
+            <span>{t('mentalPattern.filled')}</span>
             <b>{negFilled + posFilled}</b>
             <span className="slash">/</span>
             <b>{NEG_FIELDS.length + POS_FIELDS.length}</b>
@@ -575,7 +592,7 @@ export default function PadraoMental({ table = 'mental_patterns', onBack, initEd
       <div className="pm-poles">
         <div className="pm-poles-grid">
           <div className="pm-pole-col shadow-side">
-            <PoleHead side="shadow" />
+            <PoleHead side="shadow" t={t} />
             <div className="pm-fields">
               {NEG_FIELDS.map((f, i) => (
                 <Field
@@ -590,7 +607,7 @@ export default function PadraoMental({ table = 'mental_patterns', onBack, initEd
           </div>
 
           <div className="pm-pole-col light-side">
-            <PoleHead side="light" />
+            <PoleHead side="light" t={t} />
             <div className="pm-fields" style={{ position: 'relative' }}>
               {POS_FIELDS.map((f, i) => (
                 <Field
@@ -602,28 +619,28 @@ export default function PadraoMental({ table = 'mental_patterns', onBack, initEd
                 />
               ))}
             </div>
-            <EclipseCover progress={negProgress} />
+            <EclipseCover progress={negProgress} t={t} />
           </div>
         </div>
 
         <div className="pm-save-bar">
           <div className="meta">
-            <span className="marker"><i /> sombra</span>
+            <span className="marker"><i /> {t('mentalPattern.shadow')}</span>
             <span style={{ color: 'var(--ink-faint)' }}>↔</span>
             <span className="marker" style={{ marginLeft: 14 }}>
-              <i style={{ background: 'var(--light)' }} /> luz
+              <i style={{ background: 'var(--light)' }} /> {t('mentalPattern.light')}
             </span>
             &nbsp;&nbsp;&nbsp;
             {allComplete
-              ? 'uma crença, em dois polos.'
+              ? t('mentalPattern.footerComplete')
               : negComplete
-              ? 'reescreva no positivo para concluir.'
-              : 'comece pelo polo da sombra.'}
+              ? t('mentalPattern.footerRewrite')
+              : t('mentalPattern.footerStart')}
           </div>
           <div style={{ display: 'flex', gap: 12 }}>
-            <button className="pm-btn ghost" onClick={editorBack}>cancelar</button>
+            <button className="pm-btn ghost" onClick={editorBack}>{t('mentalPattern.cancel')}</button>
             <button className="pm-btn" disabled={!allComplete} onClick={save}>
-              {isEditing ? 'atualizar crença' : 'salvar crença'}
+              {isEditing ? t('mentalPattern.updateBelief') : t('mentalPattern.saveBelief')}
               <span className="arrow">→</span>
             </button>
           </div>
@@ -636,12 +653,12 @@ export default function PadraoMental({ table = 'mental_patterns', onBack, initEd
     <>
       <div className="pm-detail-head">
         <div>
-          <button className="pm-back" onClick={detailBack}><IconArrowLeft /> {embedded ? 'voltar' : 'voltar aos padrões'}</button>
+          <button className="pm-back" onClick={detailBack}><IconArrowLeft /> {embedded ? t('mentalPattern.back') : t('mentalPattern.backToPatterns')}</button>
           <div className="pm-chapter-label" style={{ marginTop: 24 }}>
             <span className="rule" />
-            <span>Crença salva</span>
+            <span>{t('mentalPattern.savedBelief')}</span>
             <span>·</span>
-            <span>{new Date(saved.createdAt).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })}</span>
+            <span>{new Date(saved.createdAt).toLocaleDateString(i18n.language, { day: 'numeric', month: 'short' })}</span>
           </div>
           <h1 className="pm-page-title" style={{ fontSize: 'clamp(36px, 4.5vw, 56px)' }}>
             "{saved.neg.belief}"
@@ -650,11 +667,11 @@ export default function PadraoMental({ table = 'mental_patterns', onBack, initEd
           </h1>
         </div>
         <div className="pm-detail-meta">
-          <div>investigação completa</div>
-          <div>8 desdobramentos</div>
+          <div>{t('mentalPattern.investigationComplete')}</div>
+          <div>{t('mentalPattern.desdobramentos8')}</div>
           <div className="pm-detail-actions">
-            <button className="pm-icon-btn" onClick={startEdit} aria-label="editar"><IconEdit /></button>
-            <button className="pm-icon-btn" onClick={remove} aria-label="excluir"><IconTrash /></button>
+            <button className="pm-icon-btn" onClick={startEdit} aria-label={t('mentalPattern.edit')}><IconEdit /></button>
+            <button className="pm-icon-btn" onClick={remove} aria-label={t('mentalPattern.delete')}><IconTrash /></button>
           </div>
         </div>
       </div>
@@ -662,7 +679,7 @@ export default function PadraoMental({ table = 'mental_patterns', onBack, initEd
       <div className="pm-poles">
         <div className="pm-poles-grid">
           <div className="pm-pole-col shadow-side">
-            <PoleHead side="shadow" />
+            <PoleHead side="shadow" t={t} />
             <div className="pm-fields">
               {NEG_FIELDS.map(f => (
                 <div key={f.key} className="pm-field">
@@ -677,7 +694,7 @@ export default function PadraoMental({ table = 'mental_patterns', onBack, initEd
             </div>
           </div>
           <div className="pm-pole-col light-side">
-            <PoleHead side="light" />
+            <PoleHead side="light" t={t} />
             <div className="pm-fields">
               {POS_FIELDS.map(f => (
                 <div key={f.key} className="pm-field">
@@ -696,30 +713,30 @@ export default function PadraoMental({ table = 'mental_patterns', onBack, initEd
     </>
   ) : null
 
-  const months = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez']
+  const months = t('mentalPattern.months', { returnObjects: true })
   function formatDate(ts) {
     const d = new Date(ts)
-    return `${d.getDate()} de ${months[d.getMonth()]}`
+    return `${d.getDate()} ${months[d.getMonth()]}`
   }
   function timeAgo(ts) {
     const diff = Date.now() - ts
     const day = 24 * 60 * 60 * 1000
-    if (diff < day) return 'hoje'
-    if (diff < 2 * day) return 'ontem'
-    if (diff < 7 * day) return `${Math.floor(diff / day)} dias atrás`
+    if (diff < day)   return t('mentalPattern.today')
+    if (diff < 2*day) return t('mentalPattern.yesterday')
+    if (diff < 7*day) return t('mentalPattern.daysAgo', { n: Math.floor(diff/day) })
     return formatDate(ts)
   }
 
   const listView = (
     <div className="pm-saved-page">
       <div className="pm-saved-head">
-        <h1>Padrões <em>guardados.</em></h1>
+        <h1>{t('mentalPattern.savedPatterns')} <em>{t('mentalPattern.savedPatternsEm')}</em></h1>
         {allBeliefs.length > 0 ? (
           <div className="pm-saved-meta">
             <b>{allBeliefs.length}</b>
-            <span>{allBeliefs.length === 1 ? 'investigação' : 'investigações'}</span>
+            <span>{t('mentalPattern.investigation', { count: allBeliefs.length })}</span>
             <div className="pm-saved-actions">
-              <button className="pm-btn" onClick={newPattern}>novo padrão <span className="arrow">+</span></button>
+              <button className="pm-btn" onClick={newPattern}>{t('mentalPattern.newPattern')} <span className="arrow">+</span></button>
             </div>
           </div>
         ) : null}
@@ -729,16 +746,16 @@ export default function PadraoMental({ table = 'mental_patterns', onBack, initEd
         <div className="pm-empty">
           <div className="glyph"><GlyphShadow size={32} color="var(--ink-mute)" /></div>
           <p className="line">
-            ainda não há nada aqui.<br/>
-            quando você começar, cada padrão investigado vira um par de polos para sentar junto.
+            {t('mentalPattern.emptyTitle')}<br/>
+            {t('mentalPattern.emptyDesc')}
           </p>
-          <button className="pm-btn" onClick={newPattern}>começar primeiro padrão <span className="arrow">→</span></button>
+          <button className="pm-btn" onClick={newPattern}>{t('mentalPattern.startFirstPattern')} <span className="arrow">→</span></button>
         </div>
       ) : (
         <div className="pm-garden">
           {allBeliefs.map((b, i) => (
             <article key={b.id} className="pm-card" onClick={() => openCard(b)}>
-              <button className="del-btn" onClick={e => deleteFromList(e, b.id)} aria-label="excluir">
+              <button className="del-btn" onClick={e => deleteFromList(e, b.id)} aria-label={t('mentalPattern.delete')}>
                 <IconTrash />
               </button>
               <div className="head">
@@ -747,18 +764,18 @@ export default function PadraoMental({ table = 'mental_patterns', onBack, initEd
               </div>
               <div className="pair">
                 <div className="half shadow">
-                  <div className="tag"><i /> sombra</div>
+                  <div className="tag"><i /> {t('mentalPattern.shadow')}</div>
                   <div className="text">{b.neg.belief || '—'}</div>
                 </div>
                 <div className="divider" />
                 <div className="half light">
-                  <div className="tag"><i /> luz</div>
+                  <div className="tag"><i /> {t('mentalPattern.light')}</div>
                   <div className="text">{b.pos.belief || '—'}</div>
                 </div>
               </div>
               <div className="foot">
-                <span>4 + 4 desdobramentos</span>
-                <span className="open">abrir <span className="arrow">→</span></span>
+                <span>{t('mentalPattern.desdobramentos44')}</span>
+                <span className="open">{t('mentalPattern.open')} <span className="arrow">→</span></span>
               </div>
             </article>
           ))}
@@ -779,9 +796,9 @@ export default function PadraoMental({ table = 'mental_patterns', onBack, initEd
           <div className="pm-brand">
             <span className="dot" />
             Tupi
-            <span className="crumb">Padrão Mental</span>
+            <span className="crumb">{t('mentalPattern.title')}</span>
           </div>
-          <button className="pm-back" onClick={goBack}><IconArrowLeft /> voltar</button>
+          <button className="pm-back" onClick={goBack}><IconArrowLeft /> {t('mentalPattern.back')}</button>
         </div>
       )}
       {content}

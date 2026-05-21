@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { LayoutDashboard, Sparkles, Brain, Dumbbell, Library as LibraryIcon, Plane, Sprout, Compass, LogOut, Globe } from 'lucide-react'
+import { LayoutDashboard, Sparkles, Brain, Dumbbell, BookOpen, Library as LibraryIcon, Plane, Sprout, Compass, LogOut, Globe } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useProfile } from '../../hooks/useProfile'
 import i18n from '../../i18n'

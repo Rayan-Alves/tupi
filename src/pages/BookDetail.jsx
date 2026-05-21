@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, Plus, Star, X } from 'lucide-react'
+import { ArrowLeft, Plus, Star, X, Upload } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR, enUS, es } from 'date-fns/locale'
 import { supabase } from '../lib/supabase'
@@ -122,10 +122,12 @@ export default function BookDetail() {
   const { user } = useAuth()
   const navigate = useNavigate()
 
-  const [book, setBook] = useState(null)
-  const [notes, setNotes] = useState([])
-  const [notFound, setNotFound] = useState(false)
+  const [book, setBook]           = useState(null)
+  const [notes, setNotes]         = useState([])
+  const [notFound, setNotFound]   = useState(false)
   const [editingNote, setEditingNote] = useState(null)
+  const [uploadingCover, setUploadingCover] = useState(false)
+  const coverInputRef = useRef(null)
 
   useEffect(() => {
     if (!user || !id) return
@@ -139,11 +141,25 @@ export default function BookDetail() {
   }, [user?.id, id])
 
   async function patchBook(changes) {
-    const finishedTransition = changes.status === 'finished' && book.status !== 'finished'
+    let resolved = { ...changes }
+
+    // Auto-complete when current_page reaches total_pages
+    if (
+      resolved.current_page !== undefined &&
+      book.total_pages > 0 &&
+      book.status === 'reading' &&
+      (parseInt(resolved.current_page) || 0) >= book.total_pages
+    ) {
+      resolved.current_page = book.total_pages
+      resolved.status       = 'finished'
+      resolved.finished_at  = new Date().toISOString()
+    }
+
+    const finishedTransition = resolved.status === 'finished' && book.status !== 'finished'
     const payload = {
-      ...changes,
+      ...resolved,
       updated_at: new Date().toISOString(),
-      ...(finishedTransition ? { finished_at: new Date().toISOString() } : {}),
+      ...(finishedTransition && !resolved.finished_at ? { finished_at: new Date().toISOString() } : {}),
     }
     setBook(prev => ({ ...prev, ...payload }))
     await supabase.from('books').update(payload).eq('id', id).eq('user_id', user.id)
@@ -153,6 +169,22 @@ export default function BookDetail() {
     if (!window.confirm(t('library.removeConfirm'))) return
     await supabase.from('books').delete().eq('id', id).eq('user_id', user.id)
     navigate('/library')
+  }
+
+  async function handleCoverUpload(e) {
+    const file = e.target.files[0]
+    if (!file) return
+    setUploadingCover(true)
+    const ext  = file.name.split('.').pop() || 'jpg'
+    const path = `${user.id}/${id}.${ext}`
+    const { error } = await supabase.storage
+      .from('book-covers')
+      .upload(path, file, { upsert: true })
+    if (!error) {
+      const { data } = supabase.storage.from('book-covers').getPublicUrl(path)
+      await patchBook({ cover_url: data.publicUrl + `?t=${Date.now()}` })
+    }
+    setUploadingCover(false)
   }
 
   function startNew() { setEditingNote({ id: null, title: '', content: '' }) }
@@ -210,7 +242,24 @@ export default function BookDetail() {
 
         {/* Header */}
         <div className="flex gap-10 mb-12 flex-wrap">
-          <CoverImg book={book} />
+          <div className="flex flex-col items-center gap-2 flex-shrink-0">
+            <CoverImg book={book} />
+            <input
+              ref={coverInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleCoverUpload}
+              style={{ display: 'none' }}
+            />
+            <button
+              onClick={() => coverInputRef.current?.click()}
+              disabled={uploadingCover}
+              className="flex items-center gap-1.5 text-[11px] text-zinc-400 hover:text-zinc-700 transition-colors px-3 py-1 rounded-full border border-zinc-200 hover:border-zinc-400"
+            >
+              <Upload size={11} />
+              {uploadingCover ? t('common.saving') : (book.cover_url ? t('library.changeCover') : t('library.uploadCover'))}
+            </button>
+          </div>
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-3 text-[10px] tracking-[0.18em] uppercase font-bold" style={{ color: meta.dot }}>

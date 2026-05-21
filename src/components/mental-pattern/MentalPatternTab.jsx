@@ -1,32 +1,33 @@
 import { useState, useEffect } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 
-const MONTHS = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez']
-
-function formatDate(ts) {
-  const d = new Date(ts)
-  return `${d.getDate()} de ${MONTHS[d.getMonth()]}`
-}
-function timeAgo(ts) {
-  const diff = Date.now() - ts
-  const day = 24 * 60 * 60 * 1000
-  if (diff < day) return 'hoje'
-  if (diff < 2 * day) return 'ontem'
-  if (diff < 7 * day) return `${Math.floor(diff / day)} dias atrás`
-  return formatDate(ts)
-}
-
 export default function MentalPatternTab({
   table = 'mental_patterns',
-  label = 'Padrão Mental',
+  label,
   createPath = '/padrao-mental',
   onAdd, onSelect, onDelete,
 }) {
+  const { t } = useTranslation()
   const { user } = useAuth()
   const [patterns, setPatterns] = useState([])
   const [loading,  setLoading]  = useState(true)
+
+  const months = t('mentalPattern.months', { returnObjects: true })
+  function formatDate(ts) {
+    const d = new Date(ts)
+    return `${d.getDate()} ${months[d.getMonth()]}`
+  }
+  function timeAgo(ts) {
+    const diff = Date.now() - ts
+    const day = 24 * 60 * 60 * 1000
+    if (diff < day)    return t('mentalPattern.today')
+    if (diff < 2*day)  return t('mentalPattern.yesterday')
+    if (diff < 7*day)  return t('mentalPattern.daysAgo', { n: Math.floor(diff/day) })
+    return formatDate(ts)
+  }
 
   useEffect(() => {
     if (!user) return
@@ -37,7 +38,7 @@ export default function MentalPatternTab({
 
   async function handleDelete(e, id) {
     e.stopPropagation(); e.preventDefault()
-    if (!window.confirm('Excluir esta crença?')) return
+    if (!window.confirm(t('mentalPattern.deleteBelief'))) return
     setPatterns(p => p.filter(x => x.id !== id))
     await supabase.from(table).delete().eq('id', id).eq('user_id', user.id)
     onDelete?.(id)
@@ -69,35 +70,17 @@ export default function MentalPatternTab({
         '--shadow-deep': '#1F3110',
         '--light': '#D4890A',
         '--light-deep': '#6B3B07',
-        '--serif': '"Cormorant Garamond", Georgia, serif',
+        '--serif': '"Libre Baskerville", Georgia, serif',
       }}
     >
       {/* Header */}
       <div className="flex items-end justify-between mb-6 gap-4">
         <div>
-          <div
-            style={{
-              fontFamily: 'inherit',
-              fontSize: 11,
-              letterSpacing: '0.22em',
-              textTransform: 'uppercase',
-              color: 'var(--ink-mute)',
-              marginBottom: 8,
-            }}
-          >
-            {label}
-          </div>
+          <h2 className="type-h1 mb-1">{label || t('mentalPattern.title')}</h2>
           {patterns.length > 0 && (
-            <div
-              style={{
-                fontFamily: 'var(--serif)',
-                fontStyle: 'italic',
-                color: 'var(--ink-mute)',
-                fontSize: 15,
-              }}
-            >
-              {patterns.length} {patterns.length === 1 ? 'investigação' : 'investigações'}
-            </div>
+            <p className="type-caption italic">
+              {patterns.length} {t('mentalPattern.investigation', { count: patterns.length })}
+            </p>
           )}
         </div>
         <button
@@ -114,10 +97,10 @@ export default function MentalPatternTab({
           }}
           onMouseEnter={e => { e.currentTarget.style.background = 'var(--ink-soft)'; e.currentTarget.style.transform = 'translateY(-1px)' }}
           onMouseLeave={e => { e.currentTarget.style.background = 'var(--ink)'; e.currentTarget.style.transform = 'none' }}
-          aria-label="novo padrão"
+          aria-label={t('mentalPattern.newPattern')}
         >
           <Plus size={13} strokeWidth={2} />
-          novo padrão
+          {t('mentalPattern.newPattern')}
         </button>
       </div>
 
@@ -143,8 +126,8 @@ export default function MentalPatternTab({
               margin: '0 auto',
             }}
           >
-            ainda não há nada aqui.<br/>
-            quando você começar, cada padrão vira um par de polos para sentar junto.
+            {t('mentalPattern.emptyTitle')}<br/>
+            {t('mentalPattern.emptyDescShort')}
           </div>
         </div>
       ) : (
@@ -183,7 +166,7 @@ export default function MentalPatternTab({
             >
               <button
                 onClick={e => handleDelete(e, p.id)}
-                aria-label="excluir"
+                aria-label={t('mentalPattern.delete')}
                 style={{
                   position: 'absolute',
                   top: 12, right: 12,
@@ -248,7 +231,7 @@ export default function MentalPatternTab({
                     fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--shadow)',
                   }}>
                     <i style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--shadow)' }} />
-                    sombra
+                    {t('mentalPattern.shadow')}
                   </div>
                   <div style={{
                     fontFamily: 'var(--serif)',
@@ -267,7 +250,7 @@ export default function MentalPatternTab({
                     fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--light-deep)',
                   }}>
                     <i style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--light)' }} />
-                    luz
+                    {t('mentalPattern.light')}
                   </div>
                   <div style={{
                     fontFamily: 'var(--serif)',
@@ -294,14 +277,14 @@ export default function MentalPatternTab({
                 textTransform: 'uppercase',
                 color: 'var(--ink-mute)',
               }}>
-                <span>4 + 4 desdobramentos</span>
+                <span>{t('mentalPattern.desdobramentos44')}</span>
                 <span style={{
                   display: 'inline-flex',
                   gap: 6,
                   alignItems: 'center',
                   color: 'var(--ink)',
                 }}>
-                  abrir <span style={{ fontSize: 12 }}>→</span>
+                  {t('mentalPattern.open')} <span style={{ fontSize: 12 }}>→</span>
                 </span>
               </div>
             </article>

@@ -2,11 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── CSS Variables ── */
+:root {
+  --font-serif: 'Libre Baskerville', Georgia, serif;
+  --font-sans:  'Inter', system-ui, sans-serif;
+}
+
 @layer base {
   body {
     @apply text-zinc-900 antialiased;
     background-color: #F5F0E8;
-    font-family: 'Courier New', Courier, monospace;
+    font-family: var(--font-sans);
   }
   * { @apply outline-none; }
   ::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -26,7 +32,7 @@
   }
 
   .field-label {
-    @apply block text-[11px] font-semibold uppercase tracking-[0.1em] text-zinc-400 mb-2;
+    @apply block text-[11px] font-medium uppercase tracking-[0.1em] text-zinc-400 mb-2;
   }
 
   .spirit-card {
@@ -39,7 +45,7 @@
   }
 
   .pill-day {
-    @apply text-[11px] font-bold w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-all duration-150 select-none;
+    @apply text-[11px] font-medium w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-all duration-150 select-none;
   }
 
   .pill-day-on {
@@ -49,7 +55,7 @@
   .pill-day-off { @apply bg-zinc-100 text-zinc-500 hover:bg-zinc-200; }
 
   .btn-primary {
-    @apply flex items-center gap-2 px-4 py-2 text-white text-sm font-semibold rounded-xl transition-all duration-150 shadow-sm hover:shadow-md;
+    @apply flex items-center gap-2 px-4 py-2 text-white text-sm font-medium rounded-xl transition-all duration-150 shadow-sm hover:shadow-md;
     background-color: #1B3A5C;
   }
   .btn-primary:hover {
@@ -78,11 +84,11 @@
   }
 
   .section-divider-label {
-    @apply text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-400;
+    @apply text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400;
   }
 
   .input-inline {
-    @apply w-full bg-transparent border-0 text-[15px] font-semibold text-zinc-800 placeholder-zinc-400 focus:ring-0 p-0;
+    @apply w-full bg-transparent border-0 text-[15px] font-medium text-zinc-800 placeholder-zinc-400 focus:ring-0 p-0;
   }
 
   .date-input {
@@ -95,4 +101,576 @@
   .save-badge {
     @apply text-[11px] font-medium text-emerald-500 flex items-center gap-1 transition-opacity duration-300;
   }
+
+  /* ════════════════════════════════════════════
+     ROTINAS — Ritual Design System
+  ════════════════════════════════════════════ */
+
+  /* ── Page shell ── */
+  .rotinas-page {
+    @apply max-w-lg mx-auto px-5 pb-28;
+    padding-top: 44px;
+    min-height: 100vh;
+  }
+
+  /* ── Loading ── */
+  .rotinas-loading {
+    @apply flex items-center justify-center;
+    height: 60vh;
+  }
+  .rotinas-loading-ring {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    border: 2px solid #E8E2D9;
+    border-top-color: #C8841A;
+    animation: rotinas-spin 1.2s linear infinite;
+  }
+  @keyframes rotinas-spin { to { transform: rotate(360deg); } }
+
+  /* ── Header ── */
+  .rotinas-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 32px;
+  }
+  .rotinas-header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-top: 4px;
+  }
+  .rotinas-header-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .rotinas-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .rotinas-date {
+    font-family: var(--font-sans);
+    font-size: 10.5px;
+    letter-spacing: 0.13em;
+    text-transform: capitalize;
+    color: #AFA89E;
+    font-weight: 500;
+  }
+  .rotinas-heading {
+    font-family: var(--font-serif);
+    font-size: 2.75rem;
+    font-weight: 400;
+    line-height: 1;
+    color: #1A3A1F;
+    letter-spacing: -0.015em;
+  }
+  .rotinas-day-label {
+    font-family: var(--font-sans);
+    font-size: 11.5px;
+    color: #AFA89E;
+    font-weight: 500;
+    margin-top: 2px;
+  }
+
+  /* ── Ring inner (fraction / checkmark) ── */
+  .rotinas-ring-inner {
+    display: flex;
+    align-items: baseline;
+    gap: 1px;
+  }
+  .rotinas-ring-done {
+    font-family: var(--font-serif);
+    font-size: 22px;
+    font-weight: 400;
+    color: #C8841A;
+    line-height: 1;
+  }
+  .rotinas-ring-sep {
+    font-family: var(--font-sans);
+    font-size: 10px;
+    color: #C4A882;
+    margin: 0 1px;
+  }
+  .rotinas-ring-total {
+    font-family: var(--font-sans);
+    font-size: 11px;
+    color: #AFA89E;
+    font-weight: 500;
+  }
+
+  /* ── Streak ── */
+  .rotinas-streak {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 500;
+    color: #C8841A;
+    letter-spacing: 0.03em;
+  }
+
+  /* ── Add button ── */
+  .rotinas-add-btn {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    border: 1.5px solid #C4A882;
+    background: transparent;
+    display: flex; align-items: center; justify-content: center;
+    color: #C4A882;
+    cursor: pointer;
+    transition: all 0.22s ease;
+    flex-shrink: 0;
+  }
+  .rotinas-add-btn:hover {
+    background-color: #1A3A1F;
+    border-color: #1A3A1F;
+    color: white;
+    transform: rotate(45deg);
+  }
+
+  /* ── Full-day completion banner ── */
+  .rotinas-completion-banner {
+    margin-bottom: 28px;
+    padding: 13px 18px;
+    background: rgba(26,58,31,0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(26,58,31,0.09);
+    animation: rotinas-fade-in 0.5s ease;
+  }
+  .rotinas-completion-text {
+    font-family: var(--font-serif);
+    font-size: 15.5px;
+    font-style: italic;
+    color: #1A3A1F;
+    text-align: center;
+    letter-spacing: 0.02em;
+  }
+  @keyframes rotinas-fade-in {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Period divider ── */
+  .rotinas-section { margin-bottom: 32px; }
+  .rotinas-period-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .rotinas-period-line {
+    flex: 1;
+    height: 1px;
+    opacity: 0.18;
+  }
+  .rotinas-period-chip {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-sans);
+    font-size: 9.5px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .rotinas-period-mark {
+    font-size: 8px;
+    opacity: 0.7;
+    margin-left: 1px;
+  }
+
+  /* ── Routine list ── */
+  .rotinas-list {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── Single routine row ── */
+  .rotinas-row {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding: 15px 14px;
+    position: relative;
+    cursor: default;
+    border-bottom: 1px solid rgba(232,226,217,0.7);
+    transition: background 0.15s ease;
+  }
+  .rotinas-row:last-child { border-bottom: none; }
+  .rotinas-row:hover { background-color: rgba(253,250,246,0.8); }
+  .rotinas-row--done { opacity: 0.52; }
+
+  /* ── Ceremony check ── */
+  .rotinas-check {
+    flex-shrink: 0;
+    width: 23px; height: 23px;
+    border-radius: 50%;
+    border: 1.5px solid #C4A882;
+    background: transparent;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.25s cubic-bezier(.4,0,.2,1),
+                transform 0.15s ease;
+    position: relative;
+  }
+  .rotinas-check:hover:not(.rotinas-check--done) {
+    border-color: var(--row-accent, #C8841A);
+    transform: scale(1.05);
+  }
+  .rotinas-check--done {
+    background-color: var(--row-accent, #C8841A);
+    border-color: var(--row-accent, #C8841A);
+  }
+
+  /* Outer ripple ring */
+  .rotinas-check::after {
+    content: '';
+    position: absolute;
+    inset: -5px;
+    border-radius: 50%;
+    border: 1px solid var(--row-accent, #C8841A);
+    opacity: 0;
+    transform: scale(0.6);
+    transition: opacity 0.45s ease, transform 0.45s ease;
+    pointer-events: none;
+  }
+  .rotinas-check--done::after {
+    opacity: 0.22;
+    transform: scale(1.35);
+  }
+
+  /* Bloom animation on check */
+  @keyframes rotinas-bloom {
+    0%   { transform: scale(1); }
+    30%  { transform: scale(1.38); box-shadow: 0 0 0 6px rgba(200,132,26,0.12); }
+    65%  { transform: scale(0.93); }
+    100% { transform: scale(1); }
+  }
+  .rotinas-check--bloom {
+    animation: rotinas-bloom 0.52s cubic-bezier(.4,0,.2,1);
+  }
+
+  /* ── Row content ── */
+  .rotinas-row-content {
+    flex: 1;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    cursor: pointer;
+    min-width: 0;
+  }
+  .rotinas-title {
+    font-family: var(--font-sans);
+    font-size: 14.5px;
+    font-weight: 400;
+    color: #2C2A26;
+    line-height: 1.45;
+    transition: color 0.2s ease;
+    min-width: 0;
+    flex: 1;
+  }
+  .rotinas-title--done {
+    color: #AFA89E;
+    text-decoration-line: line-through;
+    text-decoration-color: #C4A882;
+    text-decoration-thickness: 1px;
+  }
+  .rotinas-placeholder {
+    color: #C4A882;
+    font-style: italic;
+  }
+  .rotinas-title-input {
+    font-family: var(--font-sans);
+    font-size: 14.5px;
+    font-weight: 400;
+    color: #2C2A26;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid #C4A882;
+    width: 100%;
+    outline: none;
+    padding: 0 0 2px;
+  }
+  .rotinas-time {
+    font-family: var(--font-sans);
+    font-size: 11px;
+    color: #AFA89E;
+    font-weight: 500;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* ── Delete (hover-reveal) ── */
+  .rotinas-delete {
+    opacity: 0;
+    color: #AFA89E;
+    transition: all 0.15s ease;
+    padding: 4px;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+  .rotinas-row:hover > .rotinas-delete,
+  .rotinas-row:focus-within > .rotinas-delete { opacity: 1; }
+  .rotinas-delete:hover { color: #c0392b; background-color: #fef2f2; }
+
+  /* ── Expanded drawer ── */
+  .rotinas-expanded {
+    position: absolute;
+    left: 0; right: 0;
+    top: 100%;
+    background-color: #FDFAF6;
+    border-bottom: 1px solid #E8E2D9;
+    padding: 12px 14px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 10;
+    animation: rotinas-slide-down 0.2s ease;
+  }
+  @keyframes rotinas-slide-down {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Day pills ── */
+  .rotinas-days { display: flex; gap: 6px; }
+  .rotinas-day-pill {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 1.5px solid transparent;
+    font-family: var(--font-sans);
+    font-size: 10px;
+    font-weight: 500;
+    display: flex; align-items: center; justify-content: center;
+    background-color: #E8E2D9;
+    color: #7A7065;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .rotinas-day-pill:hover:not(.rotinas-day-pill--on) { background-color: #DDD6CC; }
+
+  /* ── Time inputs ── */
+  .rotinas-times { display: flex; align-items: center; gap: 8px; }
+  .rotinas-time-label {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-family: var(--font-sans);
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #AFA89E;
+  }
+  .rotinas-time-sep {
+    color: #AFA89E;
+    font-size: 12px;
+    margin-top: 14px;
+  }
+  .rotinas-time-input {
+    font-family: var(--font-sans);
+    font-size: 12px;
+    color: #2C2A26;
+    background: white;
+    border: 1px solid #E8E2D9;
+    border-radius: 8px;
+    padding: 4px 8px;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+  }
+  .rotinas-time-input:focus { border-color: #C4A882; }
+
+  /* ── Empty state ── */
+  .rotinas-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 88px 24px;
+    gap: 13px;
+  }
+  .rotinas-empty-glyph {
+    font-size: 52px;
+    color: #C4A882;
+    opacity: 0.45;
+    line-height: 1;
+    animation: rotinas-breathe 4.5s ease-in-out infinite;
+  }
+  @keyframes rotinas-breathe {
+    0%, 100% { opacity: 0.28; transform: scale(1); }
+    50%       { opacity: 0.55; transform: scale(1.07); }
+  }
+  .rotinas-empty-title {
+    font-family: var(--font-serif);
+    font-size: 23px;
+    font-weight: 400;
+    color: #1A3A1F;
+    margin-top: 6px;
+  }
+  .rotinas-empty-desc {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: #AFA89E;
+    max-width: 240px;
+    line-height: 1.65;
+  }
+  .rotinas-add-first {
+    margin-top: 18px;
+    font-family: var(--font-sans);
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: 0.09em;
+    color: #C8841A;
+    background: transparent;
+    border: 1px solid #C8841A;
+    border-radius: 9999px;
+    padding: 9px 22px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .rotinas-add-first:hover {
+    background-color: #C8841A;
+    color: white;
+  }
+}
+
+/* ════════════════════════════════════════════
+   SISTEMA TIPOGRÁFICO — Libre Baskerville + Inter
+════════════════════════════════════════════ */
+
+/* ── SERIF (Libre Baskerville) ── */
+
+.type-display {
+  font-family: var(--font-serif);
+  font-size: clamp(32px, 4vw, 40px);
+  font-weight: 400;
+  line-height: 1.1;
+  color: #1A3A1F;
+}
+
+.type-h1 {
+  font-family: var(--font-serif);
+  font-size: clamp(22px, 2.5vw, 26px);
+  font-weight: 400;
+  line-height: 1.2;
+  color: #1A3A1F;
+}
+
+.type-h2 {
+  font-family: var(--font-serif);
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.25;
+  color: #1A3A1F;
+}
+
+.type-h3 {
+  font-family: var(--font-serif);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: #1A3A1F;
+}
+
+.type-stat {
+  font-family: var(--font-serif);
+  font-size: clamp(28px, 3vw, 36px);
+  font-weight: 400;
+  line-height: 1;
+  color: #1A3A1F;
+}
+.type-stat-suffix {
+  font-family: var(--font-serif);
+  font-size: 0.45em;
+  color: rgba(26,58,31,0.35);
+}
+.type-stat.highlight { color: #C8841A; }
+
+.type-quote {
+  font-family: var(--font-serif);
+  font-size: 13px;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.65;
+  color: rgba(26,58,31,0.6);
+  border-left: 1.5px solid #C8841A;
+  padding-left: 12px;
+}
+
+/* ── SANS (Inter) ── */
+
+.type-body-light {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 1.75;
+  color: rgba(26,58,31,0.6);
+}
+
+.type-body {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: #1A3A1F;
+}
+
+.type-label {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: rgba(26,58,31,0.4);
+  letter-spacing: 0.02em;
+}
+
+.type-eyebrow {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1;
+  color: #C8841A;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.type-caption {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: rgba(26,58,31,0.4);
+}
+
+.type-nav {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 400;
+  color: rgba(26,58,31,0.4);
+}
+
+.type-nav-active {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  color: #1A3A1F;
+}
+
+/* Destaque emocional dentro de títulos */
+.type-h1 em,
+.type-h2 em,
+.type-display em {
+  font-style: italic;
+  color: #C8841A;
 }

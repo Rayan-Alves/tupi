@@ -1,22 +1,15 @@
 import { useState } from 'react'
 import { ArrowLeft, Pencil, ChevronDown, ChevronUp } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
-const NEG_LABELS = [
-  { key: 'neg_belief',  label: 'Crença' },
-  { key: 'neg_causes',  label: 'Causas' },
-  { key: 'neg_feeling', label: 'Sentimento' },
-  { key: 'neg_result',  label: 'Resultado' },
-]
-
-const POS_LABELS = [
-  { key: 'pos_action',  label: 'Ação' },
-  { key: 'pos_feeling', label: 'Sentimento' },
-  { key: 'pos_impact',  label: 'Impacto' },
-  { key: 'pos_belief',  label: 'Nova crença' },
-]
+const NEG_KEYS = ['neg_belief', 'neg_causes', 'neg_feeling', 'neg_result']
+const POS_KEYS = ['pos_action', 'pos_feeling', 'pos_impact',  'pos_belief']
 
 export default function MentalPatternSaved({ pattern, onBack, onEdit }) {
+  const { t } = useTranslation()
   const [expanded, setExpanded] = useState(false)
+  const NEG_LABELS = NEG_KEYS.map(key => ({ key, label: t(`mentalPattern.shortLabels.${key}`) }))
+  const POS_LABELS = POS_KEYS.map(key => ({ key, label: t(`mentalPattern.shortLabels.${key}`) }))
 
   return (
     <div className="space-y-5">
@@ -27,16 +20,16 @@ export default function MentalPatternSaved({ pattern, onBack, onEdit }) {
           onClick={onBack}
           className="flex items-center gap-1.5 text-zinc-400 hover:text-zinc-700 text-sm transition-colors"
         >
-          <ArrowLeft size={14} /> voltar
+          <ArrowLeft size={14} /> {t('mentalPattern.back')}
         </button>
         <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
-          Padrão Mental
+          {t('mentalPattern.title')}
         </p>
       </div>
 
       {/* Title */}
       <div className="text-center pb-1">
-        <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-400">Crença salva</p>
+        <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-400">{t('mentalPattern.savedBelief')}</p>
         <p className="text-xl font-semibold text-zinc-800 mt-1 max-w-xs mx-auto">
           {pattern.pos_belief}
         </p>
@@ -48,7 +41,7 @@ export default function MentalPatternSaved({ pattern, onBack, onEdit }) {
           {/* Polo Negativo */}
           <div className="bg-zinc-50 p-5 space-y-1">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400 mb-3">
-              Polo Negativo
+              {t('mentalPattern.poleNegative')}
             </p>
             <p className="text-sm text-zinc-600 leading-relaxed">
               {pattern.neg_belief || <span className="text-zinc-300 italic">—</span>}
@@ -59,7 +52,7 @@ export default function MentalPatternSaved({ pattern, onBack, onEdit }) {
           <div className="bg-[#fdf8f0] p-5 space-y-1 relative">
             <div className="flex items-center justify-between mb-3">
               <p className="text-[10px] font-semibold uppercase tracking-widest text-[#C8841A]">
-                Polo Positivo
+                {t('mentalPattern.polePositive')}
               </p>
               {onEdit && (
                 <button
@@ -82,7 +75,7 @@ export default function MentalPatternSaved({ pattern, onBack, onEdit }) {
           className="w-full flex items-center justify-center gap-2 py-3 border-t border-zinc-100 text-[11px] text-zinc-400 hover:text-zinc-600 hover:bg-zinc-50 transition-all"
         >
           {expanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-          {expanded ? 'ocultar detalhes' : 'toque para ver o exercício completo'}
+          {expanded ? t('mentalPattern.hideDetails') : t('mentalPattern.expandFull')}
         </button>
       </div>
 
@@ -93,7 +86,7 @@ export default function MentalPatternSaved({ pattern, onBack, onEdit }) {
           <div className="bg-white border border-zinc-100 rounded-2xl shadow-card p-5 space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-zinc-100">
               <div className="w-2 h-2 rounded-full bg-zinc-400" />
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-400">Polo Negativo</p>
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-400">{t('mentalPattern.poleNegative')}</p>
             </div>
             {NEG_LABELS.map(({ key, label }) => pattern[key] && (
               <div key={key}>
@@ -107,7 +100,7 @@ export default function MentalPatternSaved({ pattern, onBack, onEdit }) {
           <div className="bg-[#fdf8f0] border border-[#C8841A]/20 rounded-2xl p-5 space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-[#C8841A]/15">
               <div className="w-2 h-2 rounded-full bg-[#C8841A]" />
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-[#C8841A]">Polo Positivo</p>
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-[#C8841A]">{t('mentalPattern.polePositive')}</p>
             </div>
             {POS_LABELS.map(({ key, label }) => pattern[key] && (
               <div key={key}>
