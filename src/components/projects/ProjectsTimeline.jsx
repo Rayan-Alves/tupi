@@ -2,7 +2,6 @@ import { useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { STAGES } from './KanbanBoard'
 
-const MONTHS_PT = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez']
 
 const CSS = `
 .rm-toolbar { display:flex; justify-content:space-between; align-items:center; gap:18px; padding: 0 40px 14px; flex-wrap:wrap; }
@@ -144,7 +143,7 @@ const STAGE_ROMAN = { soil: 'I', plant: 'II', water: 'III', harvest: 'IV' }
 
 function fmtDayMonth(d) {
   if (!d) return ''
-  return `${String(d.getDate()).padStart(2, '0')}/${MONTHS_PT[d.getMonth()]}`
+  return d.toLocaleDateString(undefined, { day: '2-digit', month: 'short' })
 }
 
 export default function ProjectsTimeline({ projects, tasks, onOpenModal }) {
@@ -167,7 +166,7 @@ export default function ProjectsTimeline({ projects, tasks, onOpenModal }) {
     while (cursor < end) {
       const monthStart = new Date(cursor)
       const monthEnd = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1)
-      ms.push({ start: monthStart, end: monthEnd, label: MONTHS_PT[monthStart.getMonth()], year: monthStart.getFullYear() })
+      ms.push({ start: monthStart, end: monthEnd, label: monthStart.toLocaleDateString(undefined, { month: 'short' }), year: monthStart.getFullYear() })
       cursor.setMonth(cursor.getMonth() + 1)
     }
     return { horizonStart: start, horizonEnd: end, horizonDays: days, months: ms }
@@ -195,7 +194,7 @@ export default function ProjectsTimeline({ projects, tasks, onOpenModal }) {
           <span className="rm-bar__seed">
             <svg viewBox="0 0 16 16" width="14" height="14"><circle cx="8" cy="8" r="3.2" fill="currentColor" /></svg>
           </span>
-          <span className="rm-bar__seedLabel">sem data</span>
+          <span className="rm-bar__seedLabel">{t('projects.timeline.noDate')}</span>
         </div>
       )
     }
@@ -232,7 +231,7 @@ export default function ProjectsTimeline({ projects, tasks, onOpenModal }) {
         <div className="rm-bar rm-bar--harvest" style={{ left: `${left}%`, width: `${width}%`, ...stageVarsCSS('harvest') }} onClick={e => { e.stopPropagation(); onOpenModal(project.id) }}>
           <span className="rm-bar__label">
             <span className="rm-bar__dates">{fmtDayMonth(start)} <span className="rm-bar__sep">→</span> {fmtDayMonth(end)}</span>
-            <span className="rm-bar__done">✓ colhido</span>
+            <span className="rm-bar__done">{t('projects.timeline.harvested')}</span>
           </span>
         </div>
       )
@@ -243,7 +242,7 @@ export default function ProjectsTimeline({ projects, tasks, onOpenModal }) {
   if (projects.length === 0) {
     return (
       <div className="kb-root">
-        <div className="rm-empty">nenhum projeto no horizonte — comece pelo kanban.</div>
+        <div className="rm-empty">{t('projects.timeline.noProjects')}</div>
       </div>
     )
   }
@@ -252,18 +251,18 @@ export default function ProjectsTimeline({ projects, tasks, onOpenModal }) {
     <div className="kb-root">
       <div className="rm-toolbar">
         <div className="rm-toolbar__group">
-          <span style={{ fontSize: 10, fontFamily: 'Courier Prime, monospace', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--ink-mute)' }}>horizonte</span>
+          <span style={{ fontSize: 10, fontFamily: 'Courier Prime, monospace', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--ink-mute)' }}>{t('projects.timeline.horizon')}</span>
           <span className="rm-toolbar__horizon">
-            {MONTHS_PT[horizonStart.getMonth()]} <span style={{ color: 'var(--ink-faint)' }}>·{String(horizonStart.getFullYear()).slice(2)}</span>
+            {horizonStart.toLocaleDateString(undefined, { month: 'short' })} <span style={{ color: 'var(--ink-faint)' }}>·{String(horizonStart.getFullYear()).slice(2)}</span>
             <span className="rm-toolbar__arrow">→</span>
-            {MONTHS_PT[new Date(horizonEnd - 1).getMonth()]} <span style={{ color: 'var(--ink-faint)' }}>·{String(new Date(horizonEnd - 1).getFullYear()).slice(2)}</span>
+            {new Date(horizonEnd - 1).toLocaleDateString(undefined, { month: 'short' })} <span style={{ color: 'var(--ink-faint)' }}>·{String(new Date(horizonEnd - 1).getFullYear()).slice(2)}</span>
           </span>
         </div>
       </div>
 
       <div className="rm-frame">
         <div className="rm-frame__head">
-          <div className="rm-frame__labelHead">projeto</div>
+          <div className="rm-frame__labelHead">{t('projects.listView.headers.project')}</div>
           <div className="rm-frame__trackHead">
             <div className="rm-months">
               {months.map((mo, i) => {
@@ -319,7 +318,7 @@ export default function ProjectsTimeline({ projects, tasks, onOpenModal }) {
               <div className="rm-grid__line rm-grid__line--last" style={{ left: '100%' }} />
             </div>
             <div className="rm-today" style={{ left: `${todayPct}%` }}>
-              <span className="rm-today__pill">hoje · {fmtDayMonth(today)}</span>
+              <span className="rm-today__pill">{t('projects.timeline.today', { date: fmtDayMonth(today) })}</span>
               <span className="rm-today__line" />
             </div>
             {STAGES.map(s => {
@@ -342,19 +341,19 @@ export default function ProjectsTimeline({ projects, tasks, onOpenModal }) {
         <div className="rm-legend">
           <span className="rm-legend__item" style={stageVarsCSS('soil')}>
             <span className="rm-legend__swatch rm-legend__swatch--seed" />
-            semente — sem data
+            {t('projects.timeline.legend.soil')}
           </span>
           <span className="rm-legend__item" style={stageVarsCSS('plant')}>
             <span className="rm-legend__swatch rm-legend__swatch--plant" />
-            plantio — planejado
+            {t('projects.timeline.legend.plant')}
           </span>
           <span className="rm-legend__item" style={stageVarsCSS('water')}>
             <span className="rm-legend__swatch rm-legend__swatch--water" />
-            regando — em andamento
+            {t('projects.timeline.legend.water')}
           </span>
           <span className="rm-legend__item" style={stageVarsCSS('harvest')}>
             <span className="rm-legend__swatch rm-legend__swatch--harvest" />
-            colhido — completo
+            {t('projects.timeline.legend.harvest')}
           </span>
         </div>
       </div>

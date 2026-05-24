@@ -13,12 +13,13 @@ const DAYS = [
 
 const NEXT_TAB = { soil: 'plant', plant: 'water', water: 'harvest' }
 
-const TABS = [
-  { id: 'soil',    label: 'preparar a terra', stage: 'soil' },
-  { id: 'plant',   label: 'plantar',          stage: 'plant' },
-  { id: 'water',   label: 'regar & crescer',  stage: 'water' },
-  { id: 'harvest', label: 'colher',           stage: 'harvest' },
+const TABS_KEYS = [
+  { id: 'soil',    stageKey: 'soil' },
+  { id: 'plant',   stageKey: 'plant' },
+  { id: 'water',   stageKey: 'water' },
+  { id: 'harvest', stageKey: 'harvest' },
 ]
+// Label resolved at render via t('projects.modal.tabs.*')
 
 export function isSmartComplete(p) {
   return !!(p.title && p.why && p.success && p.start_date && p.end_date)
@@ -419,7 +420,7 @@ function injectStyles() {
 
 /* ─── Soil tab (SMART merged) ──────────────────────────────── */
 
-function SoilTab({ form, onUpdate }) {
+function SoilTab({ form, onUpdate, t }) {
   const days = (() => {
     if (!form.start_date || !form.end_date) return null
     const s = new Date(form.start_date), e = new Date(form.end_date)
@@ -430,44 +431,43 @@ function SoilTab({ form, onUpdate }) {
   return (
     <div style={stageVarsCSS('soil')}>
       <div className="pm-fieldgroup">
-        <SmartField letter="S" word="específico" label="ideia · objetivo" hint="uma linha, no infinitivo">
+        <SmartField letter="S" word={t('projects.modal.smart.specificWord')} label={t('projects.modal.smart.specificLabel')} hint={t('projects.modal.smart.specificHint')}>
           <input className="pm-input pm-input--big"
             value={form.title || ''} onChange={e => onUpdate('title', e.target.value)}
-            placeholder="o nome do seu projeto" />
+            placeholder={t('projects.modal.smart.specificPh')} />
         </SmartField>
 
-        <SmartField letter="R" word="relevante" label="por quê" hint="o que torna isso importante agora?">
+        <SmartField letter="R" word={t('projects.modal.smart.relevantWord')} label={t('projects.modal.smart.relevantLabel')} hint={t('projects.modal.smart.relevantHint')}>
           <textarea className="pm-input" rows={2}
             value={form.why || ''} onChange={e => onUpdate('why', e.target.value)}
-            placeholder="voltar ao corpo e ao barro. sair da tela." />
+            placeholder={t('projects.modal.smart.relevantPh')} />
         </SmartField>
 
-        <SmartField letter="M" word="mensurável" label="e como saberei?" hint="critério de sucesso · 1 frase">
+        <SmartField letter="M" word={t('projects.modal.smart.measurableWord')} label={t('projects.modal.smart.measurableLabel')} hint={t('projects.modal.smart.measurableHint')}>
           <textarea className="pm-input" rows={2}
             value={form.success || ''} onChange={e => onUpdate('success', e.target.value)}
-            placeholder="quando esse projeto estiver completo, eu vou ter…" />
+            placeholder={t('projects.modal.smart.measurablePh')} />
         </SmartField>
 
-        <SmartField letter="A" word="atingível" label="como vou tocar isso" hint="opcional · abordagem geral" optional>
+        <SmartField letter="A" word={t('projects.modal.smart.achievableWord')} label={t('projects.modal.smart.achievableLabel')} hint={t('projects.modal.smart.achievableHint')} optional>
           <textarea className="pm-input" rows={2}
             value={form.how || ''} onChange={e => onUpdate('how', e.target.value)}
-            placeholder="passos, recursos, hábitos que vão sustentar o projeto" />
+            placeholder={t('projects.modal.smart.achievablePh')} />
         </SmartField>
       </div>
 
-      {/* Period at bottom — last because it crystallizes after the SMART thinking */}
       <div className="pm-period" style={{ marginTop: 26, marginBottom: 0 }}>
         <div className="pm-period__marginalia">
           <span className="pm-field__letter" style={{ color: 'var(--soil-deep)' }}>T</span>
-          <span className="pm-field__word">temporal</span>
+          <span className="pm-field__word">{t('projects.modal.smart.timeWord')}</span>
         </div>
         <div className="pm-period__date">
-          <span className="pm-period__label">começa em</span>
+          <span className="pm-period__label">{t('projects.modal.smart.startsAt')}</span>
           <input type="date" className="pm-period__input"
             value={form.start_date || ''} onChange={e => onUpdate('start_date', e.target.value || null)} />
         </div>
         <div className="pm-period__date">
-          <span className="pm-period__label">acaba em</span>
+          <span className="pm-period__label">{t('projects.modal.smart.endsAt')}</span>
           <input type="date" className="pm-period__input"
             value={form.end_date || ''} onChange={e => onUpdate('end_date', e.target.value || null)} />
         </div>
@@ -487,7 +487,7 @@ function SmartField({ letter, word, label, hint, optional, children }) {
       <div className="pm-field__marginalia">
         <span className="pm-field__letter">{letter}</span>
         <span className="pm-field__word">{word}</span>
-        {optional && <span className="pm-field__opt">opcional</span>}
+        {optional && <span className="pm-field__opt">{t('projects.modal.smart.optional')}</span>}
       </div>
       <div className="pm-field__main">
         <div className="pm-field__labelrow">
@@ -609,11 +609,11 @@ function TaskRow({ task, project, stage, onUpdate, onDelete, onEnter, inputRef, 
                 onChange={e => onUpdate(task.id, { due_date: e.target.value || null })} />
             </div>
             <span className="pm-datefield__hint">
-              {(task.start_date || task.due_date) ? 'usando datas da tarefa' : 'usando datas do projeto'}
+              {(task.start_date || task.due_date) ? t('projects.modal.water.usingTaskDates') : t('projects.modal.water.usingProjectDates')}
             </span>
           </div>
           <div className="pm-task__bottom">
-            <span className="pm-task__recur">repetir</span>
+            <span className="pm-task__recur">{t('projects.modal.water.repeat')}</span>
             <div className="pm-days">
               {DAYS.map(d => (
                 <button key={d.key} className={'pm-day' + ((task.repeat_days || []).includes(d.key) ? ' is-on' : '')}
@@ -641,8 +641,8 @@ function TaskList({ tasks, project, stage, onAdd, onUpdate, onDelete, isWaterPha
       {banner}
       <div className="pm-tasks-section">
         <div className="pm-tasksHead">
-          <span>{isWaterPhase ? 'rotinas e atividades' : 'tarefas'}</span>
-          {total > 0 && <span className="pm-tasksHead__count">{done}/{total} feitas</span>}
+          <span>{isWaterPhase ? t('projects.modal.water.routinesAndActivities') : t('projects.modal.plant.tasks')}</span>
+          {total > 0 && <span className="pm-tasksHead__count">{done}/{total} {t('projects.modal.done')}</span>}
         </div>
         {tasks.map(x => (
           <TaskRow key={x.id} task={x} project={project} stage={stage} t={t}
@@ -662,6 +662,7 @@ function TaskList({ tasks, project, stage, onAdd, onUpdate, onDelete, isWaterPha
 
 export default function ProjectModal({ project, tasks, initialTab, onClose, onUpdate, onDelete, onAddTask, onUpdateTask, onDeleteTask }) {
   const { t } = useTranslation()
+  const TABS = TABS_KEYS.map(tk => ({ ...tk, label: t(`projects.modal.tabs.${tk.id}`), stage: tk.stageKey }))
   const [tab, setTab] = useState(() => {
     // Map old 'smart' tab to 'soil' (merged)
     const t = initialTab || project.stage || 'soil'
@@ -718,12 +719,12 @@ export default function ProjectModal({ project, tasks, initialTab, onClose, onUp
         {/* Header */}
         <div className="pm-header">
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="pm-eyebrow pm-mono">{project.id ? 'editar projeto' : 'novo projeto'}</div>
+            <div className="pm-eyebrow pm-mono">{project.id ? t('projects.modal.editProject') : t('projects.modal.newProject')}</div>
             <input className="pm-title-input"
               value={form.title} onChange={e => upd('title', e.target.value)}
-              placeholder="como vai se chamar?" />
+              placeholder={t('projects.modal.titlePlaceholder')} />
           </div>
-          <button className="pm-close" onClick={handleClose} aria-label="fechar">
+          <button className="pm-close" onClick={handleClose} aria-label={t('projects.modal.close')}>
             <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"><path d="M3 3l10 10M13 3L3 13" /></svg>
           </button>
         </div>
@@ -756,25 +757,27 @@ export default function ProjectModal({ project, tasks, initialTab, onClose, onUp
 
         {/* Body */}
         <div className="pm-body">
-          {tab === 'soil' && <SoilTab form={form} onUpdate={upd} />}
+          {tab === 'soil' && <SoilTab form={form} onUpdate={upd} t={t} />}
           {tab === 'plant' && (
             <TaskList tasks={plantTasks} project={project} stage="plant" t={t}
               onAdd={d => onAddTask('plant', d)} onUpdate={onUpdateTask} onDelete={onDeleteTask}
-              isWaterPhase={false} addLabel="adicionar tarefa" />
+              isWaterPhase={false} addLabel={t('projects.modal.addTask')} />
           )}
           {tab === 'water' && (
             <TaskList tasks={waterTasks} project={project} stage="water" t={t}
               onAdd={d => onAddTask('water', d)} onUpdate={onUpdateTask} onDelete={onDeleteTask}
-              isWaterPhase={true} addLabel="adicionar rotina"
+              isWaterPhase={true} addLabel={t('projects.modal.addRoutine')}
               banner={missingPeriod && (
                 <div className="pm-banner">
                   <span className="pm-banner__glyph">!</span>
                   <span className="pm-banner__txt">
-                    <strong>Defina o período</strong> em <em>preparar a terra</em> para calcular o total de ocorrências.
+                    <strong>{t('projects.modal.banner.title')}</strong>{' '}
+                    <em>{t('projects.modal.tabs.soil')}</em>{' '}
+                    {t('projects.modal.banner.text')}
                   </span>
                   <button className="pm-banner__link pm-mono" onClick={async () => { await persist(); setTab('soil') }}
                     style={{ background: 'transparent', border: 0, color: 'var(--harvest-deep)', fontFamily: 'Courier Prime, monospace', fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                    ir para preparar a terra →
+                    {t('projects.modal.banner.goTo')}
                   </button>
                 </div>
               )} />
@@ -783,14 +786,14 @@ export default function ProjectModal({ project, tasks, initialTab, onClose, onUp
             <div style={stageVarsCSS('harvest')}>
               <TaskList tasks={harvestTasks} project={project} stage="harvest" t={t}
                 onAdd={d => onAddTask('harvest', d)} onUpdate={onUpdateTask} onDelete={onDeleteTask}
-                isWaterPhase={false} addLabel="adicionar atividade final" />
+                isWaterPhase={false} addLabel={t('projects.modal.addFinalActivity')} />
               <div style={{ marginTop: 22 }}>
                 <div className="pm-field__labelrow" style={{ marginBottom: 8 }}>
-                  <span className="pm-field__label">reflexão · o que ficou</span>
+                  <span className="pm-field__label">{t('projects.modal.harvest.reflection')}</span>
                 </div>
                 <textarea className="pm-harvest-notes"
                   value={form.harvest_notes} onChange={e => upd('harvest_notes', e.target.value)}
-                  placeholder="o que aprendi · o que mudou em mim · o que levo pro próximo" />
+                  placeholder={t('projects.modal.harvest.placeholder')} />
               </div>
             </div>
           )}
@@ -799,22 +802,22 @@ export default function ProjectModal({ project, tasks, initialTab, onClose, onUp
         {/* Footer */}
         <div className="pm-footer" style={stageVarsCSS(stage)}>
           <button className="pm-delete" onClick={() => { if (window.confirm(t('projects.modal.deleteConfirm'))) onDelete() }}>
-            deletar
+            {t('projects.modal.delete')}
           </button>
           <div className="pm-footer__right">
-            <button className="pm-save-draft" onClick={persist}>salvar rascunho</button>
+            <button className="pm-save-draft" onClick={persist}>{t('projects.modal.saveDraft')}</button>
             {tab !== 'harvest' ? (
               <button className={'pm-advance' + (savedFlash ? ' is-saved' : '')} onClick={handleAdvance}>
-                {savedFlash ? '✓ salvo' : (
+                {savedFlash ? t('projects.modal.savedFlash') : (
                   <>
-                    {TABS.find(x => x.id === NEXT_TAB[tab])?.label}
+                    {t(`projects.modal.tabs.${NEXT_TAB[tab]}`)}
                     <span className="pm-advance__arrow">→</span>
                   </>
                 )}
               </button>
             ) : (
               <button className={'pm-advance pm-advance--save' + (savedFlash ? ' is-saved' : '')} onClick={handleSave}>
-                {savedFlash ? '✓ salvo' : '✦ salvar projeto'}
+                {savedFlash ? t('projects.modal.savedFlash') : t('projects.modal.saveProject')}
               </button>
             )}
           </div>

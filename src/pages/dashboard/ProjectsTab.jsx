@@ -68,7 +68,7 @@ function ProjectCard({ project, tasks, onOpenModal, onDelete }) {
         {progTotal > 0 && (
           <div style={{ marginBottom: 10 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-              <span style={{ fontSize: 11, color: '#a1a1aa' }}>{done}/{progTotal} tarefas</span>
+              <span style={{ fontSize: 11, color: '#a1a1aa' }}>{t('projects.tasks.count', { done, total: progTotal })}</span>
               <span style={{ fontSize: 11, color: stage.dot, fontWeight: 700 }}>{pct}%</span>
             </div>
             <div style={{ height: 3, background: '#F4F4F5', borderRadius: 2, overflow: 'hidden' }}>
@@ -81,7 +81,7 @@ function ProjectCard({ project, tasks, onOpenModal, onDelete }) {
         {(project.start_date || project.end_date) && (
           <div style={{ fontSize: 11, color: overdue ? '#EF4444' : '#a1a1aa', display: 'flex', alignItems: 'center', gap: 4 }}>
             📅 {fmtDate(project.start_date)} {project.end_date ? `→ ${fmtDate(project.end_date)}` : ''}
-            {overdue && <span style={{ fontWeight: 700 }}>· Prazo vencido</span>}
+            {overdue && <span style={{ fontWeight: 700 }}>· {t('projects.overdue')}</span>}
           </div>
         )}
       </div>
@@ -100,7 +100,7 @@ function ProjectCard({ project, tasks, onOpenModal, onDelete }) {
           onClick={e => { e.stopPropagation(); onOpenModal(project.id) }}
           style={{ fontSize: 11, fontWeight: 600, color: stage.dot, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
         >
-          Abrir →
+          {t('projects.card.open')}
         </button>
       </div>
     </div>
@@ -112,11 +112,12 @@ function ProjectCard({ project, tasks, onOpenModal, onDelete }) {
 
 /* ─── Main Tab ────────────────────────────────────────────── */
 const VIEWS = [
-  { id: 'kanban',   label: '⊞  Kanban' },
-  { id: 'list',     label: '≡  Lista' },
-  { id: 'timeline', label: '──  Timeline' },
-  { id: 'fluxo',    label: '⌇  Fluxo' },
+  { id: 'kanban',   labelKey: 'projects.view.kanban' },
+  { id: 'list',     labelKey: 'projects.view.list' },
+  { id: 'timeline', labelKey: 'projects.view.timeline' },
+  { id: 'fluxo',    labelKey: 'projects.view.flow' },
 ]
+const VIEW_ICONS = { kanban: '⊞  ', list: '≡  ', timeline: '──  ', fluxo: '⌇  ' }
 
 export default function ProjectsTab() {
   const navigate = useNavigate()
@@ -158,15 +159,15 @@ export default function ProjectsTab() {
   if (data.loading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 200, color: '#a1a1aa', fontSize: 13 }}>
-        Carregando projetos…
+        {t('projects.loading')}
       </div>
     )
   }
 
   const smartCount = data.projects.filter(p => isSmartComplete(p)).length
   const eyebrow = data.projects.length === 0
-    ? 'nenhum projeto · em quatro campos'
-    : `${data.projects.length} projeto${data.projects.length > 1 ? 's' : ''} · em quatro campos${smartCount > 0 ? ` · ${smartCount} smart ✓` : ''}`
+    ? t('projects.noProjects')
+    : `${data.projects.length} ${t('projects.count', { count: data.projects.length })} · ${t('projects.inFourFields')}${smartCount > 0 ? ` · ${smartCount} smart ✓` : ''}`
 
   return (
     <div className="kb-root" style={{ minHeight: '100%' }}>
@@ -182,12 +183,12 @@ export default function ProjectsTab() {
           <div className="kb-viewtoggle">
             {VIEWS.map(v => (
               <button key={v.id} onClick={() => setView(v.id)} className={view === v.id ? 'is-active' : ''}>
-                {v.label}
+                {VIEW_ICONS[v.id]}{t(v.labelKey)}
               </button>
             ))}
           </div>
           <button className="kb-newbtn" onClick={() => { setView('kanban'); setTriggerCreate(c => c + 1) }}>
-            novo projeto
+            {t('projects.newProject')}
           </button>
         </div>
       </div>

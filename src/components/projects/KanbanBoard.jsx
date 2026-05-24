@@ -216,9 +216,7 @@ function injectStyles() {
 
 function fmtDate(d) {
   if (!d) return ''
-  const months = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez']
-  const [y, m, day] = d.split('-')
-  return `${parseInt(day, 10)}/${months[parseInt(m, 10) - 1] || m}`
+  return new Date(d + 'T00:00:00').toLocaleDateString(undefined, { day: '2-digit', month: 'short' })
 }
 
 function stageVarsCSS(stage) {
@@ -612,7 +610,7 @@ export default function KanbanBoard({ projects, tasks, addProject, updateProject
               {stage.key === 'soil' && (
                 creating
                   ? <NewProjectForm onSave={handleCreate} onCancel={() => setCreating(false)} />
-                  : <button className="kb-addcard" onClick={() => setCreating(true)}>nova semente</button>
+                  : <button className="kb-addcard" onClick={() => setCreating(true)}>{t('projects.kanban.newSeed')}</button>
               )}
             </div>
           )

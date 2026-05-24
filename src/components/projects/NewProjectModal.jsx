@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 
 /* ─── Design tokens (scoped) ──────────────────────────────────────────────── */
 const T = {
@@ -24,6 +25,7 @@ const T = {
  * Behavior: Enter or "plantar semente" → onConfirm(title). Empty title disables submit.
  */
 export default function NewProjectModal({ open, onClose, onConfirm }) {
+  const { t } = useTranslation()
   const [title, setTitle] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const inputRef = useRef(null)
@@ -116,7 +118,7 @@ export default function NewProjectModal({ open, onClose, onConfirm }) {
           letterSpacing: '-0.01em',
           marginBottom: 6,
         }}>
-          Árvore da Vida
+          {t('projects.newProjectModal.treeOfLife')}
         </div>
         <div style={{
           textAlign: 'center',
@@ -124,7 +126,7 @@ export default function NewProjectModal({ open, onClose, onConfirm }) {
           fontSize: 16, color: 'rgba(60,45,20,0.55)',
           marginBottom: 32,
         }}>
-          dê um nome à sua nova jornada
+          {t('projects.newProjectModal.subtitle')}
         </div>
 
         {/* Input */}
@@ -135,7 +137,7 @@ export default function NewProjectModal({ open, onClose, onConfirm }) {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') handleConfirm() }}
-          placeholder="nome do projeto"
+          placeholder={t('projects.newProjectModal.namePh')}
           style={{
             width: '100%',
             border: 'none', outline: 'none',
@@ -168,7 +170,7 @@ export default function NewProjectModal({ open, onClose, onConfirm }) {
             onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(196,168,130,0.1)'; e.currentTarget.style.color = T.igapo }}
             onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#8B7E6F' }}
           >
-            cancelar
+            {t('projects.newProjectModal.cancel')}
           </button>
           <button
             onClick={handleConfirm}
@@ -187,7 +189,7 @@ export default function NewProjectModal({ open, onClose, onConfirm }) {
             onMouseEnter={(e) => { if (canSubmit) e.currentTarget.style.background = '#4A5C3F' }}
             onMouseLeave={(e) => { if (canSubmit) e.currentTarget.style.background = T.phasePlantar }}
           >
-            {submitting ? 'plantando…' : 'plantar semente'}
+            {submitting ? t('projects.newProjectModal.planting') : t('projects.newProjectModal.plant')}
           </button>
         </div>
       </div>

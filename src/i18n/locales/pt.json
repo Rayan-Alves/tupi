@@ -501,7 +501,9 @@
     "count_other": "{{count}} projetos",
     "view": {
       "kanban": "Kanban",
-      "list": "Lista"
+      "list": "Lista",
+      "timeline": "Timeline",
+      "flow": "Fluxo"
     },
     "newProject": "+ Novo projeto",
     "noProjects": "Nenhum projeto ainda — clique em \"+ Novo projeto\" para começar.",
@@ -526,13 +528,15 @@
       "deadline": "prazo:",
       "start": "início:",
       "end": "fim:",
-      "singleDate": "data única (sem repetição):"
+      "singleDate": "data única (sem repetição):",
+      "count": "{{done}}/{{total}} tarefas"
     },
     "card": {
       "delete": "excluir",
       "harvested": "🌾 Concluído",
       "blockedHint": "Complete todas as tasks primeiro",
-      "advanceTo": "Avançar para {{stage}}"
+      "advanceTo": "Avançar para {{stage}}",
+      "open": "Abrir →"
     },
     "form": {
       "name": "Nome do projeto...",
@@ -572,11 +576,150 @@
       },
       "noPeriodWarning": "⚠ Defina o período do projeto em \"Preparar o Solo\" para calcular o total",
       "usingTaskDates": "usando datas da atividade",
-      "usingProjectDates": "usando datas do projeto"
+      "usingProjectDates": "usando datas do projeto",
+      "editProject": "editar projeto",
+      "newProject": "novo projeto",
+      "titlePlaceholder": "como vai se chamar?",
+      "close": "fechar",
+      "saveDraft": "salvar rascunho",
+      "savedFlash": "✓ salvo",
+      "saveProject": "✦ salvar projeto",
+      "addTask": "adicionar tarefa",
+      "addRoutine": "adicionar rotina",
+      "addFinalActivity": "adicionar atividade final",
+      "done": "feitas",
+      "tabs": {
+        "soil": "preparar a terra",
+        "plant": "plantar",
+        "water": "regar & crescer",
+        "harvest": "colher"
+      },
+      "banner": {
+        "title": "Defina o período",
+        "text": "em preparar a terra para calcular o total de ocorrências.",
+        "goTo": "ir para preparar a terra →"
+      },
+      "water": {
+        "repeat": "repetir",
+        "routinesAndActivities": "rotinas e atividades",
+        "usingTaskDates": "usando datas da tarefa",
+        "usingProjectDates": "usando datas do projeto"
+      },
+      "plant": {
+        "tasks": "tarefas"
+      },
+      "harvest": {
+        "reflection": "reflexão · o que ficou",
+        "placeholder": "o que aprendi · o que mudou em mim · o que levo pro próximo"
+      },
+      "smart": {
+        "specificWord": "específico",
+        "specificLabel": "ideia · objetivo",
+        "specificHint": "uma linha, no infinitivo",
+        "specificPh": "o nome do seu projeto",
+        "relevantWord": "relevante",
+        "relevantLabel": "por quê",
+        "relevantHint": "o que torna isso importante agora?",
+        "relevantPh": "voltar ao corpo e ao barro. sair da tela.",
+        "measurableWord": "mensurável",
+        "measurableLabel": "e como saberei?",
+        "measurableHint": "critério de sucesso · 1 frase",
+        "measurablePh": "quando esse projeto estiver completo, eu vou ter…",
+        "achievableWord": "atingível",
+        "achievableLabel": "como vou tocar isso",
+        "achievableHint": "opcional · abordagem geral",
+        "achievablePh": "passos, recursos, hábitos que vão sustentar o projeto",
+        "timeWord": "temporal",
+        "startsAt": "começa em",
+        "endsAt": "acaba em",
+        "optional": "opcional"
+      }
     },
     "list": {
       "projectHeader": "PROJETO"
-    }
+    },
+    "overdue": "Prazo vencido",
+    "kanban": {
+      "newSeed": "nova semente"
+    },
+    "newProjectModal": {
+      "treeOfLife": "Árvore da Vida",
+      "subtitle": "dê um nome à sua nova jornada",
+      "namePh": "nome do projeto",
+      "cancel": "cancelar",
+      "planting": "plantando…",
+      "plant": "plantar semente"
+    },
+    "listView": {
+      "noProjects": "nenhum projeto ainda — comece pelo kanban.",
+      "group": "agrupar",
+      "byStage": "por estágio",
+      "waiting": "aguardando plantio",
+      "complete": "✓ completo",
+      "headers": {
+        "project": "projeto",
+        "stage": "estágio",
+        "progress": "progresso",
+        "nextTask": "próxima tarefa",
+        "period": "período",
+        "updated": "atualizado"
+      }
+    },
+    "timeline": {
+      "noProjects": "nenhum projeto no horizonte — comece pelo kanban.",
+      "noDate": "sem data",
+      "harvested": "✓ colhido",
+      "today": "hoje · {{date}}",
+      "legend": {
+        "soil": "semente — sem data",
+        "plant": "plantio — planejado",
+        "water": "regando — em andamento",
+        "harvest": "colhido — completo"
+      },
+      "horizon": "horizonte"
+    },
+    "fluxo": {
+      "newProject": "+ novo projeto",
+      "deleteProject": "excluir projeto atual",
+      "noName": "sem nome",
+      "newSeed": "puxar um novo fio",
+      "phases": {
+        "soil": "Preparando o Solo",
+        "plant": "Plantar",
+        "water": "Regar e Crescer",
+        "harvest": "Colher"
+      },
+      "smart": {
+        "specific": "Específico",
+        "measurable": "Mensurável",
+        "achievable": "Atingível",
+        "relevant": "Relevante",
+        "time": "Temporal",
+        "phSpecific": "qual é o foco essencial?",
+        "phMeasurable": "como saberei que cheguei?",
+        "phAchievable": "como vou fazer?",
+        "phRelevant": "por que isso importa?",
+        "phTime": "até quando?"
+      },
+      "harvest": {
+        "title": "colheita",
+        "flourished": "O que floresceu"
+      },
+      "pillMode": "ramificação",
+      "trunkMode": "tronco",
+      "cycle": "ciclo",
+      "center": "centro",
+      "noNameFio": "sem nome",
+      "deleteFio": "excluir",
+      "filters": {
+        "all": "todas",
+        "soil": "solo",
+        "plant": "plantar",
+        "water": "regar",
+        "harvest": "colher"
+      }
+    },
+    "inFourFields": "em quatro campos"
   },
   "body": {
     "title": "Corpo",

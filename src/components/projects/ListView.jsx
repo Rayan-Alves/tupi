@@ -122,9 +122,7 @@ const STAGE_ROMAN = { soil: 'I', plant: 'II', water: 'III', harvest: 'IV' }
 
 function fmtShort(d) {
   if (!d) return ''
-  const months = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez']
-  const [y, m, day] = d.split('-')
-  return `${parseInt(day, 10)}/${months[parseInt(m, 10) - 1] || m}`
+  return new Date(d + 'T00:00:00').toLocaleDateString(undefined, { day: '2-digit', month: 'short' })
 }
 
 function nextTaskOf(project, tasks) {
@@ -139,9 +137,9 @@ function tasksForProject(project, tasks) {
   return tasks.filter(t => t.project_id === project.id && t.phase === project.stage)
 }
 
-function NextTaskCell({ project, tasks }) {
-  if (project.stage === 'soil') return <span className="lv-dim lv-italic">aguardando plantio</span>
-  if (project.stage === 'harvest') return <span className="lv-cell--updated" style={{ color: 'var(--harvest-deep)' }}>✓ completo</span>
+function NextTaskCell({ project, tasks, t }) {
+  if (project.stage === 'soil') return <span className="lv-dim lv-italic">{t('projects.listView.waiting')}</span>
+  if (project.stage === 'harvest') return <span className="lv-cell--updated" style={{ color: 'var(--harvest-deep)' }}>{t('projects.listView.complete')}</span>
   const nt = nextTaskOf(project, tasks)
   if (!nt) return <span className="lv-dim">—</span>
   return (
@@ -188,7 +186,7 @@ function ListRow({ project, tasks, onOpen, onDelete, onAdvance, canAdvance, t })
         ) : <span className="lv-dim">—</span>}
       </div>
       <div className="lv-cell">
-        <NextTaskCell project={project} tasks={tasks} />
+        <NextTaskCell project={project} tasks={tasks} t={t} />
       </div>
       <div className="lv-cell">
         {(project.start_date || project.end_date) ? (
@@ -248,7 +246,7 @@ export default function ListView({ projects, tasks, updateProject, deleteProject
   if (projects.length === 0) {
     return (
       <div className="kb-root">
-        <div className="lv-empty">nenhum projeto ainda — comece pelo kanban.</div>
+        <div className="lv-empty">{t('projects.listView.noProjects')}</div>
       </div>
     )
   }
@@ -257,18 +255,18 @@ export default function ListView({ projects, tasks, updateProject, deleteProject
     <div className="kb-root">
       <div className="lv-toolbar">
         <div className="lv-toolbar__group">
-          <span className="lv-toolbar__label">agrupar</span>
-          <button className="lv-pill is-active">por estágio</button>
+          <span className="lv-toolbar__label">{t('projects.listView.group')}</span>
+          <button className="lv-pill is-active">{t('projects.listView.byStage')}</button>
         </div>
       </div>
       <div className="lv-table">
         <div className="lv-row lv-row--head">
-          <div className="lv-cell lv-cell--name">projeto</div>
-          <div className="lv-cell">estágio</div>
-          <div className="lv-cell">progresso</div>
-          <div className="lv-cell">próxima tarefa</div>
-          <div className="lv-cell">período</div>
-          <div className="lv-cell">atualizado</div>
+          <div className="lv-cell lv-cell--name">{t('projects.listView.headers.project')}</div>
+          <div className="lv-cell">{t('projects.listView.headers.stage')}</div>
+          <div className="lv-cell">{t('projects.listView.headers.progress')}</div>
+          <div className="lv-cell">{t('projects.listView.headers.nextTask')}</div>
+          <div className="lv-cell">{t('projects.listView.headers.period')}</div>
+          <div className="lv-cell">{t('projects.listView.headers.updated')}</div>
           <div className="lv-cell"></div>
         </div>
         {STAGES.map(s => {
