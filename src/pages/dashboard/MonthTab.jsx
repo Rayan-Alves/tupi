@@ -72,7 +72,7 @@ function SaveableGhost({ value: initial, onSave, placeholder, minRows = 2 }) {
 }
 
 // ── Mini Calendar ──────────────────────────────────────────────────
-function MiniCalendar({ period, events, birthdays, bills }) {
+function MiniCalendar({ period, events, birthdays, bills, locale, t }) {
   const [y, m] = period.split('-').map(Number)
   const today = new Date()
   const daysInMonth = new Date(y, m, 0).getDate()
@@ -82,6 +82,11 @@ function MiniCalendar({ period, events, birthdays, bills }) {
   )
 
   const isToday = d => d === today.getDate() && m === today.getMonth() + 1 && y === today.getFullYear()
+
+  // Locale-aware single-char weekday abbreviations (Sun…Sat)
+  const dayAbbrs = Array.from({ length: 7 }, (_, i) =>
+    new Date(2024, 0, i + 7).toLocaleDateString(locale, { weekday: 'narrow' })
+  )
 
   // Build sets of days with events/bills/birthdays
   const eventDays = new Set()
@@ -98,15 +103,17 @@ function MiniCalendar({ period, events, birthdays, bills }) {
     if (b.birth_date) bdayDays.add(parseInt(b.birth_date.split('-')[2], 10))
   })
 
+  const legend = [
+    { color: T.amber, label: t('dashboard.month.calLegendEvents') },
+    { color: T.sand,  label: t('dashboard.month.calLegendBills') },
+    { color: T.green, label: t('dashboard.month.calLegendBirthdays') },
+  ]
+
   return (
     <div>
       {/* Legend */}
       <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
-        {[
-          { color: T.amber,  label: 'eventos' },
-          { color: T.sand,   label: 'contas' },
-          { color: T.green,  label: 'aniversários' },
-        ].map(({ color, label }) => (
+        {legend.map(({ color, label }) => (
           <span key={label} style={{ fontFamily: 'sans-serif', fontSize: 10, color: T.muted, display: 'flex', alignItems: 'center', gap: 4 }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: color, display: 'inline-block' }} />
             {label}
@@ -116,7 +123,7 @@ function MiniCalendar({ period, events, birthdays, bills }) {
 
       {/* Day labels */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 1, marginBottom: 4 }}>
-        {['D','S','T','Q','Q','S','S'].map((d, i) => (
+        {dayAbbrs.map((d, i) => (
           <div key={i} style={{ textAlign: 'center', fontFamily: 'sans-serif', fontSize: 10, color: T.muted, padding: '2px 0', fontWeight: 600 }}>{d}</div>
         ))}
       </div>
@@ -274,379 +281,8 @@ function WeekBars({ weekBars }) {
   )
 }
 
-// ── Main component ─────────────────────────────────────────────────
-export default function MonthTab() {
-  const { t, i18n } = useTranslation()
-  const [period, setPeriod] = useState(() => getCurrentMonthPeriod())
-  const [statsMode, setStatsMode] = useState('pct') // 'pct' | 'frac'
-  const [goalsExpanded, setGoalsExpanded] = useState(false)
-  const GOALS_PREVIEW = 3
-
-  const {
-    profile, saveProfileField,
-    goals, addGoal, updateGoal, deleteGoal,
-    tasks,
-    events, addEvent, updateEvent, deleteEvent,
-    birthdays, addBirthday, updateBirthday, deleteBirthday,
-    bills, addBill, updateBill, deleteBill,
-    health, addHealth, updateHealth, deleteHealth,
-    largar, addLargar, updateLargar, deleteLargar,
-    explorar, addExplorar, updateExplorar, deleteExplorar,
-    stats, loading,
-  } = useMonth(period)
-  const [explorarCat, setExplorarCat] = useState('Livros')
-
-  const locale = { pt: 'pt-BR', en: 'en-US', es: 'es-ES' }[i18n.language] || 'pt-BR'
-  const [y, mo] = period.split('-').map(Number)
-  const monthName = new Date(y, mo - 1, 1).toLocaleDateString(locale, { month: 'long' })
-  const monthCapitalized = monthName.charAt(0).toUpperCase() + monthName.slice(1)
-
-  // Stats display
-  const tasksDone  = tasks.filter(t => t.completed).length
-  const tasksTotal = tasks.length
-  const routinesDone = stats.routinesDone
-
-  function statDisplay(done, total) {
-    if (total === 0) return statsMode === 'pct' ? '—' : '0/0'
-    return statsMode === 'pct'
-      ? `${Math.round((done / total) * 100)}%`
-      : `${done}/${total}`
-  }
-
-  const visibleGoals = goalsExpanded ? goals : goals.slice(0, GOALS_PREVIEW)
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-
-      {/* Period navigation */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#fff', borderRadius: 14, border: '0.5px solid rgba(26,58,31,0.1)', padding: '10px 20px' }}>
-        <button onClick={() => setPeriod(p => navigateMonth(p, -1))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.sand, display: 'flex' }}>
-          <ChevronLeft size={16} />
-        </button>
-        <span style={{ fontFamily: 'Georgia, serif', fontSize: 14, color: T.green, fontWeight: 'normal' }}>
-          {formatMonthLabel(period, locale)}
-        </span>
-        <button onClick={() => setPeriod(p => navigateMonth(p, 1))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.sand, display: 'flex' }}>
-          <ChevronRight size={16} />
-        </button>
-      </div>
-
-      {/* TOP: Abertura + Calendário */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', alignItems: 'start' }}>
-
-        {/* Left: Palavra + reflexão + how_start + how_end + Eventos + Aniversários */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <Card>
-            <Label>Palavra do mês</Label>
-            <PalavraField value={profile.palavra_do_mes} onSave={v => saveProfileField('palavra_do_mes', v)} />
-
-            <Divider style={{ marginTop: 16 }} />
-
-            <div style={{
-              background: 'rgba(200,132,26,0.06)',
-              borderLeft: `2px solid ${T.amber}`,
-              padding: '10px 14px',
-              fontFamily: 'Georgia, serif',
-              fontSize: 13,
-              color: T.green,
-              lineHeight: 1.6,
-              marginBottom: 12,
-            }}>
-              O que você traz do mês passado?
-              <div style={{ marginTop: 6 }}>
-                <SaveableGhost
-                  value={profile.o_que_traz}
-                  onSave={v => saveProfileField('o_que_traz', v)}
-                  placeholder="Reflexão sobre o mês anterior..."
-                  minRows={2}
-                />
-              </div>
-            </div>
-
-            <div style={{ marginTop: 4 }}>
-              <Label>Como você começa {monthCapitalized}?</Label>
-              <SaveableGhost
-                value={profile.how_start}
-                onSave={v => saveProfileField('how_start', v)}
-                placeholder="Intenção, energia, contexto..."
-                minRows={2}
-              />
-            </div>
-
-            <div style={{ marginTop: 10 }}>
-              <Label>Como você quer terminar {monthCapitalized}?</Label>
-              <SaveableGhost
-                value={profile.how_end}
-                onSave={v => saveProfileField('how_end', v)}
-                placeholder="O que você quer ter realizado..."
-                minRows={2}
-              />
-            </div>
-          </Card>
-
-          {/* Eventos + Aniversários */}
-          <Card>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <div>
-                <SectionTitle onAdd={addEvent}>Eventos</SectionTitle>
-                {events.length === 0
-                  ? <p style={{ fontFamily: 'sans-serif', fontSize: 12, color: T.muted }}>Sem eventos</p>
-                  : events.map(ev => (
-                    <div key={ev.id} className="group" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 0', borderBottom: `0.5px solid rgba(26,58,31,0.06)` }}>
-                      <input
-                        value={ev.title}
-                        onChange={e => updateEvent(ev.id, 'title', e.target.value)}
-                        placeholder="Evento"
-                        style={{ flex: 1, fontFamily: 'sans-serif', fontSize: 12, color: T.green, border: 'none', background: 'transparent', outline: 'none', padding: 0 }}
-                      />
-                      <input
-                        type="date"
-                        value={ev.event_date || ''}
-                        onChange={e => updateEvent(ev.id, 'event_date', e.target.value || null)}
-                        style={{ fontFamily: 'sans-serif', fontSize: 11, color: T.muted, border: 'none', background: 'transparent', outline: 'none', width: 90 }}
-                      />
-                      <button onClick={() => deleteEvent(ev.id)} className="opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#d1d5db', padding: 0 }} onMouseEnter={e => e.currentTarget.style.color='#ef4444'} onMouseLeave={e => e.currentTarget.style.color='#d1d5db'}>
-                        <Trash2 size={11} />
-                      </button>
-                    </div>
-                  ))
-                }
-              </div>
-              <div>
-                <SectionTitle onAdd={addBirthday}>Aniversários</SectionTitle>
-                {birthdays.length === 0
-                  ? <p style={{ fontFamily: 'sans-serif', fontSize: 12, color: T.muted }}>Nenhum</p>
-                  : birthdays.map(b => (
-                    <div key={b.id} className="group" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 0', borderBottom: `0.5px solid rgba(26,58,31,0.06)` }}>
-                      <input
-                        value={b.name}
-                        onChange={e => updateBirthday(b.id, 'name', e.target.value)}
-                        placeholder="Nome"
-                        style={{ flex: 1, fontFamily: 'sans-serif', fontSize: 12, color: T.green, border: 'none', background: 'transparent', outline: 'none', padding: 0 }}
-                      />
-                      <input
-                        type="date"
-                        value={b.birth_date || ''}
-                        onChange={e => updateBirthday(b.id, 'birth_date', e.target.value || null)}
-                        style={{ fontFamily: 'sans-serif', fontSize: 11, color: T.muted, border: 'none', background: 'transparent', outline: 'none', width: 90 }}
-                      />
-                      <button onClick={() => deleteBirthday(b.id)} className="opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#d1d5db', padding: 0 }} onMouseEnter={e => e.currentTarget.style.color='#ef4444'} onMouseLeave={e => e.currentTarget.style.color='#d1d5db'}>
-                        <Trash2 size={11} />
-                      </button>
-                    </div>
-                  ))
-                }
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Right: Calendar + Explorar */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <Card>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <button onClick={() => setPeriod(p => navigateMonth(p, -1))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.sand, fontSize: 16, lineHeight: 1 }}>‹</button>
-              <span style={{ fontFamily: 'Georgia, serif', fontSize: 13, color: T.green }}>{monthCapitalized} {y}</span>
-              <button onClick={() => setPeriod(p => navigateMonth(p, 1))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.sand, fontSize: 16, lineHeight: 1 }}>›</button>
-            </div>
-            <MiniCalendar period={period} events={events} birthdays={birthdays} bills={bills} />
-          </Card>
-
-          {/* Explorar — funcional por categoria */}
-          <Card>
-            <SectionTitle>Explorar</SectionTitle>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 12 }}>
-              {['Livros','Filmes','Podcasts','Lugares','Cursos','Músicas','Eventos'].map(cat => {
-                const active = explorarCat === cat
-                return (
-                  <button
-                    key={cat}
-                    onClick={() => setExplorarCat(cat)}
-                    style={{
-                      fontFamily: 'sans-serif', fontSize: 11, padding: '3px 10px',
-                      borderRadius: 20, border: 'none', cursor: 'pointer',
-                      background: active ? T.amber : 'rgba(200,132,26,0.1)',
-                      color: active ? '#fff' : '#854F0B',
-                      transition: 'all 0.15s',
-                    }}
-                  >
-                    {cat}
-                  </button>
-                )
-              })}
-            </div>
-
-            {/* Items da categoria selecionada */}
-            {explorar.filter(e => e.category === explorarCat).map(item => (
-              <div key={item.id} className="group" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', borderBottom: `0.5px solid rgba(26,58,31,0.06)` }}>
-                <span style={{ width: 5, height: 5, borderRadius: '50%', background: T.amber, flexShrink: 0, display: 'inline-block' }} />
-                <input
-                  value={item.title}
-                  onChange={e => updateExplorar(item.id, 'title', e.target.value)}
-                  placeholder={`Adicionar ${explorarCat.toLowerCase()}...`}
-                  style={{ flex: 1, fontFamily: 'sans-serif', fontSize: 13, color: T.green, border: 'none', background: 'transparent', outline: 'none', padding: 0 }}
-                />
-                <button
-                  onClick={() => deleteExplorar(item.id)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#d1d5db', padding: 0 }}
-                  onMouseEnter={e => e.currentTarget.style.color='#ef4444'}
-                  onMouseLeave={e => e.currentTarget.style.color='#d1d5db'}
-                >
-                  <Trash2 size={12} />
-                </button>
-              </div>
-            ))}
-            <AddRow onClick={() => addExplorar(explorarCat)} label={`adicionar ${explorarCat.toLowerCase()}`} />
-          </Card>
-        </div>
-      </div>
-
-      {/* PILARES */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
-        {[
-          { key: 'pilar_corpo',    label: 'Corpo',    dot: T.green,  placeholder: 'O que você quer cultivar no corpo este mês...' },
-          { key: 'pilar_mente',   label: 'Mente',    dot: T.amber,  placeholder: 'O que você quer cultivar na mente este mês...' },
-          { key: 'pilar_espirito',label: 'Espírito', dot: T.sand,   placeholder: 'O que você quer cultivar no espírito este mês...' },
-        ].map(({ key, label, dot, placeholder }) => (
-          <Card key={key}>
-            <div style={{ display: 'flex', alignItems: 'center', fontFamily: 'sans-serif', fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: T.muted, marginBottom: 8 }}>
-              <span style={{ width: 8, height: 8, borderRadius: '50%', background: dot, display: 'inline-block', marginRight: 6, flexShrink: 0 }} />
-              {label}
-            </div>
-            <SaveableGhost
-              value={profile[key]}
-              onSave={v => saveProfileField(key, v)}
-              placeholder={placeholder}
-              minRows={3}
-            />
-          </Card>
-        ))}
-      </div>
-
-      {/* METAS */}
-      <Card>
-        <SectionTitle onAdd={addGoal}>Metas do mês</SectionTitle>
-        {loading
-          ? <p style={{ fontFamily: 'sans-serif', fontSize: 12, color: T.muted }}>Carregando...</p>
-          : goals.length === 0
-            ? <p style={{ fontFamily: 'sans-serif', fontSize: 12, color: T.muted }}>Nenhuma meta ainda</p>
-            : (
-              <>
-                {visibleGoals.map(g => (
-                  <GoalItem key={g.id} goal={g} onUpdate={updateGoal} onDelete={deleteGoal} />
-                ))}
-                {goals.length > GOALS_PREVIEW && (
-                  <button
-                    onClick={() => setGoalsExpanded(e => !e)}
-                    style={{ fontFamily: 'sans-serif', fontSize: 11, color: T.amber, cursor: 'pointer', background: 'none', border: 'none', padding: '4px 0', display: 'block' }}
-                  >
-                    {goalsExpanded ? 'ver menos' : `ver mais (${goals.length - GOALS_PREVIEW})`}
-                  </button>
-                )}
-              </>
-            )
-        }
-      </Card>
-
-      {/* MAPA FINANCEIRO */}
-      <Card>
-        <SectionTitle onAdd={addBill}>Mapa financeiro</SectionTitle>
-        {bills.length === 0 && (
-          <AddRow onClick={addBill} label="adicionar conta" />
-        )}
-        {bills.map(b => (
-          <BillRow key={b.id} bill={b} onUpdate={updateBill} onDelete={deleteBill} />
-        ))}
-        {bills.length > 0 && (
-          <AddRow onClick={addBill} label="adicionar conta" />
-        )}
-      </Card>
-
-      {/* SAÚDE + LARGAR */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-        <Card>
-          <SectionTitle onAdd={addHealth}>Saúde e corpo</SectionTitle>
-          {health.map(h => (
-            <EditableListItem
-              key={h.id}
-              value={h.title}
-              onChange={e => updateHealth(h.id, 'title', e.target.value)}
-              onDelete={() => deleteHealth(h.id)}
-              placeholder="Item de saúde..."
-              bullet={T.sand}
-            />
-          ))}
-          <AddRow onClick={addHealth} label="adicionar" />
-        </Card>
-        <Card>
-          <SectionTitle onAdd={addLargar}>O que quero largar</SectionTitle>
-          {largar.map(l => (
-            <EditableListItem
-              key={l.id}
-              value={l.title}
-              onChange={e => updateLargar(l.id, 'title', e.target.value)}
-              onDelete={() => deleteLargar(l.id)}
-              placeholder="O que soltar..."
-              bullet={T.sand}
-            />
-          ))}
-          <AddRow onClick={addLargar} label="adicionar" />
-        </Card>
-      </div>
-
-      {/* VISÃO GERAL */}
-      <Card>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <span style={{ fontFamily: 'sans-serif', fontSize: 13, fontWeight: 500, color: T.green }}>
-            Visão geral de {monthName}
-          </span>
-          {/* % / x/x toggle */}
-          <div style={{ display: 'flex', gap: 4, background: 'rgba(26,58,31,0.06)', borderRadius: 20, padding: 3 }}>
-            {['pct', 'frac'].map(m => (
-              <button
-                key={m}
-                onClick={() => setStatsMode(m)}
-                style={{
-                  fontFamily: 'sans-serif', fontSize: 11,
-                  color: statsMode === m ? T.green : T.muted,
-                  background: statsMode === m ? '#fff' : 'transparent',
-                  border: 'none', borderRadius: 16,
-                  padding: '3px 10px', cursor: 'pointer',
-                  fontWeight: statsMode === m ? 500 : 400,
-                  boxShadow: statsMode === m ? '0 0 0 0.5px rgba(26,58,31,0.15)' : 'none',
-                  transition: 'all 0.2s',
-                }}
-              >
-                {m === 'pct' ? '%' : 'x/x'}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Stats row */}
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <StatItem label="rotinas cumpridas" value={routinesDone} total={routinesDone} mode={statsMode} rawValue={`${routinesDone}`} />
-          <StatItem label="tasks concluídas" value={tasksDone} total={tasksTotal} mode={statsMode} />
-          <StatItem label="metas do mês" value={goals.length} total={goals.length} mode={statsMode} rawValue={`${goals.length}`} />
-        </div>
-
-        {/* Week bars */}
-        {stats.weekBars.length > 0 && (
-          <div style={{ marginTop: 20 }}>
-            <Label>Arco do mês · semana a semana</Label>
-            <div style={{ marginTop: 12 }}>
-              <WeekBars weekBars={stats.weekBars} />
-            </div>
-          </div>
-        )}
-      </Card>
-    </div>
-  )
-}
-
 // ── Palavra do mês editable ───────────────────────────────────────
-function PalavraField({ value, onSave }) {
+function PalavraField({ value, onSave, t }) {
   const [editing, setEditing] = useState(false)
   const [local, setLocal] = useState(value || '')
   const inputRef = useRef(null)
@@ -668,7 +304,7 @@ function PalavraField({ value, onSave }) {
           onChange={e => setLocal(e.target.value)}
           onBlur={commit}
           onKeyDown={e => { if (e.key === 'Enter') commit() }}
-          placeholder="Palavra do mês..."
+          placeholder={t('dashboard.month.wordPlaceholder')}
           style={{
             fontFamily: 'Georgia, serif', fontSize: 28, color: T.green,
             border: 'none', borderBottom: `1px solid ${T.sand}`, background: 'transparent',
@@ -682,7 +318,7 @@ function PalavraField({ value, onSave }) {
   return (
     <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, cursor: 'pointer' }} onClick={() => setEditing(true)}>
       <span style={{ fontFamily: 'Georgia, serif', fontSize: 28, color: T.green, fontWeight: 'normal', letterSpacing: '0.02em' }}>
-        {local || <span style={{ color: T.muted, fontSize: 18 }}>+ palavra do mês</span>}
+        {local || <span style={{ color: T.muted, fontSize: 18 }}>{t('dashboard.month.addWordOfMonth')}</span>}
       </span>
       {local && <Pencil size={13} style={{ color: T.sand, flexShrink: 0 }} />}
     </div>
@@ -690,7 +326,7 @@ function PalavraField({ value, onSave }) {
 }
 
 // ── Goal item ─────────────────────────────────────────────────────
-function GoalItem({ goal, onUpdate, onDelete }) {
+function GoalItem({ goal, onUpdate, onDelete, t }) {
   const timer = useRef(null)
 
   function debounceSave(field, value) {
@@ -704,7 +340,7 @@ function GoalItem({ goal, onUpdate, onDelete }) {
       <input
         defaultValue={goal.title}
         onChange={e => debounceSave('title', e.target.value)}
-        placeholder="Meta do mês..."
+        placeholder={t('dashboard.month.goalInputPlaceholder')}
         style={{ flex: 1, fontFamily: 'sans-serif', fontSize: 13, color: T.green, border: 'none', background: 'transparent', outline: 'none', padding: 0 }}
       />
       <button
@@ -721,7 +357,7 @@ function GoalItem({ goal, onUpdate, onDelete }) {
 }
 
 // ── Bill row ──────────────────────────────────────────────────────
-function BillRow({ bill, onUpdate, onDelete }) {
+function BillRow({ bill, onUpdate, onDelete, t }) {
   const timer = useRef(null)
   function debounceSave(field, value) {
     clearTimeout(timer.current)
@@ -733,12 +369,12 @@ function BillRow({ bill, onUpdate, onDelete }) {
       <input
         defaultValue={bill.title}
         onChange={e => debounceSave('title', e.target.value)}
-        placeholder="Nome da conta..."
+        placeholder={t('dashboard.month.billNamePlaceholder')}
         style={{ flex: 1, fontFamily: 'sans-serif', fontSize: 13, color: T.green, border: 'none', background: 'transparent', outline: 'none', padding: 0 }}
       />
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
         <span style={{ fontFamily: 'sans-serif', fontSize: 11, color: T.muted }}>
-          dia&nbsp;
+          {t('dashboard.month.billDay')}&nbsp;
           <input
             defaultValue={bill.day_of_month || ''}
             onChange={e => debounceSave('day_of_month', parseInt(e.target.value) || null)}
@@ -757,7 +393,7 @@ function BillRow({ bill, onUpdate, onDelete }) {
             padding: '2px 7px', borderRadius: 10, border: 'none', cursor: 'pointer',
           }}
         >
-          recorrente
+          {t('dashboard.month.recurring')}
         </button>
         <button
           onClick={() => onDelete(bill.id)}
@@ -794,6 +430,396 @@ function StatItem({ label, value, total, mode, rawValue }) {
       <div style={{ height: 4, background: 'rgba(26,58,31,0.08)', borderRadius: 2, marginTop: 6 }}>
         <div style={{ height: 4, borderRadius: 2, background: T.green, width: `${rawValue !== undefined ? 100 : pct}%`, transition: 'width 0.4s ease' }} />
       </div>
+    </div>
+  )
+}
+
+// ── Explore categories (DB keys → translated labels) ───────────────
+const EXPLORE_CAT_KEYS = [
+  { key: 'Livros',   i18nKey: 'dashboard.month.catBooks' },
+  { key: 'Filmes',   i18nKey: 'dashboard.month.catMovies' },
+  { key: 'Podcasts', i18nKey: 'dashboard.month.catPodcasts' },
+  { key: 'Lugares',  i18nKey: 'dashboard.month.catPlaces' },
+  { key: 'Cursos',   i18nKey: 'dashboard.month.catCourses' },
+  { key: 'Músicas',  i18nKey: 'dashboard.month.catMusic' },
+  { key: 'Eventos',  i18nKey: 'dashboard.month.catEvents' },
+]
+
+// ── Main component ─────────────────────────────────────────────────
+export default function MonthTab() {
+  const { t, i18n } = useTranslation()
+  const [period, setPeriod] = useState(() => getCurrentMonthPeriod())
+  const [statsMode, setStatsMode] = useState('pct') // 'pct' | 'frac'
+  const [goalsExpanded, setGoalsExpanded] = useState(false)
+  const GOALS_PREVIEW = 3
+
+  const {
+    profile, saveProfileField,
+    goals, addGoal, updateGoal, deleteGoal,
+    tasks,
+    events, addEvent, updateEvent, deleteEvent,
+    birthdays, addBirthday, updateBirthday, deleteBirthday,
+    bills, addBill, updateBill, deleteBill,
+    health, addHealth, updateHealth, deleteHealth,
+    largar, addLargar, updateLargar, deleteLargar,
+    explorar, addExplorar, updateExplorar, deleteExplorar,
+    stats, loading,
+  } = useMonth(period)
+
+  // explorarCat stores the DB key (always Portuguese)
+  const [explorarCat, setExplorarCat] = useState('Livros')
+
+  const locale = { pt: 'pt-BR', en: 'en-US', es: 'es-ES' }[i18n.language] || 'pt-BR'
+  const [y, mo] = period.split('-').map(Number)
+  const monthName = new Date(y, mo - 1, 1).toLocaleDateString(locale, { month: 'long' })
+  const monthCapitalized = monthName.charAt(0).toUpperCase() + monthName.slice(1)
+
+  // Stats display
+  const tasksDone  = tasks.filter(t => t.completed).length
+  const tasksTotal = tasks.length
+  const routinesDone = stats.routinesDone
+
+  function statDisplay(done, total) {
+    if (total === 0) return statsMode === 'pct' ? '—' : '0/0'
+    return statsMode === 'pct'
+      ? `${Math.round((done / total) * 100)}%`
+      : `${done}/${total}`
+  }
+
+  const visibleGoals = goalsExpanded ? goals : goals.slice(0, GOALS_PREVIEW)
+
+  // Current explore category label (translated)
+  const currentCatLabel = t(EXPLORE_CAT_KEYS.find(c => c.key === explorarCat)?.i18nKey || 'dashboard.month.catBooks')
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+
+      {/* Period navigation */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#fff', borderRadius: 14, border: '0.5px solid rgba(26,58,31,0.1)', padding: '10px 20px' }}>
+        <button onClick={() => setPeriod(p => navigateMonth(p, -1))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.sand, display: 'flex' }}>
+          <ChevronLeft size={16} />
+        </button>
+        <span style={{ fontFamily: 'Georgia, serif', fontSize: 14, color: T.green, fontWeight: 'normal' }}>
+          {formatMonthLabel(period, locale)}
+        </span>
+        <button onClick={() => setPeriod(p => navigateMonth(p, 1))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.sand, display: 'flex' }}>
+          <ChevronRight size={16} />
+        </button>
+      </div>
+
+      {/* TOP: Abertura + Calendário */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', alignItems: 'start' }}>
+
+        {/* Left: Palavra + reflexão + how_start + how_end + Eventos + Aniversários */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <Card>
+            <Label>{t('dashboard.month.wordOfMonth')}</Label>
+            <PalavraField value={profile.palavra_do_mes} onSave={v => saveProfileField('palavra_do_mes', v)} t={t} />
+
+            <Divider style={{ marginTop: 16 }} />
+
+            <div style={{
+              background: 'rgba(200,132,26,0.06)',
+              borderLeft: `2px solid ${T.amber}`,
+              padding: '10px 14px',
+              fontFamily: 'Georgia, serif',
+              fontSize: 13,
+              color: T.green,
+              lineHeight: 1.6,
+              marginBottom: 12,
+            }}>
+              {t('dashboard.month.whatBringsFromLastMonth')}
+              <div style={{ marginTop: 6 }}>
+                <SaveableGhost
+                  value={profile.o_que_traz}
+                  onSave={v => saveProfileField('o_que_traz', v)}
+                  placeholder={t('dashboard.month.reflectionPlaceholder')}
+                  minRows={2}
+                />
+              </div>
+            </div>
+
+            <div style={{ marginTop: 4 }}>
+              <Label>{t('dashboard.month.howStartMonth', { month: monthCapitalized })}</Label>
+              <SaveableGhost
+                value={profile.how_start}
+                onSave={v => saveProfileField('how_start', v)}
+                placeholder={t('dashboard.month.howStartPlaceholder')}
+                minRows={2}
+              />
+            </div>
+
+            <div style={{ marginTop: 10 }}>
+              <Label>{t('dashboard.month.howEndMonth', { month: monthCapitalized })}</Label>
+              <SaveableGhost
+                value={profile.how_end}
+                onSave={v => saveProfileField('how_end', v)}
+                placeholder={t('dashboard.month.howEndPlaceholder')}
+                minRows={2}
+              />
+            </div>
+          </Card>
+
+          {/* Eventos + Aniversários */}
+          <Card>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div>
+                <SectionTitle onAdd={addEvent}>{t('dashboard.month.events')}</SectionTitle>
+                {events.length === 0
+                  ? <p style={{ fontFamily: 'sans-serif', fontSize: 12, color: T.muted }}>{t('dashboard.month.noEvents')}</p>
+                  : events.map(ev => (
+                    <div key={ev.id} className="group" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 0', borderBottom: `0.5px solid rgba(26,58,31,0.06)` }}>
+                      <input
+                        value={ev.title}
+                        onChange={e => updateEvent(ev.id, 'title', e.target.value)}
+                        placeholder={t('dashboard.month.eventNamePlaceholder')}
+                        style={{ flex: 1, fontFamily: 'sans-serif', fontSize: 12, color: T.green, border: 'none', background: 'transparent', outline: 'none', padding: 0 }}
+                      />
+                      <input
+                        type="date"
+                        value={ev.event_date || ''}
+                        onChange={e => updateEvent(ev.id, 'event_date', e.target.value || null)}
+                        style={{ fontFamily: 'sans-serif', fontSize: 11, color: T.muted, border: 'none', background: 'transparent', outline: 'none', width: 90 }}
+                      />
+                      <button onClick={() => deleteEvent(ev.id)} className="opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#d1d5db', padding: 0 }} onMouseEnter={e => e.currentTarget.style.color='#ef4444'} onMouseLeave={e => e.currentTarget.style.color='#d1d5db'}>
+                        <Trash2 size={11} />
+                      </button>
+                    </div>
+                  ))
+                }
+              </div>
+              <div>
+                <SectionTitle onAdd={addBirthday}>{t('dashboard.month.birthdays')}</SectionTitle>
+                {birthdays.length === 0
+                  ? <p style={{ fontFamily: 'sans-serif', fontSize: 12, color: T.muted }}>{t('dashboard.month.noBirthdays')}</p>
+                  : birthdays.map(b => (
+                    <div key={b.id} className="group" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 0', borderBottom: `0.5px solid rgba(26,58,31,0.06)` }}>
+                      <input
+                        value={b.name}
+                        onChange={e => updateBirthday(b.id, 'name', e.target.value)}
+                        placeholder={t('dashboard.month.namePlaceholder')}
+                        style={{ flex: 1, fontFamily: 'sans-serif', fontSize: 12, color: T.green, border: 'none', background: 'transparent', outline: 'none', padding: 0 }}
+                      />
+                      <input
+                        type="date"
+                        value={b.birth_date || ''}
+                        onChange={e => updateBirthday(b.id, 'birth_date', e.target.value || null)}
+                        style={{ fontFamily: 'sans-serif', fontSize: 11, color: T.muted, border: 'none', background: 'transparent', outline: 'none', width: 90 }}
+                      />
+                      <button onClick={() => deleteBirthday(b.id)} className="opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#d1d5db', padding: 0 }} onMouseEnter={e => e.currentTarget.style.color='#ef4444'} onMouseLeave={e => e.currentTarget.style.color='#d1d5db'}>
+                        <Trash2 size={11} />
+                      </button>
+                    </div>
+                  ))
+                }
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Right: Calendar + Explorar */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <Card>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+              <button onClick={() => setPeriod(p => navigateMonth(p, -1))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.sand, fontSize: 16, lineHeight: 1 }}>‹</button>
+              <span style={{ fontFamily: 'Georgia, serif', fontSize: 13, color: T.green }}>{monthCapitalized} {y}</span>
+              <button onClick={() => setPeriod(p => navigateMonth(p, 1))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.sand, fontSize: 16, lineHeight: 1 }}>›</button>
+            </div>
+            <MiniCalendar period={period} events={events} birthdays={birthdays} bills={bills} locale={locale} t={t} />
+          </Card>
+
+          {/* Explorar */}
+          <Card>
+            <SectionTitle>{t('dashboard.month.explore')}</SectionTitle>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 12 }}>
+              {EXPLORE_CAT_KEYS.map(({ key, i18nKey }) => {
+                const active = explorarCat === key
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setExplorarCat(key)}
+                    style={{
+                      fontFamily: 'sans-serif', fontSize: 11, padding: '3px 10px',
+                      borderRadius: 20, border: 'none', cursor: 'pointer',
+                      background: active ? T.amber : 'rgba(200,132,26,0.1)',
+                      color: active ? '#fff' : '#854F0B',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {t(i18nKey)}
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Items da categoria selecionada */}
+            {explorar.filter(e => e.category === explorarCat).map(item => (
+              <div key={item.id} className="group" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', borderBottom: `0.5px solid rgba(26,58,31,0.06)` }}>
+                <span style={{ width: 5, height: 5, borderRadius: '50%', background: T.amber, flexShrink: 0, display: 'inline-block' }} />
+                <input
+                  value={item.title}
+                  onChange={e => updateExplorar(item.id, 'title', e.target.value)}
+                  placeholder={t('dashboard.month.addCategory', { category: currentCatLabel.toLowerCase() })}
+                  style={{ flex: 1, fontFamily: 'sans-serif', fontSize: 13, color: T.green, border: 'none', background: 'transparent', outline: 'none', padding: 0 }}
+                />
+                <button
+                  onClick={() => deleteExplorar(item.id)}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#d1d5db', padding: 0 }}
+                  onMouseEnter={e => e.currentTarget.style.color='#ef4444'}
+                  onMouseLeave={e => e.currentTarget.style.color='#d1d5db'}
+                >
+                  <Trash2 size={12} />
+                </button>
+              </div>
+            ))}
+            <AddRow onClick={() => addExplorar(explorarCat)} label={t('dashboard.month.addCategory', { category: currentCatLabel.toLowerCase() })} />
+          </Card>
+        </div>
+      </div>
+
+      {/* PILARES */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+        {[
+          { key: 'pilar_corpo',     labelKey: 'dashboard.month.pillars.body',   dot: T.green, phKey: 'dashboard.month.pillars.bodyPlaceholder' },
+          { key: 'pilar_mente',    labelKey: 'dashboard.month.pillars.mind',   dot: T.amber, phKey: 'dashboard.month.pillars.mindPlaceholder' },
+          { key: 'pilar_espirito', labelKey: 'dashboard.month.pillars.spirit', dot: T.sand,  phKey: 'dashboard.month.pillars.spiritPlaceholder' },
+        ].map(({ key, labelKey, dot, phKey }) => (
+          <Card key={key}>
+            <div style={{ display: 'flex', alignItems: 'center', fontFamily: 'sans-serif', fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: T.muted, marginBottom: 8 }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: dot, display: 'inline-block', marginRight: 6, flexShrink: 0 }} />
+              {t(labelKey)}
+            </div>
+            <SaveableGhost
+              value={profile[key]}
+              onSave={v => saveProfileField(key, v)}
+              placeholder={t(phKey)}
+              minRows={3}
+            />
+          </Card>
+        ))}
+      </div>
+
+      {/* METAS */}
+      <Card>
+        <SectionTitle onAdd={addGoal}>{t('dashboard.month.monthGoals')}</SectionTitle>
+        {loading
+          ? <p style={{ fontFamily: 'sans-serif', fontSize: 12, color: T.muted }}>{t('dashboard.month.loading')}</p>
+          : goals.length === 0
+            ? <p style={{ fontFamily: 'sans-serif', fontSize: 12, color: T.muted }}>{t('dashboard.month.noGoals')}</p>
+            : (
+              <>
+                {visibleGoals.map(g => (
+                  <GoalItem key={g.id} goal={g} onUpdate={updateGoal} onDelete={deleteGoal} t={t} />
+                ))}
+                {goals.length > GOALS_PREVIEW && (
+                  <button
+                    onClick={() => setGoalsExpanded(e => !e)}
+                    style={{ fontFamily: 'sans-serif', fontSize: 11, color: T.amber, cursor: 'pointer', background: 'none', border: 'none', padding: '4px 0', display: 'block' }}
+                  >
+                    {goalsExpanded
+                      ? t('dashboard.month.showLess')
+                      : t('dashboard.month.showMore', { count: goals.length - GOALS_PREVIEW })
+                    }
+                  </button>
+                )}
+              </>
+            )
+        }
+      </Card>
+
+      {/* MAPA FINANCEIRO */}
+      <Card>
+        <SectionTitle onAdd={addBill}>{t('dashboard.month.financialMap')}</SectionTitle>
+        {bills.length === 0 && (
+          <AddRow onClick={addBill} label={t('dashboard.month.addBill')} />
+        )}
+        {bills.map(b => (
+          <BillRow key={b.id} bill={b} onUpdate={updateBill} onDelete={deleteBill} t={t} />
+        ))}
+        {bills.length > 0 && (
+          <AddRow onClick={addBill} label={t('dashboard.month.addBill')} />
+        )}
+      </Card>
+
+      {/* SAÚDE + LARGAR */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+        <Card>
+          <SectionTitle onAdd={addHealth}>{t('dashboard.month.healthBody')}</SectionTitle>
+          {health.map(h => (
+            <EditableListItem
+              key={h.id}
+              value={h.title}
+              onChange={e => updateHealth(h.id, 'title', e.target.value)}
+              onDelete={() => deleteHealth(h.id)}
+              placeholder={t('dashboard.month.healthPlaceholder')}
+              bullet={T.sand}
+            />
+          ))}
+          <AddRow onClick={addHealth} label={t('dashboard.month.add')} />
+        </Card>
+        <Card>
+          <SectionTitle onAdd={addLargar}>{t('dashboard.month.whatToRelease')}</SectionTitle>
+          {largar.map(l => (
+            <EditableListItem
+              key={l.id}
+              value={l.title}
+              onChange={e => updateLargar(l.id, 'title', e.target.value)}
+              onDelete={() => deleteLargar(l.id)}
+              placeholder={t('dashboard.month.releasePlaceholder')}
+              bullet={T.sand}
+            />
+          ))}
+          <AddRow onClick={addLargar} label={t('dashboard.month.add')} />
+        </Card>
+      </div>
+
+      {/* VISÃO GERAL */}
+      <Card>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+          <span style={{ fontFamily: 'sans-serif', fontSize: 13, fontWeight: 500, color: T.green }}>
+            {t('dashboard.month.overview', { month: monthName })}
+          </span>
+          {/* % / x/x toggle */}
+          <div style={{ display: 'flex', gap: 4, background: 'rgba(26,58,31,0.06)', borderRadius: 20, padding: 3 }}>
+            {['pct', 'frac'].map(m => (
+              <button
+                key={m}
+                onClick={() => setStatsMode(m)}
+                style={{
+                  fontFamily: 'sans-serif', fontSize: 11,
+                  color: statsMode === m ? T.green : T.muted,
+                  background: statsMode === m ? '#fff' : 'transparent',
+                  border: 'none', borderRadius: 16,
+                  padding: '3px 10px', cursor: 'pointer',
+                  fontWeight: statsMode === m ? 500 : 400,
+                  boxShadow: statsMode === m ? '0 0 0 0.5px rgba(26,58,31,0.15)' : 'none',
+                  transition: 'all 0.2s',
+                }}
+              >
+                {m === 'pct' ? '%' : 'x/x'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Stats row */}
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <StatItem label={t('dashboard.month.routinesDone')} value={routinesDone} total={routinesDone} mode={statsMode} rawValue={`${routinesDone}`} />
+          <StatItem label={t('dashboard.month.tasksDone')} value={tasksDone} total={tasksTotal} mode={statsMode} />
+          <StatItem label={t('dashboard.month.monthGoalsStat')} value={goals.length} total={goals.length} mode={statsMode} rawValue={`${goals.length}`} />
+        </div>
+
+        {/* Week bars */}
+        {stats.weekBars.length > 0 && (
+          <div style={{ marginTop: 20 }}>
+            <Label>{t('dashboard.month.weeklyArc')}</Label>
+            <div style={{ marginTop: 12 }}>
+              <WeekBars weekBars={stats.weekBars} />
+            </div>
+          </div>
+        )}
+      </Card>
     </div>
   )
 }

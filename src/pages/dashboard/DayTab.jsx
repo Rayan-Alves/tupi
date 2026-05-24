@@ -416,7 +416,7 @@ export default function DayTab({ initialDate, onBack }) {
               onClick={onBack}
               className="flex items-center gap-1.5 text-[11px] font-semibold text-zinc-500 hover:text-zinc-900 px-3 py-1.5 rounded-full border border-zinc-200 hover:border-zinc-400 transition-all mr-2"
             >
-              <ChevronLeft size={12} /> Semana
+              <ChevronLeft size={12} /> {t('dashboard.backToWeek')}
             </button>
           )}
 

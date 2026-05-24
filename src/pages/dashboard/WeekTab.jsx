@@ -17,11 +17,19 @@ const isToday = (date) => {
 
 /* ─── Week Focus constants ───────────────────── */
 const VIEWS = ['geral', 'tasks', 'projetos', 'rotinas']
-const VIEW_META = {
-  geral:    { label: 'Geral',    color: '#C8841A' },
-  tasks:    { label: 'Tasks',    color: '#27272A' },
-  projetos: { label: 'Projetos', color: '#3b82f6' },
-  rotinas:  { label: 'Rotinas',  color: '#10b981' },
+const VIEW_COLORS = {
+  geral:    '#C8841A',
+  tasks:    '#27272A',
+  projetos: '#3b82f6',
+  rotinas:  '#10b981',
+}
+function getViewMeta(t) {
+  return {
+    geral:    { label: t('dashboard.week.viewGeneral'),  color: VIEW_COLORS.geral },
+    tasks:    { label: t('dashboard.week.viewTasks'),    color: VIEW_COLORS.tasks },
+    projetos: { label: t('dashboard.week.viewProjects'), color: VIEW_COLORS.projetos },
+    rotinas:  { label: t('dashboard.week.viewRoutines'), color: VIEW_COLORS.rotinas },
+  }
 }
 
 /* ─── DonutArc ───────────────────────────────── */
@@ -66,25 +74,25 @@ function useWeekFocus(mondayISO) {
 }
 
 /* ─── PriorityCard ───────────────────────────── */
-const PRIORITY_PLACEHOLDERS = [
-  'Minha prioridade principal desta semana…',
-  'O segundo foco mais importante…',
-  'O que não posso deixar para trás…',
+const PRIORITY_PH_KEYS = [
+  'dashboard.week.priorityPlaceholder1',
+  'dashboard.week.priorityPlaceholder2',
+  'dashboard.week.priorityPlaceholder3',
 ]
 
-function PriorityCard({ value, index, onChange }) {
+function PriorityCard({ value, index, onChange, t }) {
   const [local, setLocal] = useState(value)
   useEffect(() => setLocal(value), [value])
   return (
     <div className="bg-white rounded-2xl border border-zinc-100 px-5 pt-3 pb-4 flex flex-col gap-1.5 flex-1" style={{ minHeight: 72 }}>
       <span className="text-[9px] tracking-[0.22em] uppercase text-zinc-400 font-bold select-none">
-        Prioridade {index + 1}
+        {t('dashboard.week.priority', { n: index + 1 })}
       </span>
       <textarea
         value={local}
         onChange={e => setLocal(e.target.value)}
         onBlur={() => onChange(index, local)}
-        placeholder={PRIORITY_PLACEHOLDERS[index]}
+        placeholder={t(PRIORITY_PH_KEYS[index])}
         rows={2}
         className="w-full bg-transparent border-0 outline-none resize-none text-[13px] text-zinc-800 leading-relaxed placeholder-zinc-300"
         style={{ fontFamily: "'Libre Baskerville', Georgia, serif", fontStyle: 'italic' }}
@@ -94,13 +102,14 @@ function PriorityCard({ value, index, onChange }) {
 }
 
 /* ─── WeekFocusSection ───────────────────────── */
-function WeekFocusSection({ monday, stats, byDay }) {
+function WeekFocusSection({ monday, stats, byDay, t }) {
   const mondayISO = format(monday, 'yyyy-MM-dd')
   const { priorities, save } = useWeekFocus(mondayISO)
   const [viewIdx,      setViewIdx]      = useState(0)
   const [showFraction, setShowFraction] = useState(false)
 
   const view = VIEWS[viewIdx]
+  const VIEW_META = getViewMeta(t)
   const meta = VIEW_META[view]
 
   const viewData = useMemo(() => {
@@ -135,11 +144,11 @@ function WeekFocusSection({ monday, stats, byDay }) {
       {/* Left: 3 priority cards */}
       <div className="flex-1 min-w-0 flex flex-col gap-1">
         <div className="text-[10px] tracking-[0.22em] uppercase text-zinc-400 font-medium mb-2 select-none">
-          Prioridades da Semana
+          {t('dashboard.week.weekPriorities')}
         </div>
         <div className="flex flex-col gap-2.5 flex-1">
           {[0, 1, 2].map(i => (
-            <PriorityCard key={i} index={i} value={priorities[i] || ''} onChange={save} />
+            <PriorityCard key={i} index={i} value={priorities[i] || ''} onChange={save} t={t} />
           ))}
         </div>
       </div>
@@ -178,7 +187,7 @@ function WeekFocusSection({ monday, stats, byDay }) {
               {showFraction ? `${viewData.done}/${viewData.total}` : `${pct}%`}
             </span>
             <span className="text-[10px] text-zinc-400 group-hover:text-zinc-600 transition-colors">
-              {viewData.done} de {viewData.total} {viewData.done !== 1 ? 'concluídos' : 'concluído'}
+              {viewData.done} {t('common.of')} {viewData.total} {viewData.done !== 1 ? t('dashboard.week.completed') : t('dashboard.week.completedOne')}
             </span>
           </button>
         </div>
@@ -215,13 +224,13 @@ function WeekFocusSection({ monday, stats, byDay }) {
 }
 
 /* ─── Recurrence generator ───────────────────── */
-const RECURRENCE_OPTS = [
-  { key: 'once',     label: 'Uma vez' },
-  { key: 'weekly',   label: 'Toda semana' },
-  { key: 'daily',    label: 'Todo dia' },
-  { key: 'monthly',  label: 'Mensal' },
-  { key: 'biannual', label: 'A cada 6 meses' },
-  { key: 'annual',   label: 'Anual' },
+const RECURRENCE_KEYS = [
+  { key: 'once',     i18nKey: 'dashboard.week.recOnce' },
+  { key: 'weekly',   i18nKey: 'dashboard.week.recWeekly' },
+  { key: 'daily',    i18nKey: 'dashboard.week.recDaily' },
+  { key: 'monthly',  i18nKey: 'dashboard.week.recMonthly' },
+  { key: 'biannual', i18nKey: 'dashboard.week.recBiannual' },
+  { key: 'annual',   i18nKey: 'dashboard.week.recAnnual' },
 ]
 
 function generateDates(baseDateISO, recurrence, rangeStart, rangeEnd) {
@@ -269,7 +278,7 @@ function generateDates(baseDateISO, recurrence, rangeStart, rangeEnd) {
 }
 
 /* ─── AddTaskForm ────────────────────────────── */
-function AddTaskForm({ dateISO, onSave, onCancel }) {
+function AddTaskForm({ dateISO, onSave, onCancel, t }) {
   const [title,    setTitle]    = useState('')
   const [recur,    setRecur]    = useState('once')
   const [dayStart, setDayStart] = useState(dateISO)
@@ -283,6 +292,8 @@ function AddTaskForm({ dateISO, onSave, onCancel }) {
     () => generateDates(dateISO, recur, dayStart, dayEnd || dayStart),
     [dateISO, recur, dayStart, dayEnd]
   )
+
+  const RECURRENCE_OPTS = RECURRENCE_KEYS.map(r => ({ key: r.key, label: t(r.i18nKey) }))
 
   async function save() {
     if (!title.trim() || saving) return
@@ -301,7 +312,7 @@ function AddTaskForm({ dateISO, onSave, onCancel }) {
         ref={inputRef}
         value={title}
         onChange={e => setTitle(e.target.value)}
-        placeholder="Nome da tarefa…"
+        placeholder={t('dashboard.week.taskNamePlaceholder')}
         className="w-full bg-transparent border-0 border-b border-zinc-200 outline-none text-[12px] text-zinc-900 placeholder-zinc-400 pb-1.5"
         onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') onCancel() }}
       />
@@ -344,14 +355,14 @@ function AddTaskForm({ dateISO, onSave, onCancel }) {
           className="text-[11px] font-semibold px-3 py-1.5 rounded-lg text-white transition-all"
           style={{ background: title.trim() ? '#27272A' : '#d4d4d8' }}
         >
-          Salvar
+          {t('dashboard.week.save')}
         </button>
         <button type="button" onClick={onCancel} className="text-[11px] text-zinc-400 hover:text-zinc-700 px-2 py-1.5 transition-colors">
-          Cancelar
+          {t('dashboard.week.cancel')}
         </button>
         {recur !== 'once' && (
           <span className="text-[10px] text-zinc-400 italic ml-auto">
-            {dates.length} ocorrências
+            {t('dashboard.week.occurrences', { count: dates.length })}
           </span>
         )}
       </div>
@@ -361,6 +372,7 @@ function AddTaskForm({ dateISO, onSave, onCancel }) {
 
 /* ─── WeekNotepad ────────────────────────────── */
 function WeekNotepad({ mondayISO }) {
+  const { t } = useTranslation()
   const KEY = `weeknote_${mondayISO}`
   const [content, setContent] = useState('')
 
@@ -377,12 +389,12 @@ function WeekNotepad({ mondayISO }) {
     <div className="bg-white rounded-2xl border border-zinc-100 p-4 flex flex-col" style={{ minHeight: 300 }}>
       <div className="flex items-center gap-1.5 mb-3">
         <StickyNote size={11} className="text-zinc-400" />
-        <span className="text-[9px] tracking-[0.22em] uppercase text-zinc-400 font-bold">Bloco de notas</span>
+        <span className="text-[9px] tracking-[0.22em] uppercase text-zinc-400 font-bold">{t('dashboard.week.notepad')}</span>
       </div>
       <textarea
         value={content}
         onChange={e => handleChange(e.target.value)}
-        placeholder="Anotações da semana…"
+        placeholder={t('dashboard.week.notepadPlaceholder')}
         className="flex-1 bg-transparent border-0 outline-none resize-none text-[12px] text-zinc-800 leading-relaxed placeholder-zinc-300"
         style={{ fontFamily: "'Libre Baskerville', Georgia, serif", fontStyle: 'italic' }}
       />
@@ -391,7 +403,7 @@ function WeekNotepad({ mondayISO }) {
 }
 
 /* ─── WeekDayCell ────────────────────────────── */
-function WeekDayCell({ day, locale, addTasksBulk, onUpdateTask, onDeleteTask, onDayClick }) {
+function WeekDayCell({ day, locale, addTasksBulk, onUpdateTask, onDeleteTask, onDayClick, t }) {
   const [adding, setAdding] = useState(false)
 
   const total  = day.tasks.length
@@ -413,7 +425,7 @@ function WeekDayCell({ day, locale, addTasksBulk, onUpdateTask, onDeleteTask, on
       <button
         onClick={() => onDayClick(day.iso)}
         className="flex items-center justify-between mb-2 group w-full text-left"
-        title={`Abrir ${format(day.date, 'EEEE d MMM', { locale })}`}
+        title={t('dashboard.week.openDay', { day: format(day.date, 'EEEE d MMM', { locale }) })}
       >
         <div>
           <h3 className="font-display text-[16px] font-medium text-zinc-900 leading-none capitalize tracking-tight group-hover:text-amber-700 transition-colors">
@@ -422,7 +434,7 @@ function WeekDayCell({ day, locale, addTasksBulk, onUpdateTask, onDeleteTask, on
           <div className="text-[10px] text-zinc-400 mt-0.5">{format(day.date, 'd MMM', { locale })}</div>
         </div>
         <div className="flex items-center gap-1">
-          {today && <span className="text-[8px] tracking-[0.18em] uppercase text-amber-700 font-bold">Hoje</span>}
+          {today && <span className="text-[8px] tracking-[0.18em] uppercase text-amber-700 font-bold">{t('dashboard.today')}</span>}
           <ExternalLink size={10} className="text-zinc-300 group-hover:text-amber-600 transition-colors" />
         </div>
       </button>
@@ -466,14 +478,14 @@ function WeekDayCell({ day, locale, addTasksBulk, onUpdateTask, onDeleteTask, on
 
         {/* Add form */}
         {adding ? (
-          <AddTaskForm dateISO={day.iso} onSave={handleSave} onCancel={() => setAdding(false)} />
+          <AddTaskForm dateISO={day.iso} onSave={handleSave} onCancel={() => setAdding(false)} t={t} />
         ) : (
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); setAdding(true) }}
             className="flex items-center gap-1 mt-2 text-[11px] text-zinc-400 hover:text-zinc-900 transition-colors"
           >
-            <Plus size={11} strokeWidth={2} /> Adicionar tarefa
+            <Plus size={11} strokeWidth={2} /> {t('dashboard.week.addTask')}
           </button>
         )}
       </div>
@@ -513,6 +525,7 @@ export default function WeekTab({ onDayClick }) {
     onUpdateTask: updateTask,
     onDeleteTask: deleteTask,
     onDayClick: onDayClick || (() => {}),
+    t,
   })
 
   return (
@@ -543,7 +556,7 @@ export default function WeekTab({ onDayClick }) {
       </div>
 
       {/* Priorities + Stats */}
-      <WeekFocusSection monday={monday} stats={stats} byDay={byDay} />
+      <WeekFocusSection monday={monday} stats={stats} byDay={byDay} t={t} />
 
       {/* 2 × 4 week grid */}
 

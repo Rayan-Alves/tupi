@@ -139,17 +139,36 @@ export function useWeekData(monday) {
   async function addTasksBulk(dates, title) {
     if (!dates.length || !title.trim()) return
     const trimmedTitle = title.trim()
+
+    // Optimistic: show tasks immediately in the week view
+    const tempTasks = dates
+      .filter(d => d >= startISO && d <= endISO)
+      .map(d => ({
+        id: `temp-${d}-${Math.random().toString(36).slice(2)}`,
+        title: trimmedTitle, completed: false,
+        task_date: d, user_id: user.id, parent_id: null,
+        created_at: new Date().toISOString(),
+      }))
+    const tempIds = new Set(tempTasks.map(t => t.id))
+    if (tempTasks.length) setTasks(prev => [...prev, ...tempTasks])
+
     const inserted = []
     for (const d of dates) {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('day_tasks')
         .insert({ user_id: user.id, title: trimmedTitle, completed: false, task_date: d })
         .select()
         .single()
       if (data) inserted.push(data)
+      else if (error) console.warn('addTasksBulk error:', d, error.message)
     }
-    const weekRows = inserted.filter(r => r.task_date >= startISO && r.task_date <= endISO)
-    if (weekRows.length) setTasks(prev => [...prev, ...weekRows])
+
+    // Replace temp rows with real DB rows (or drop if insert failed)
+    setTasks(prev => {
+      const withoutTemp = prev.filter(t => !tempIds.has(t.id))
+      const weekRows = inserted.filter(r => r.task_date >= startISO && r.task_date <= endISO)
+      return [...withoutTemp, ...weekRows]
+    })
   }
 
   async function updateTask(id, changes) {

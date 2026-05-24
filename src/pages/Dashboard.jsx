@@ -40,11 +40,8 @@ export default function Dashboard() {
       {/* Greeting */}
       <div>
         <h1 className="type-h1">
-          {greet(t)}{name ? `, ${name}` : ''} 👋
+          {greet(t)}{name ? `, ${name}` : ''}
         </h1>
-        <p className="text-sm text-zinc-400 mt-1">
-          {new Date().toLocaleDateString(i18n.language, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-        </p>
       </div>
 
       {/* Tabs */}
