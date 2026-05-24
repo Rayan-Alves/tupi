@@ -1,8 +1,9 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Trash2, ChevronDown, ChevronRight, Check, Save } from 'lucide-react'
+import { Trash2, ChevronDown, ChevronRight, Check, Save, Plus } from 'lucide-react'
 import { useMind } from '../hooks/useMind'
 import { useUno } from '../hooks/useUno'
+import CollapsibleSection from '../components/ui/CollapsibleSection'
 import MentalPatternTab from '../components/mental-pattern/MentalPatternTab'
 import PadraoMental from './PadraoMental'
 import UnoSection from '../components/UnoSection'
@@ -190,7 +191,9 @@ function GoalCard({ goal, tasks, onSave, onDelete, onAddTask, onUpdateTask, onDe
               <button onClick={() => onAddTask(goal.id)} className="btn-ghost text-[12px]"><Plus size={12} />{t('spirit.tasks.add')}</button>
             </div>
             <div className="space-y-2">
-              {goalTasks.map(task => <TaskItem key={task.id} task={task} onUpdate={onUpdateTask} onDelete={onDeleteTask} t={t} />)}
+              <CollapsibleSection collapsedHeight={200}>
+                {goalTasks.map(task => <TaskItem key={task.id} task={task} onUpdate={onUpdateTask} onDelete={onDeleteTask} t={t} />)}
+              </CollapsibleSection>
             </div>
           </div>
           <div className="pt-1">

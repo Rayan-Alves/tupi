@@ -2,6 +2,7 @@ import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Trash2, ChevronDown, ChevronRight, Check, Sparkles, Save, X, Clock, User, Wind } from 'lucide-react'
+import CollapsibleSection from '../components/ui/CollapsibleSection'
 import { useSpirit } from '../hooks/useSpirit'
 import { useUno } from '../hooks/useUno'
 import DesireList from '../components/spirit/DesireList'
@@ -421,9 +422,11 @@ function GoalCard({ goal, tasks, onSave, onDelete, onAddTask, onUpdateTask, onDe
               </button>
             </div>
             <div className="space-y-2">
-              {goalTasks.map(task => (
-                <TaskItem key={task.id} task={task} onUpdate={onUpdateTask} onDelete={onDeleteTask} t={t} />
-              ))}
+              <CollapsibleSection collapsedHeight={200}>
+                {goalTasks.map(task => (
+                  <TaskItem key={task.id} task={task} onUpdate={onUpdateTask} onDelete={onDeleteTask} t={t} />
+                ))}
+              </CollapsibleSection>
             </div>
           </div>
 
@@ -533,18 +536,20 @@ export default function Spirit() {
             <Plus size={18} />
           </button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {valueCards.map(card => (
-            <ValueCard
-              key={card.id}
-              card={card}
-              presets={presets}
-              onSave={saveValueCard}
-              onDelete={deleteValueCard}
-              t={t}
-            />
-          ))}
-        </div>
+        <CollapsibleSection collapsedHeight={320}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {valueCards.map(card => (
+              <ValueCard
+                key={card.id}
+                card={card}
+                presets={presets}
+                onSave={saveValueCard}
+                onDelete={deleteValueCard}
+                t={t}
+              />
+            ))}
+          </div>
+        </CollapsibleSection>
       </section>
 
       {/* ── DEEP DESIRES ── */}

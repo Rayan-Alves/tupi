@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Star, X as IconX, ArrowLeft, Plus } from 'lucide-react'
+import CollapsibleSection from '../components/ui/CollapsibleSection'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -318,21 +319,23 @@ export default function DeepDesires() {
                 </p>
               </div>
             ) : (
-              <div className="dsj-fragments">
-                {sorted.map((d, i) => (
-                  <Fragment
-                    key={d.id}
-                    desire={d}
-                    idx={i}
-                    isEditing={editingId === d.id}
-                    setEditingId={setEditing}
-                    onEdit={editText}
-                    onDelete={remove}
-                    onPin={togglePin}
-                    onOpenEditor={() => navigate(`/desejos/${d.id}`)}
-                  />
-                ))}
-              </div>
+              <CollapsibleSection collapsedHeight={320}>
+                <div className="dsj-fragments">
+                  {sorted.map((d, i) => (
+                    <Fragment
+                      key={d.id}
+                      desire={d}
+                      idx={i}
+                      isEditing={editingId === d.id}
+                      setEditingId={setEditing}
+                      onEdit={editText}
+                      onDelete={remove}
+                      onPin={togglePin}
+                      onOpenEditor={() => navigate(`/desejos/${d.id}`)}
+                    />
+                  ))}
+                </div>
+              </CollapsibleSection>
             )}
 
             <div className="dsj-compose">

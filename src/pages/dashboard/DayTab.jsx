@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import AutoTextarea from '../../components/ui/AutoTextarea'
+import CollapsibleSection from '../../components/ui/CollapsibleSection'
 import { Plus, Check, Trash2, ChevronRight, ChevronLeft } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { format } from 'date-fns'
@@ -578,9 +579,11 @@ export default function DayTab({ initialDate, onBack }) {
         {routinesToday.length === 0 && !addingR && (
           <p className="text-[13px] text-zinc-400 mt-1">{t('dashboard.day.routineEmpty')}</p>
         )}
-        {routinesToday.map(r => (
-          <RoutineRow key={r.id} routine={r} done={completions.has(r.id)} onToggle={toggleRoutine} onDelete={deleteDashRoutine} />
-        ))}
+        <CollapsibleSection collapsedHeight={220}>
+          {routinesToday.map(r => (
+            <RoutineRow key={r.id} routine={r} done={completions.has(r.id)} onToggle={toggleRoutine} onDelete={deleteDashRoutine} />
+          ))}
+        </CollapsibleSection>
         {addingR
           ? <AddRoutineForm onSave={addDashRoutine} onCancel={() => setAddingR(false)} t={t} userId={user?.id} />
           : <AddBtn label={t('dashboard.day.addRoutine')} onClick={() => setAddingR(true)} />

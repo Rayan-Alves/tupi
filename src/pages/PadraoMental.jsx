@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
+import CollapsibleSection from '../components/ui/CollapsibleSection'
 
 /* ─── DB ⇄ UI mapping ───────────────────────── */
 
@@ -752,34 +753,36 @@ export default function PadraoMental({ table = 'mental_patterns', onBack, initEd
           <button className="pm-btn" onClick={newPattern}>{t('mentalPattern.startFirstPattern')} <span className="arrow">→</span></button>
         </div>
       ) : (
-        <div className="pm-garden">
-          {allBeliefs.map((b, i) => (
-            <article key={b.id} className="pm-card" onClick={() => openCard(b)}>
-              <button className="del-btn" onClick={e => deleteFromList(e, b.id)} aria-label={t('mentalPattern.delete')}>
-                <IconTrash />
-              </button>
-              <div className="head">
-                <span>nº {String(i + 1).padStart(2, '0')}</span>
-                <span className="when">{timeAgo(b.createdAt)}</span>
-              </div>
-              <div className="pair">
-                <div className="half shadow">
-                  <div className="tag"><i /> {t('mentalPattern.shadow')}</div>
-                  <div className="text">{b.neg.belief || '—'}</div>
+        <CollapsibleSection collapsedHeight={400}>
+          <div className="pm-garden">
+            {allBeliefs.map((b, i) => (
+              <article key={b.id} className="pm-card" onClick={() => openCard(b)}>
+                <button className="del-btn" onClick={e => deleteFromList(e, b.id)} aria-label={t('mentalPattern.delete')}>
+                  <IconTrash />
+                </button>
+                <div className="head">
+                  <span>nº {String(i + 1).padStart(2, '0')}</span>
+                  <span className="when">{timeAgo(b.createdAt)}</span>
                 </div>
-                <div className="divider" />
-                <div className="half light">
-                  <div className="tag"><i /> {t('mentalPattern.light')}</div>
-                  <div className="text">{b.pos.belief || '—'}</div>
+                <div className="pair">
+                  <div className="half shadow">
+                    <div className="tag"><i /> {t('mentalPattern.shadow')}</div>
+                    <div className="text">{b.neg.belief || '—'}</div>
+                  </div>
+                  <div className="divider" />
+                  <div className="half light">
+                    <div className="tag"><i /> {t('mentalPattern.light')}</div>
+                    <div className="text">{b.pos.belief || '—'}</div>
+                  </div>
                 </div>
-              </div>
-              <div className="foot">
-                <span>{t('mentalPattern.desdobramentos44')}</span>
-                <span className="open">{t('mentalPattern.open')} <span className="arrow">→</span></span>
-              </div>
-            </article>
-          ))}
-        </div>
+                <div className="foot">
+                  <span>{t('mentalPattern.desdobramentos44')}</span>
+                  <span className="open">{t('mentalPattern.open')} <span className="arrow">→</span></span>
+                </div>
+              </article>
+            ))}
+          </div>
+        </CollapsibleSection>
       )}
     </div>
   )

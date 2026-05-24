@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Plus, X, CornerDownLeft } from 'lucide-react'
+import CollapsibleSection from '../ui/CollapsibleSection'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 
@@ -93,8 +94,9 @@ export default function DesireList() {
           </div>
 
           {/* List */}
-          <div>
-            {items.map((it, idx) => (
+          <CollapsibleSection collapsedHeight={300}>
+            <div>
+              {items.map((it, idx) => (
               <div
                 key={it.id}
                 onClick={() => navigate(`/desejos/${it.id}`)}
@@ -138,7 +140,8 @@ export default function DesireList() {
                 </button>
               </div>
             ))}
-          </div>
+            </div>
+          </CollapsibleSection>
         </>
       )}
 

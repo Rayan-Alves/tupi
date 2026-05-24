@@ -308,12 +308,14 @@ function AffirmationsSection() {
       {items.length === 0 ? (
         <p className="text-center text-zinc-400 text-sm italic py-2">Add your first affirmation…</p>
       ) : (
-        <div className="space-y-2">
-          {items.map(a => (
-            <AffirmationRow key={a.id} item={a} inputRef={el => { refs.current[a.id] = el }}
-              onUpdate={update} onRemove={remove} onEnter={add} />
-          ))}
-        </div>
+        <CollapsibleSection collapsedHeight={240}>
+          <div className="space-y-2">
+            {items.map(a => (
+              <AffirmationRow key={a.id} item={a} inputRef={el => { refs.current[a.id] = el }}
+                onUpdate={update} onRemove={remove} onEnter={add} />
+            ))}
+          </div>
+        </CollapsibleSection>
       )}
     </section>
   )
