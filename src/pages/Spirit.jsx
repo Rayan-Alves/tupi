@@ -8,6 +8,7 @@ import DesireList from '../components/spirit/DesireList'
 import IdentitySection from '../components/spirit/IdentitySection'
 import SpiritualRoutine from '../components/spirit/SpiritualRoutine'
 import UnoSection from '../components/UnoSection'
+import ShadowWork from '../components/spirit/ShadowWork'
 
 function PortalCard({ icon, label, color, onClick, disabled, comingSoonLabel }) {
   return (
@@ -568,6 +569,9 @@ export default function Spirit() {
         )}
       </section>
 
+
+      {/* ── SHADOW WORK ── */}
+      <ShadowWork />
 
       {/* ── ROUTINE ── */}
       <SpiritualRoutine

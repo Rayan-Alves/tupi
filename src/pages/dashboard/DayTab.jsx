@@ -88,6 +88,114 @@ function AddBtn({ label, onClick }) {
   )
 }
 
+/* ── CollapsibleTaskSection ───────────────── */
+const COLLAPSED_H = 240 // px — approx 4 tasks visible
+
+function CollapsibleTaskSection({ title, counter, done, total, barColor, children }) {
+  const [expanded, setExpanded]   = useState(false)
+  const [overflows, setOverflows] = useState(false)
+  const sectionRef  = useRef(null)
+  const contentRef  = useRef(null)
+  const p = total > 0 ? Math.round(done / total * 100) : 0
+
+  // Detect real content height vs COLLAPSED_H
+  useEffect(() => {
+    const el = contentRef.current
+    if (!el) return
+    const check = () => setOverflows(el.scrollHeight > COLLAPSED_H)
+    check()
+    const ro = new ResizeObserver(check)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [children])
+
+  // Collapse when clicking outside
+  useEffect(() => {
+    if (!expanded) return
+    function onOutside(e) {
+      if (sectionRef.current && !sectionRef.current.contains(e.target)) {
+        setExpanded(false)
+      }
+    }
+    document.addEventListener('mousedown', onOutside)
+    return () => document.removeEventListener('mousedown', onOutside)
+  }, [expanded])
+
+  const showGradient = overflows && !expanded
+
+  return (
+    <section
+      ref={sectionRef}
+      className="bg-white rounded-3xl border border-zinc-100 px-7 py-6"
+      style={{ position: 'relative' }}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between mb-1">
+        <h2 className="font-display text-[22px] font-medium text-zinc-900 tracking-tight">{title}</h2>
+        <div className="flex items-center gap-2">{counter}</div>
+      </div>
+
+      {/* Progress bar */}
+      {total > 0 && (
+        <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden mb-4">
+          <div
+            className="h-full rounded-full transition-all duration-500"
+            style={{ width: `${p}%`, background: p === 100 ? '#10b981' : (barColor || '#3f3f46') }}
+          />
+        </div>
+      )}
+
+      {/* Content with clamp */}
+      <div
+        style={{
+          maxHeight: expanded ? 'none' : COLLAPSED_H,
+          overflow: 'hidden',
+          position: 'relative',
+        }}
+      >
+        <div ref={contentRef}>
+          {children}
+        </div>
+
+        {/* Gradient + expand button — only when truly overflowing */}
+        {showGradient && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: 0, left: 0, right: 0,
+              height: 72,
+              background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.98))',
+              display: 'flex',
+              alignItems: 'flex-end',
+              justifyContent: 'center',
+              paddingBottom: 8,
+              pointerEvents: 'none',
+            }}
+          >
+            <button
+              onClick={() => setExpanded(true)}
+              style={{ pointerEvents: 'all' }}
+              className="flex items-center gap-1 text-[11px] font-semibold text-zinc-500 hover:text-zinc-900 bg-white border border-zinc-200 hover:border-zinc-400 rounded-full px-3 py-1 shadow-sm transition-all"
+            >
+              <Plus size={11} strokeWidth={2.5} /> ver mais
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Collapse button when expanded */}
+      {expanded && overflows && (
+        <button
+          onClick={() => setExpanded(false)}
+          className="flex items-center gap-1 mt-2 text-[11px] font-semibold text-zinc-400 hover:text-zinc-700 transition-colors"
+        >
+          ↑ ver menos
+        </button>
+      )}
+    </section>
+  )
+}
+
 /* ── Add Routine Form ─────────────────────── */
 
 const AREA_OPTIONS = [
@@ -480,7 +588,7 @@ export default function DayTab({ initialDate, onBack }) {
       </Section>
 
       {/* Tasks */}
-      <Section
+      <CollapsibleTaskSection
         title={t('dashboard.day.todoList')}
         done={tDone} total={rootTasks.length} barColor="#3f3f46"
         counter={
@@ -513,7 +621,7 @@ export default function DayTab({ initialDate, onBack }) {
           />
         ))}
         <AddBtn label={t('dashboard.day.addTask')} onClick={handleAddTask} />
-      </Section>
+      </CollapsibleTaskSection>
 
       {/* Reading widget — paired with Routines */}
       <ReadingWidget />
