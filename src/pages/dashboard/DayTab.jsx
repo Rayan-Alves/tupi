@@ -356,11 +356,11 @@ function NoteArea({ content, onSave, placeholder }) {
 
 /* ── Main ─────────────────────────────────── */
 
-export default function DayTab() {
+export default function DayTab({ initialDate, onBack }) {
   const { t, i18n } = useTranslation()
   const { user } = useAuth()
 
-  const [selectedDate, setSelectedDate] = useState(() => todayISO())
+  const [selectedDate, setSelectedDate] = useState(() => initialDate || todayISO())
   const isToday = selectedDate === todayISO()
 
   const {
@@ -410,6 +410,16 @@ export default function DayTab() {
       {/* Date header with navigation */}
       <div className="mb-6 px-1">
         <div className="flex items-center gap-2 mb-1.5">
+          {/* Back to week button */}
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="flex items-center gap-1.5 text-[11px] font-semibold text-zinc-500 hover:text-zinc-900 px-3 py-1.5 rounded-full border border-zinc-200 hover:border-zinc-400 transition-all mr-2"
+            >
+              <ChevronLeft size={12} /> Semana
+            </button>
+          )}
+
           <button
             onClick={() => setSelectedDate(d => navigateDay(d, -1))}
             className="p-1.5 hover:bg-zinc-100 rounded-lg transition-colors text-zinc-400 hover:text-zinc-700"

@@ -136,6 +136,19 @@ export function useWeekData(monday) {
     return data
   }
 
+  async function addTasksBulk(dates, title) {
+    if (!dates.length || !title.trim()) return
+    const rows = dates.map(d => ({
+      user_id: user.id, title: title.trim(), completed: false, task_date: d,
+    }))
+    const { data } = await supabase.from('day_tasks').insert(rows).select()
+    if (data) {
+      // Only add to local state those that fall in the current week
+      const weekRows = data.filter(r => r.task_date >= startISO && r.task_date <= endISO)
+      if (weekRows.length) setTasks(prev => [...prev, ...weekRows])
+    }
+  }
+
   async function updateTask(id, changes) {
     setTasks(prev => prev.map(t => t.id === id ? { ...t, ...changes } : t))
     await supabase.from('day_tasks').update(changes).eq('id', id).eq('user_id', user.id)
@@ -154,5 +167,5 @@ export function useWeekData(monday) {
     await supabase.from('kanban_tasks').update({ completed: next }).eq('id', id).eq('user_id', user.id)
   }
 
-  return { byDay, dates, stats, loading, toggleRoutine, addTask, updateTask, deleteTask, toggleProjTask, refresh }
+  return { byDay, dates, stats, loading, toggleRoutine, addTask, addTasksBulk, updateTask, deleteTask, toggleProjTask, refresh }
 }

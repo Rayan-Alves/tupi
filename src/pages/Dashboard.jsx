@@ -19,8 +19,21 @@ export default function Dashboard() {
   const { t, i18n } = useTranslation()
   const { user } = useAuth()
   const { profile } = useProfile()
-  const [active, setActive] = useState('day')
+  const [active,   setActive]   = useState('day')
+  const [jumpDate, setJumpDate] = useState(null)   // ISO date: week→day navigation
   const name = profile?.full_name || user?.email?.split('@')[0] || ''
+
+  /** Called from WeekTab when user clicks a day cell header */
+  function openDay(iso) {
+    setJumpDate(iso)
+    setActive('day')
+  }
+
+  /** Called from DayTab's "← Semana" back button */
+  function returnToWeek() {
+    setJumpDate(null)
+    setActive('week')
+  }
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-10 space-y-6">
@@ -40,7 +53,11 @@ export default function Dashboard() {
           {TABS.map(tab => (
             <button
               key={tab}
-              onClick={() => setActive(tab)}
+              onClick={() => {
+                // If switching away from day after a jump, clear the jump
+                if (tab !== 'day') setJumpDate(null)
+                setActive(tab)
+              }}
               className={`px-5 py-2.5 text-sm font-semibold border-b-2 transition-all duration-150 ${
                 active === tab
                   ? 'border-spirit text-spirit'
@@ -55,8 +72,14 @@ export default function Dashboard() {
 
       {/* Tab content */}
       <div>
-        {active === 'day'   && <DayTab />}
-        {active === 'week'  && <WeekTab />}
+        {active === 'day' && (
+          <DayTab
+            key={jumpDate || 'today'}
+            initialDate={jumpDate}
+            onBack={jumpDate ? returnToWeek : null}
+          />
+        )}
+        {active === 'week'  && <WeekTab onDayClick={openDay} />}
         {active === 'month' && <MonthTab />}
       </div>
     </div>
