@@ -286,13 +286,17 @@ function AddTaskForm({ dateISO, onSave, onCancel }) {
 
   async function save() {
     if (!title.trim() || saving) return
-    setSaving(true)
-    await onSave(dates, title.trim())
-    onCancel()
+    const snap = [...dates]
+    const titleSnap = title.trim()
+    onCancel()               // close form immediately (optimistic)
+    await onSave(snap, titleSnap)
   }
 
   return (
-    <div className="mt-2 p-3 bg-zinc-50 rounded-xl space-y-2.5 border border-zinc-100">
+    <div
+      className="mt-2 p-3 bg-zinc-50 rounded-xl space-y-2.5 border border-zinc-100"
+      onClick={e => e.stopPropagation()}
+    >
       <input
         ref={inputRef}
         value={title}
@@ -306,6 +310,7 @@ function AddTaskForm({ dateISO, onSave, onCancel }) {
       <div className="flex flex-wrap gap-1">
         {RECURRENCE_OPTS.map(opt => (
           <button
+            type="button"
             key={opt.key}
             onClick={() => setRecur(opt.key)}
             className="text-[10px] px-2 py-0.5 rounded-full transition-all"
@@ -333,14 +338,15 @@ function AddTaskForm({ dateISO, onSave, onCancel }) {
       {/* Actions */}
       <div className="flex items-center gap-2 pt-0.5">
         <button
+          type="button"
           onClick={save}
-          disabled={!title.trim() || saving}
+          disabled={!title.trim()}
           className="text-[11px] font-semibold px-3 py-1.5 rounded-lg text-white transition-all"
-          style={{ background: title.trim() && !saving ? '#27272A' : '#d4d4d8' }}
+          style={{ background: title.trim() ? '#27272A' : '#d4d4d8' }}
         >
-          {saving ? 'Salvando…' : 'Salvar'}
+          Salvar
         </button>
-        <button onClick={onCancel} className="text-[11px] text-zinc-400 hover:text-zinc-700 px-2 py-1.5 transition-colors">
+        <button type="button" onClick={onCancel} className="text-[11px] text-zinc-400 hover:text-zinc-700 px-2 py-1.5 transition-colors">
           Cancelar
         </button>
         {recur !== 'once' && (
@@ -394,8 +400,8 @@ function WeekDayCell({ day, locale, addTasksBulk, onUpdateTask, onDeleteTask, on
   const today  = isToday(day.date)
 
   async function handleSave(dates, title) {
+    // form already closed (optimistic); save in background
     await addTasksBulk(dates, title)
-    setAdding(false)
   }
 
   return (
@@ -463,7 +469,8 @@ function WeekDayCell({ day, locale, addTasksBulk, onUpdateTask, onDeleteTask, on
           <AddTaskForm dateISO={day.iso} onSave={handleSave} onCancel={() => setAdding(false)} />
         ) : (
           <button
-            onClick={() => setAdding(true)}
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setAdding(true) }}
             className="flex items-center gap-1 mt-2 text-[11px] text-zinc-400 hover:text-zinc-900 transition-colors"
           >
             <Plus size={11} strokeWidth={2} /> Adicionar tarefa
