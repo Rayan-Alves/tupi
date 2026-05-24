@@ -24,3 +24,22 @@ create policy "routine_completions_ins"
 create policy "routine_completions_del"
   on public.routine_completions for delete
   using (auth.uid() = user_id);
+
+-- Shadow Work Sessions
+create table if not exists shadow_work_sessions (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid references auth.users not null,
+  title       text default '',
+  nodes       jsonb default '{}'::jsonb,
+  connections jsonb default '[]'::jsonb,
+  canvas_aes  text default 'mono',
+  node_style  text default 'floating',
+  entry_bg    text default 'neblina',
+  created_at  timestamptz default now(),
+  updated_at  timestamptz default now()
+);
+alter table if exists shadow_work_sessions enable row level security;
+create policy if not exists "users manage own shadow work"
+  on shadow_work_sessions
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);

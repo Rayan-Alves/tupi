@@ -74,10 +74,10 @@ export function useDayDashboard(date) {
   const dayKey = dayKeyFromISO(date)
 
   const routinesToday = [
-    ...spiritR.filter(r => (r.days||[]).includes(dayKey)).map(r => ({...r, source:'spirit'})),
-    ...mindR.filter(r => (r.days||[]).includes(dayKey)).map(r => ({...r, source:'mind'})),
-    ...bodyR.filter(r => (r.days||[]).includes(dayKey)).map(r => ({...r, source:'body'})),
-    ...dashR.filter(r => (r.days||[]).includes(dayKey)).map(r => ({...r, source:'dashboard'})),
+    ...spiritR.filter(r => { const d = r.days||[]; return d.length === 0 || d.includes(dayKey) }).map(r => ({...r, source:'spirit'})),
+    ...mindR.filter(r =>   { const d = r.days||[]; return d.length === 0 || d.includes(dayKey) }).map(r => ({...r, source:'mind'})),
+    ...bodyR.filter(r =>   { const d = r.days||[]; return d.length === 0 || d.includes(dayKey) }).map(r => ({...r, source:'body'})),
+    ...dashR.filter(r =>   { const d = r.days||[]; return d.length === 0 || d.includes(dayKey) }).map(r => ({...r, source:'dashboard'})),
   ]
 
   async function toggleRoutine(id, source) {

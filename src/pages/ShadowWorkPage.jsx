@@ -201,7 +201,8 @@ function spiralSVG(viewSize = 14, stroke = 1.2, turns = 2.4, aStart = 0.5, aGrow
 
 /* ─── main component ─── */
 export default function ShadowWorkPage() {
-  const { id: sessionId } = useParams()
+  const { id: sessionIdParam } = useParams()
+  const sessionId = sessionIdParam === 'new' ? null : sessionIdParam
   const navigate = useNavigate()
   const { saveSession, loadSession, createSession } = useShadowWork()
 
@@ -450,19 +451,12 @@ export default function ShadowWorkPage() {
 
   function setTweak(key, val) { setTweaks(prev => ({ ...prev, [key]: val })) }
 
-  const ENTRY_BG_OPTS = [
-    { val: 'neblina',   swatch: '#F5F0E8', name: 'neblina'   },
-    { val: 'igapo',     swatch: '#1A3A1F', name: 'igapó'     },
-    { val: 'tabatinga', swatch: '#C4A882', name: 'tabatinga' },
-    { val: 'noir',      swatch: '#0A0A0A', name: 'noir'      },
-  ]
-  const CANVAS_OPTS = [
-    { val: 'dark',   name: 'dark'   },
+  const COLOR_OPTS = [
     { val: 'paper',  name: 'papel'  },
     { val: 'mono',   name: 'mono'   },
     { val: 'cinema', name: 'cinema' },
   ]
-  const NODE_OPTS = [
+  const STYLE_OPTS = [
     { val: 'cards',    name: 'cards'    },
     { val: 'floating', name: 'flutuar'  },
     { val: 'organic',  name: 'orgânico' },
@@ -478,7 +472,7 @@ export default function ShadowWorkPage() {
         background: '#050505', zIndex: 10,
       }}>
         {/* back */}
-        <button onClick={() => navigate('/spirit')} style={{ width:32,height:32,borderRadius:'50%',border:'1px solid rgba(245,240,232,0.12)',background:'transparent',color:'rgba(245,240,232,0.55)',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',flexShrink:0,transition:'all 160ms' }}
+        <button onClick={() => navigate('/shadow-work')} style={{ width:32,height:32,borderRadius:'50%',border:'1px solid rgba(245,240,232,0.12)',background:'transparent',color:'rgba(245,240,232,0.55)',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',flexShrink:0,transition:'all 160ms' }}
           onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(200,132,26,0.5)';e.currentTarget.style.color='#C8841A'}}
           onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(245,240,232,0.12)';e.currentTarget.style.color='rgba(245,240,232,0.55)'}}>
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"><path d="M10 4L6 8L10 12"/></svg>
@@ -537,9 +531,8 @@ export default function ShadowWorkPage() {
               </div>
 
               {[
-                { label: 'canvas',   key: 'canvasAes', opts: CANVAS_OPTS },
-                { label: 'nós',      key: 'nodeStyle',  opts: NODE_OPTS  },
-                { label: 'entrada',  key: 'entryBg',    opts: ENTRY_BG_OPTS },
+                { label: 'color', key: 'canvasAes', opts: COLOR_OPTS },
+                { label: 'style', key: 'nodeStyle',  opts: STYLE_OPTS },
               ].map(group => (
                 <div key={group.key} className="sw-tw-group">
                   <div className="sw-tw-label">{group.label}</div>

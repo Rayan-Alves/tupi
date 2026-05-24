@@ -26,7 +26,9 @@ const DeepDesires = lazy(() => import('./pages/DeepDesires'))
 const UnoPage     = lazy(() => import('./pages/UnoPage'))
 const UnoListPage = lazy(() => import('./pages/UnoListPage'))
 const Rotinas     = lazy(() => import('./pages/Rotinas'))
-const ArvoreVida  = lazy(() => import('./pages/ArvoreVida'))
+const ArvoreVida      = lazy(() => import('./pages/ArvoreVida'))
+const ShadowWorkPage      = lazy(() => import('./pages/ShadowWorkPage'))
+const ShadowWorkListPage  = lazy(() => import('./pages/ShadowWorkListPage'))
 
 const PAST = { table: 'past_documents', basePath: '/passado', i18nNs: 'spirit.past', introKey: 'tupi.past.introHidden', introPromptKey: 'spirit.past.prompts.1', pages: 3 }
 const PRESENT = { table: 'present_documents', basePath: '/presente', i18nNs: 'spirit.present', introKey: 'tupi.present.introHidden', introPromptKey: 'spirit.present.prompts.1', pages: 1 }
@@ -87,6 +89,9 @@ export default function App() {
             <Route path="/uno"               element={<UnoListPage />} />
             <Route path="/rotinas"           element={<Rotinas />} />
             <Route path="/desejos-profundos" element={<DeepDesires />} />
+            <Route path="/shadow-work"        element={<ShadowWorkListPage />} />
+            <Route path="/shadow-work/new"    element={<ShadowWorkPage />} />
+            <Route path="/shadow-work/:id"    element={<ShadowWorkPage />} />
             <Route path="/library"           element={<Library />} />
           </Route>
 

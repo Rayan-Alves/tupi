@@ -206,8 +206,9 @@ function AddRoutineForm({ onSave, onCancel, t, userId }) {
 
   async function save() {
     if (!title.trim()) return
+    // days=[] means every day — save as-is; the filter treats [] as "always show"
     if (area === 'dashboard') {
-      onSave({ title, days, start_date: null, end_date: null })
+      onSave({ title: title.trim(), days, start_time: null, end_time: null })
     } else {
       const table = AREA_TABLE[area]
       await supabase.from(table).insert({ user_id: userId, title: title.trim(), days, start_time: null, end_time: null })
