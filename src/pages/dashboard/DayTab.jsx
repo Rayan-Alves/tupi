@@ -211,7 +211,7 @@ function RoutineRow({ routine, done, onToggle, onDelete }) {
   )
 }
 
-function TaskRow({ task, subtasks, onToggle, onTitleChange, onDelete, onAddSub, autoFocus, onDoneEditing, t }) {
+function TaskRow({ task, subtasks, onToggle, onTitleChange, onDelete, onAddSub, autoFocus, onDoneEditing, onEnter, t }) {
   const [title, setTitle] = useState(task.title || '')
   const [expanded, setExpanded] = useState(false)
   const inputRef = useRef(null)
@@ -249,7 +249,14 @@ function TaskRow({ task, subtasks, onToggle, onTitleChange, onDelete, onAddSub, 
           value={title}
           onChange={e => { setTitle(e.target.value); dirty.current = true }}
           onBlur={flush}
-          onKeyDown={e => { if (e.key === 'Enter') { flush(); onAddSub && addDayTask && null } }}
+          data-task-input="true"
+          onKeyDown={e => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              flush()
+              if (onEnter) onEnter()
+            }
+          }}
           placeholder={t('dashboard.day.taskPlaceholder')}
           className={`flex-1 min-w-0 bg-transparent border-0 outline-none text-[14px] ${
             task.completed ? 'text-zinc-400 line-through' : 'text-zinc-800'
@@ -288,6 +295,7 @@ function SubRow({ sub, onToggle, onChange, onDelete, t }) {
         value={v}
         onChange={e => { setV(e.target.value); dirty.current = true }}
         onBlur={flush}
+        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); flush() } }}
         placeholder={t('dashboard.day.subtaskPlaceholder')}
         className={`flex-1 min-w-0 bg-transparent border-0 outline-none text-[12px] ${
           sub.completed ? 'text-zinc-400 line-through' : 'text-zinc-700'
@@ -484,7 +492,7 @@ export default function DayTab({ initialDate, onBack }) {
         {rootTasks.length === 0 && (
           <p className="text-[13px] text-zinc-400 mt-1">{t('dashboard.day.tasksEmpty')}</p>
         )}
-        {rootTasks.map(task => (
+        {rootTasks.map((task, idx) => (
           <TaskRow
             key={task.id} task={task} subtasks={getSubs(task.id)}
             onToggle={(id, changes) => updateDayTask(id, changes)}
@@ -493,6 +501,16 @@ export default function DayTab({ initialDate, onBack }) {
             onAddSub={addDayTask}
             autoFocus={task.id === newTaskId}
             onDoneEditing={() => setNewTaskId(null)}
+            onEnter={async () => {
+              const inputs = Array.from(document.querySelectorAll('[data-task-input]'))
+              const current = inputs.findIndex(el => el === document.activeElement)
+              if (current !== -1 && inputs[current + 1]) {
+                inputs[current + 1].focus()
+              } else {
+                const t = await addDayTask(null)
+                if (t) setNewTaskId(t.id)
+              }
+            }}
             t={t}
           />
         ))}
