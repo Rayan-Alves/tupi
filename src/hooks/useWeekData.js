@@ -138,15 +138,18 @@ export function useWeekData(monday) {
 
   async function addTasksBulk(dates, title) {
     if (!dates.length || !title.trim()) return
-    const rows = dates.map(d => ({
-      user_id: user.id, title: title.trim(), completed: false, task_date: d,
-    }))
-    const { data } = await supabase.from('day_tasks').insert(rows).select()
-    if (data) {
-      // Only add to local state those that fall in the current week
-      const weekRows = data.filter(r => r.task_date >= startISO && r.task_date <= endISO)
-      if (weekRows.length) setTasks(prev => [...prev, ...weekRows])
+    const trimmedTitle = title.trim()
+    const inserted = []
+    for (const d of dates) {
+      const { data } = await supabase
+        .from('day_tasks')
+        .insert({ user_id: user.id, title: trimmedTitle, completed: false, task_date: d })
+        .select()
+        .single()
+      if (data) inserted.push(data)
     }
+    const weekRows = inserted.filter(r => r.task_date >= startISO && r.task_date <= endISO)
+    if (weekRows.length) setTasks(prev => [...prev, ...weekRows])
   }
 
   async function updateTask(id, changes) {
