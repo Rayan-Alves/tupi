@@ -231,7 +231,7 @@ function TaskRow({ task, subtasks, onToggle, onTitleChange, onDelete, onAddSub, 
 
   return (
     <div className="group">
-      <div className="flex items-center gap-2 py-2.5">
+      <div className="flex items-center gap-2 py-2.5 min-w-0">
         <CheckCircle done={task.completed} onToggle={() => onToggle(task.id, { completed: !task.completed })} />
         {subtasks.length > 0 && (
           <button
@@ -251,20 +251,20 @@ function TaskRow({ task, subtasks, onToggle, onTitleChange, onDelete, onAddSub, 
           onBlur={flush}
           onKeyDown={e => { if (e.key === 'Enter') { flush(); onAddSub && addDayTask && null } }}
           placeholder={t('dashboard.day.taskPlaceholder')}
-          className={`flex-1 bg-transparent border-0 outline-none text-[14px] ${
+          className={`flex-1 min-w-0 bg-transparent border-0 outline-none text-[14px] ${
             task.completed ? 'text-zinc-400 line-through' : 'text-zinc-800'
           }`}
         />
         <button
           onClick={() => onAddSub(task.id)}
           title={t('dashboard.day.addSubtask')}
-          className="opacity-0 group-hover:opacity-100 text-zinc-300 hover:text-zinc-700 transition-all"
+          className="opacity-0 group-hover:opacity-100 flex-shrink-0 text-zinc-300 hover:text-zinc-700 transition-all"
         >
           <Plus size={13} />
         </button>
         <button
           onClick={() => onDelete(task.id)}
-          className="opacity-0 group-hover:opacity-100 text-zinc-300 hover:text-red-500 transition-all"
+          className="opacity-0 group-hover:opacity-100 flex-shrink-0 text-zinc-300 hover:text-red-500 transition-all"
         >
           <Trash2 size={13} />
         </button>
@@ -282,14 +282,14 @@ function SubRow({ sub, onToggle, onChange, onDelete, t }) {
   useEffect(() => { setV(sub.title || '') }, [sub.id])
   function flush() { if (dirty.current) { onChange(sub.id, v); dirty.current = false } }
   return (
-    <div className="group flex items-center gap-2 py-1.5 pl-8">
+    <div className="group flex items-center gap-2 py-1.5 pl-8 min-w-0">
       <CheckCircle done={sub.completed} onToggle={() => onToggle(sub.id, { completed: !sub.completed })} size={14} />
       <input
         value={v}
         onChange={e => { setV(e.target.value); dirty.current = true }}
         onBlur={flush}
         placeholder={t('dashboard.day.subtaskPlaceholder')}
-        className={`flex-1 bg-transparent border-0 outline-none text-[12px] ${
+        className={`flex-1 min-w-0 bg-transparent border-0 outline-none text-[12px] ${
           sub.completed ? 'text-zinc-400 line-through' : 'text-zinc-700'
         }`}
       />
@@ -312,7 +312,7 @@ function ProjectRow({ task, onToggle }) {
   return (
     <div className="flex items-center gap-3 py-2.5 border-b border-zinc-50 last:border-0">
       <CheckCircle done={task.completed} onToggle={() => onToggle(task.id)} />
-      <span className={`flex-1 text-[14px] ${task.completed ? 'text-zinc-400 line-through' : 'text-zinc-800'}`}>
+      <span className={`flex-1 min-w-0 text-[14px] break-words ${task.completed ? 'text-zinc-400 line-through' : 'text-zinc-800'}`}>
         {task.title || '—'}
       </span>
       <div className="flex items-center gap-1.5 flex-shrink-0">
