@@ -92,8 +92,27 @@ export function useDayDashboard(date) {
   }
 
   async function addDashRoutine(data) {
-    const { data: row } = await supabase.from('dashboard_routines').insert({ user_id: user.id, ...data }).select().single()
+    const { data: row, error } = await supabase
+      .from('dashboard_routines')
+      .insert({ user_id: user.id, ...data })
+      .select().single()
+    if (error) { console.error('dashboard_routines insert error:', error.message); return }
     if (row) setDashR(prev => [...prev, row])
+  }
+
+  async function addSourceRoutine(area, data) {
+    const tableMap = { spirit: 'spirit_routines', mind: 'mind_routines', body: 'body_routines' }
+    const table = tableMap[area]
+    if (!table) return
+    const { data: row, error } = await supabase
+      .from(table)
+      .insert({ user_id: user.id, ...data })
+      .select().single()
+    if (error) { console.error(`${table} insert error:`, error.message); return }
+    if (row) {
+      const setter = area === 'spirit' ? setSpiritR : area === 'mind' ? setMindR : setBodyR
+      setter(prev => [...prev, row])
+    }
   }
 
   async function deleteDashRoutine(id) {
@@ -157,7 +176,7 @@ export function useDayDashboard(date) {
 
   return {
     loading, isToday,
-    routinesToday, completions, toggleRoutine, addDashRoutine, deleteDashRoutine,
+    routinesToday, completions, toggleRoutine, addDashRoutine, addSourceRoutine, deleteDashRoutine,
     dayTasks, addDayTask, updateDayTask, deleteDayTask,
     projTasks, toggleProjTask,
     note, saveNote,

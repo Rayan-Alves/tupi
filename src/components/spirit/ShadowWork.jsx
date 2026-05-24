@@ -25,29 +25,29 @@ function SpiralIcon({ size = 48, color = 'rgba(200,132,26,0.32)' }) {
 
 /* ─── breathing circle button ─── */
 const CIRCLE_CSS = `
-  @keyframes sw-breathe-entry { 0%,100%{transform:scale(1)} 50%{transform:scale(1.045)} }
+  @keyframes sw-breathe-entry { 0%,100%{transform:scale(1)} 50%{transform:scale(1.04)} }
   .sw-entry-btn {
-    position:relative; width:120px; height:120px;
+    position:relative; width:88px; height:88px;
     border:none; padding:0; background:transparent; cursor:pointer; outline:none;
     -webkit-tap-highlight-color:transparent;
   }
   .sw-entry-btn .sw-core {
     position:absolute; inset:0; border-radius:50%;
-    background:radial-gradient(circle at 35% 28%,#1f1f1f 0%,#0a0a0a 45%,#000 100%);
-    box-shadow:0 0 0 1px rgba(0,0,0,0.4),inset 0 -20px 40px rgba(0,0,0,0.6),inset 0 6px 12px rgba(255,255,255,0.03);
+    background:radial-gradient(circle at 35% 28%,#1c1c1c 0%,#0a0a0a 50%,#000 100%);
+    box-shadow:0 0 0 1px rgba(0,0,0,0.5),inset 0 -12px 28px rgba(0,0,0,0.55),inset 0 4px 8px rgba(255,255,255,0.03);
     animation:sw-breathe-entry 4.5s ease-in-out infinite;
     transition:transform 200ms ease;
   }
   .sw-entry-btn:hover .sw-core { animation-play-state:paused; }
-  .sw-entry-btn:active .sw-core { transform:scale(0.97); }
+  .sw-entry-btn:active .sw-core { transform:scale(0.96); }
   .sw-entry-btn .sw-spiral {
     position:absolute; inset:0;
     display:flex; align-items:center; justify-content:center;
     pointer-events:none;
     animation:sw-breathe-entry 4.5s ease-in-out infinite;
-    transition:color 220ms;
+    transition:opacity 220ms;
   }
-  .sw-entry-btn:hover .sw-spiral svg { color:rgba(200,132,26,0.72) !important; }
+  .sw-entry-btn:hover .sw-spiral { opacity:0.85; }
 `
 
 function injectEntryCSS() {
@@ -66,7 +66,7 @@ export default function ShadowWork() {
       <h2 className="type-h1">Shadow Work</h2>
 
       {/* breathing circle — native, no wrapper */}
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '36px 0 28px' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', padding: '28px 0 20px' }}>
         <button
           className="sw-entry-btn"
           aria-label="entrar no shadow work"
@@ -74,7 +74,7 @@ export default function ShadowWork() {
         >
           <span className="sw-core" />
           <span className="sw-spiral">
-            <SpiralIcon size={48} color="rgba(200,132,26,0.32)" />
+            <SpiralIcon size={38} color="rgba(200,132,26,0.62)" />
           </span>
         </button>
       </div>

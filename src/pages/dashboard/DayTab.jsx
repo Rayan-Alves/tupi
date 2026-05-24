@@ -7,7 +7,6 @@ import { format } from 'date-fns'
 import { ptBR, enUS, es } from 'date-fns/locale'
 import { useDayDashboard, todayISO, navigateDay, formatDayLabel } from '../../hooks/useDayDashboard'
 import ReadingWidget from '../../components/library/ReadingWidget'
-import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 
 const SOURCE_COLOR = {
@@ -195,9 +194,7 @@ const AREA_OPTIONS = [
   { key: 'body',      labelKey: 'dashboard.day.areaBody',    color: SOURCE_COLOR.body      },
 ]
 
-const AREA_TABLE = { spirit: 'spirit_routines', mind: 'mind_routines', body: 'body_routines' }
-
-function AddRoutineForm({ onSave, onCancel, t, userId }) {
+function AddRoutineForm({ onSave, onSaveSource, onCancel, t }) {
   const [title,  setTitle]  = useState('')
   const [days,   setDays]   = useState([])
   const [area,   setArea]   = useState('dashboard')
@@ -206,12 +203,11 @@ function AddRoutineForm({ onSave, onCancel, t, userId }) {
 
   async function save() {
     if (!title.trim()) return
-    // days=[] means every day — save as-is; the filter treats [] as "always show"
+    const payload = { title: title.trim(), days, start_time: null, end_time: null }
     if (area === 'dashboard') {
-      onSave({ title: title.trim(), days, start_time: null, end_time: null })
+      await onSave(payload)
     } else {
-      const table = AREA_TABLE[area]
-      await supabase.from(table).insert({ user_id: userId, title: title.trim(), days, start_time: null, end_time: null })
+      await onSaveSource(area, payload)
     }
     onCancel()
   }
@@ -470,7 +466,7 @@ export default function DayTab({ initialDate, onBack }) {
 
   const {
     loading,
-    routinesToday, completions, toggleRoutine, addDashRoutine, deleteDashRoutine,
+    routinesToday, completions, toggleRoutine, addDashRoutine, addSourceRoutine, deleteDashRoutine,
     dayTasks, addDayTask, updateDayTask, deleteDayTask,
     projTasks, toggleProjTask,
     note, saveNote,
@@ -575,7 +571,7 @@ export default function DayTab({ initialDate, onBack }) {
           ))}
         </CollapsibleSection>
         {addingR
-          ? <AddRoutineForm onSave={addDashRoutine} onCancel={() => setAddingR(false)} t={t} userId={user?.id} />
+          ? <AddRoutineForm onSave={addDashRoutine} onSaveSource={addSourceRoutine} onCancel={() => setAddingR(false)} t={t} />
           : <AddBtn label={t('dashboard.day.addRoutine')} onClick={() => setAddingR(true)} />
         }
       </Section>

@@ -8,6 +8,7 @@ import { useAuth } from '../contexts/AuthContext'
 import UnoSection from '../components/UnoSection'
 import SpiritualRoutine from '../components/spirit/SpiritualRoutine'
 import SoltarSection from '../components/soltar/SoltarSection'
+import CollapsibleSection from '../components/ui/CollapsibleSection'
 
 const WEEK_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 
