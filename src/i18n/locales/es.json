@@ -108,7 +108,9 @@
       "typeRead": "Leer",
       "typeWatch": "Ver",
       "readingPlaceholder": "Título..."
-    }
+    },
+    "yesterday": "Ayer",
+    "tomorrow": "Mañana"
   },
   "profile": {
     "title": "Perfil",

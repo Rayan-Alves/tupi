@@ -108,7 +108,9 @@
       "typeRead": "Read",
       "typeWatch": "Watch",
       "readingPlaceholder": "Title..."
-    }
+    },
+    "yesterday": "Yesterday",
+    "tomorrow": "Tomorrow"
   },
   "profile": {
     "title": "Profile",

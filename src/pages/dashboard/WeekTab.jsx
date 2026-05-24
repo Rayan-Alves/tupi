@@ -1,10 +1,9 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ChevronLeft, ChevronRight, Plus, Check, Trash2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, Check, Trash2, FolderKanban } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR, enUS, es } from 'date-fns/locale'
 import { useWeekData, getMondayOf, shiftWeek } from '../../hooks/useWeekData'
-import { FolderKanban } from 'lucide-react'
 
 const SOURCE_COLOR = {
   spirit:    '#5a8ab8',
@@ -25,8 +24,16 @@ const isPast = (date) => {
   return d.getTime() < t.getTime()
 }
 
-/* ── Primitives ────────────────────────────── */
+/* ── Week Focus constants ────────────────────── */
+const VIEWS = ['geral', 'tasks', 'projetos', 'rotinas']
+const VIEW_META = {
+  geral:    { label: 'Geral',    color: '#C8841A' },
+  tasks:    { label: 'Tasks',    color: '#27272A' },
+  projetos: { label: 'Projetos', color: '#3b82f6' },
+  rotinas:  { label: 'Rotinas',  color: '#10b981' },
+}
 
+/* ── Primitives ────────────────────────────── */
 function CheckCircle({ done, onToggle, size = 16 }) {
   return (
     <button
@@ -43,8 +50,257 @@ function CheckCircle({ done, onToggle, size = 16 }) {
   )
 }
 
-/* ── Week summary chart ────────────────────── */
+/* ── DonutArc SVG ───────────────────────────── */
+function DonutArc({ pct, color, size = 80 }) {
+  const sw = 7
+  const R  = (size / 2) - sw / 2 - 1
+  const cx = size / 2
+  const circ = 2 * Math.PI * R
+  const dash = Math.max(0, Math.min(1, pct / 100)) * circ
+  return (
+    <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+      <circle cx={cx} cy={cx} r={R} fill="none" stroke="#f0f0f0" strokeWidth={sw} />
+      <circle
+        cx={cx} cy={cx} r={R} fill="none"
+        stroke={color} strokeWidth={sw}
+        strokeDasharray={`${dash} ${circ}`}
+        strokeLinecap="round"
+        style={{ transition: 'stroke-dasharray 0.6s ease' }}
+      />
+    </svg>
+  )
+}
 
+/* ── useWeekFocus (localStorage per week) ───── */
+function useWeekFocus(mondayISO) {
+  const [priorities, setPriorities] = useState(['', '', ''])
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(`wf_${mondayISO}`)
+      setPriorities(raw ? JSON.parse(raw) : ['', '', ''])
+    } catch { setPriorities(['', '', '']) }
+  }, [mondayISO])
+
+  function save(idx, value) {
+    setPriorities(prev => {
+      const next = prev.map((p, i) => i === idx ? value : p)
+      try { localStorage.setItem(`wf_${mondayISO}`, JSON.stringify(next)) } catch {}
+      return next
+    })
+  }
+
+  return { priorities, save }
+}
+
+/* ── PriorityCard ───────────────────────────── */
+const PRIORITY_PLACEHOLDERS = [
+  'Minha prioridade principal desta semana…',
+  'O segundo foco mais importante…',
+  'O que não posso deixar para trás…',
+]
+
+function PriorityCard({ value, index, onChange }) {
+  const [local, setLocal] = useState(value)
+  useEffect(() => setLocal(value), [value])
+
+  return (
+    <div
+      className="bg-white rounded-2xl border border-zinc-100 px-5 pt-3 pb-4 flex flex-col gap-1.5 flex-1"
+      style={{ minHeight: 72 }}
+    >
+      <span className="text-[9px] tracking-[0.22em] uppercase text-zinc-400 font-bold select-none">
+        Prioridade {index + 1}
+      </span>
+      <textarea
+        value={local}
+        onChange={e => setLocal(e.target.value)}
+        onBlur={() => onChange(index, local)}
+        placeholder={PRIORITY_PLACEHOLDERS[index]}
+        rows={2}
+        className="w-full bg-transparent border-0 outline-none resize-none text-[13px] text-zinc-800 leading-relaxed placeholder-zinc-300"
+        style={{ fontFamily: "'Libre Baskerville', Georgia, serif", fontStyle: 'italic' }}
+      />
+    </div>
+  )
+}
+
+/* ── WeekFocusSection ───────────────────────── */
+function WeekFocusSection({ monday, stats, byDay }) {
+  const mondayISO = format(monday, 'yyyy-MM-dd')
+  const { priorities, save } = useWeekFocus(mondayISO)
+
+  const [viewIdx,      setViewIdx]      = useState(0)
+  const [showFraction, setShowFraction] = useState(false)
+
+  const view = VIEWS[viewIdx]
+  const meta = VIEW_META[view]
+
+  const viewData = useMemo(() => {
+    switch (view) {
+      case 'tasks':    return { done: stats.doneTasks,     total: stats.totalTasks }
+      case 'projetos': return { done: stats.doneProjTasks, total: stats.totalProjTasks }
+      case 'rotinas':  return { done: stats.doneRoutines,  total: stats.totalRoutines }
+      default:         return { done: stats.done,          total: stats.total }
+    }
+  }, [view, stats])
+
+  const pct = viewData.total > 0 ? Math.round((viewData.done / viewData.total) * 100) : 0
+
+  const chartBars = useMemo(() => byDay.map(day => {
+    let done = 0, total = 0
+    switch (view) {
+      case 'tasks':
+        done = day.completedTasksCount;         total = day.tasks.length;     break
+      case 'projetos':
+        done = day.completedProjTasksCount;    total = day.projTasks.length; break
+      case 'rotinas':
+        done = day.completedRoutines.size;     total = day.routines.length;  break
+      default:
+        done  = day.completedRoutines.size + day.completedTasksCount + day.completedProjTasksCount
+        total = day.routines.length + day.tasks.length + day.projTasks.length
+    }
+    return { done, total, pct: total > 0 ? (done / total) * 100 : -1 }
+  }), [view, byDay])
+
+  function cyclePrev() { setViewIdx(i => (i - 1 + VIEWS.length) % VIEWS.length) }
+  function cycleNext() { setViewIdx(i => (i + 1) % VIEWS.length) }
+
+  return (
+    <div className="flex gap-4 mb-6 items-stretch min-h-[220px]">
+
+      {/* ── Left: 3 priority cards ── */}
+      <div className="flex-1 min-w-0 flex flex-col gap-1">
+        <div className="text-[10px] tracking-[0.22em] uppercase text-zinc-400 font-medium mb-2 select-none">
+          Prioridades da Semana
+        </div>
+        <div className="flex flex-col gap-2.5 flex-1">
+          {[0, 1, 2].map(i => (
+            <PriorityCard key={i} index={i} value={priorities[i] || ''} onChange={save} />
+          ))}
+        </div>
+      </div>
+
+      {/* ── Right: stats square ── */}
+      <div
+        className="bg-white rounded-3xl border border-zinc-100 p-6 flex flex-col"
+        style={{ width: 290, minWidth: 250, flexShrink: 0 }}
+      >
+        {/* View toggle */}
+        <div className="flex items-center justify-between mb-4">
+          <span
+            className="text-[10px] tracking-[0.22em] uppercase font-bold transition-colors"
+            style={{ color: meta.color }}
+          >
+            {meta.label}
+          </span>
+          <div className="flex items-center gap-0.5">
+            <button
+              onClick={cyclePrev}
+              className="p-1 hover:bg-zinc-100 rounded-full transition-colors text-zinc-400 hover:text-zinc-700"
+            >
+              <ChevronLeft size={14} />
+            </button>
+            <button
+              onClick={cycleNext}
+              className="p-1 hover:bg-zinc-100 rounded-full transition-colors text-zinc-400 hover:text-zinc-700"
+            >
+              <ChevronRight size={14} />
+            </button>
+          </div>
+        </div>
+
+        {/* Donut + big number */}
+        <div className="flex items-center gap-4 mb-5 flex-1">
+          {/* Donut */}
+          <div className="relative flex-shrink-0" style={{ width: 80, height: 80 }}>
+            <DonutArc pct={pct} color={meta.color} size={80} />
+            <div
+              className="absolute inset-0 flex items-center justify-center"
+              style={{ pointerEvents: 'none' }}
+            >
+              <span
+                className="font-bold tabular-nums text-[11px] transition-colors"
+                style={{ color: meta.color }}
+              >
+                {pct}%
+              </span>
+            </div>
+          </div>
+
+          {/* Clickable number */}
+          <button
+            onClick={() => setShowFraction(f => !f)}
+            className="text-left flex flex-col gap-1 group"
+            title="Clique para alternar % / x de x"
+          >
+            <span
+              className="font-display leading-none tabular-nums transition-all"
+              style={{
+                color:    meta.color,
+                fontSize: showFraction && viewData.total >= 10 ? 26 : 40,
+              }}
+            >
+              {showFraction
+                ? `${viewData.done}/${viewData.total}`
+                : `${pct}%`}
+            </span>
+            <span className="text-[10px] text-zinc-400 group-hover:text-zinc-600 transition-colors">
+              {viewData.done} de {viewData.total} {viewData.done !== 1 ? 'concluídos' : 'concluído'}
+            </span>
+          </button>
+        </div>
+
+        {/* 7-day mini bar chart */}
+        <div className="flex items-end gap-1.5 h-10 mb-4">
+          {chartBars.map((bar, i) => {
+            const barH  = bar.pct < 0 ? 3 : Math.max(4, (bar.pct / 100) * 40)
+            const barBg = bar.pct < 0  ? '#f0f0f0'
+              : bar.pct >= 100 ? '#10b981'
+              : meta.color
+            return (
+              <div key={i} className="flex-1 flex items-end h-10">
+                <div
+                  className="w-full rounded-sm transition-all duration-500"
+                  style={{
+                    height: barH,
+                    background: barBg,
+                    opacity: bar.pct < 0 ? 0.35 : 1,
+                  }}
+                  title={bar.total > 0 ? `${bar.done}/${bar.total}` : 'sem dados'}
+                />
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Dot navigation */}
+        <div className="flex items-center justify-center gap-1.5">
+          {VIEWS.map((v, i) => (
+            <button
+              key={v}
+              onClick={() => setViewIdx(i)}
+              title={VIEW_META[v].label}
+              style={{
+                width:        viewIdx === i ? 16 : 5,
+                height:       5,
+                borderRadius: 3,
+                background:   viewIdx === i ? VIEW_META[v].color : '#e4e4e7',
+                transition:   'all 0.25s ease',
+                border:       'none',
+                cursor:       'pointer',
+                padding:      0,
+                flexShrink:   0,
+              }}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ── Week summary chart ────────────────────── */
 function WeekSummary({ stats, byDay, locale, t }) {
   return (
     <section className="bg-white rounded-3xl border border-zinc-100 px-7 py-6 mb-5">
@@ -119,7 +375,6 @@ function WeekSummary({ stats, byDay, locale, t }) {
 }
 
 /* ── Routine row (compact) ─────────────────── */
-
 function RoutineRow({ routine, done, dateISO, onToggle }) {
   const dotColor = SOURCE_COLOR[routine.source] || SOURCE_COLOR.dashboard
   return (
@@ -134,7 +389,6 @@ function RoutineRow({ routine, done, dateISO, onToggle }) {
 }
 
 /* ── Task row (compact, inline editable) ───── */
-
 function TaskRow({ task, autoFocus, onToggle, onChange, onDelete, onDoneEditing, t }) {
   const [title, setTitle] = useState(task.title || '')
   const inputRef = useRef(null)
@@ -173,7 +427,6 @@ function TaskRow({ task, autoFocus, onToggle, onChange, onDelete, onDoneEditing,
 }
 
 /* ── Day column ────────────────────────────── */
-
 function DayColumn({ day, locale, focusTaskId, onToggleRoutine, onAddTask, onUpdateTask, onDeleteTask, onTaskCreated, onToggleProjTask, t }) {
   const total = day.routines.length + day.tasks.length + day.projTasks.length
   const done  = day.completedRoutines.size + day.completedTasksCount + day.completedProjTasksCount
@@ -288,7 +541,6 @@ function DayColumn({ day, locale, focusTaskId, onToggleRoutine, onAddTask, onUpd
 }
 
 /* ── Main WeekTab ──────────────────────────── */
-
 export default function WeekTab() {
   const { t, i18n } = useTranslation()
   const [monday, setMonday] = useState(() => getMondayOf(new Date()))
@@ -298,8 +550,7 @@ export default function WeekTab() {
   const localeMap = { pt: ptBR, en: enUS, es }
   const locale = localeMap[i18n.language] || ptBR
 
-  const sunday = byDay[6]?.date
-  const label  = byDay[0] && byDay[6]
+  const label = byDay[0] && byDay[6]
     ? `${format(byDay[0].date, 'd MMM', { locale })} – ${format(byDay[6].date, 'd MMM', { locale })}`
     : ''
 
@@ -335,6 +586,9 @@ export default function WeekTab() {
           </button>
         </div>
       </div>
+
+      {/* ── NEW: Week Focus (priorities + stats square) ── */}
+      <WeekFocusSection monday={monday} stats={stats} byDay={byDay} />
 
       {/* Summary */}
       <WeekSummary stats={stats} byDay={byDay} locale={locale} t={t} />

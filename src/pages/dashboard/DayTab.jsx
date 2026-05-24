@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
-import { Plus, Check, Trash2, ChevronRight } from 'lucide-react'
+import { Plus, Check, Trash2, ChevronRight, ChevronLeft } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { format } from 'date-fns'
 import { ptBR, enUS, es } from 'date-fns/locale'
-import { useDayDashboard } from '../../hooks/useDayDashboard'
+import { useDayDashboard, todayISO, navigateDay, formatDayLabel } from '../../hooks/useDayDashboard'
 import ReadingWidget from '../../components/library/ReadingWidget'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
@@ -359,13 +359,17 @@ function NoteArea({ content, onSave, placeholder }) {
 export default function DayTab() {
   const { t, i18n } = useTranslation()
   const { user } = useAuth()
+
+  const [selectedDate, setSelectedDate] = useState(() => todayISO())
+  const isToday = selectedDate === todayISO()
+
   const {
     loading,
     routinesToday, completions, toggleRoutine, addDashRoutine, deleteDashRoutine,
     dayTasks, addDayTask, updateDayTask, deleteDayTask,
     projTasks, toggleProjTask,
     note, saveNote,
-  } = useDayDashboard()
+  } = useDayDashboard(selectedDate)
 
   const [showRPct, setShowRPct]   = useState(false)
   const [showTPct, setShowTPct]   = useState(false)
@@ -394,17 +398,44 @@ export default function DayTab() {
 
   const localeMap = { pt: ptBR, en: enUS, es }
   const dateLocale = localeMap[i18n.language] || ptBR
-  const today = new Date()
+  const dateObj = new Date(selectedDate + 'T12:00:00')
   const dateStr = i18n.language === 'en'
-    ? format(today, 'EEEE, MMMM d', { locale: dateLocale })
-    : format(today, "EEEE, d 'de' MMMM", { locale: dateLocale })
+    ? format(dateObj, 'EEEE, MMMM d', { locale: dateLocale })
+    : format(dateObj, "EEEE, d 'de' MMMM", { locale: dateLocale })
+
+  const dayInfo = formatDayLabel(selectedDate, i18n.language === 'pt' ? 'pt-BR' : i18n.language === 'es' ? 'es-ES' : 'en-US')
 
   return (
     <div className="max-w-5xl mx-auto">
-      {/* Date header */}
+      {/* Date header with navigation */}
       <div className="mb-6 px-1">
-        <div className="text-[11px] tracking-[0.22em] uppercase text-zinc-400 mb-1.5 font-medium">
-          {t('dashboard.today')}
+        <div className="flex items-center gap-2 mb-1.5">
+          <button
+            onClick={() => setSelectedDate(d => navigateDay(d, -1))}
+            className="p-1.5 hover:bg-zinc-100 rounded-lg transition-colors text-zinc-400 hover:text-zinc-700"
+          >
+            <ChevronLeft size={16} />
+          </button>
+
+          <div className="text-[11px] tracking-[0.22em] uppercase text-zinc-400 font-medium min-w-[60px] text-center">
+            {dayInfo.relative ? t(`dashboard.${dayInfo.key}`, dayInfo.key) : ''}
+          </div>
+
+          <button
+            onClick={() => setSelectedDate(d => navigateDay(d, +1))}
+            className="p-1.5 hover:bg-zinc-100 rounded-lg transition-colors text-zinc-400 hover:text-zinc-700"
+          >
+            <ChevronRight size={16} />
+          </button>
+
+          {!isToday && (
+            <button
+              onClick={() => setSelectedDate(todayISO())}
+              className="ml-2 text-[11px] font-semibold px-3 py-1 rounded-full border border-zinc-200 text-zinc-500 hover:border-zinc-400 hover:text-zinc-800 transition-all"
+            >
+              {t('dashboard.today', 'Hoje')}
+            </button>
+          )}
         </div>
         <h1 className="type-h1 capitalize tracking-tight">
           {dateStr}

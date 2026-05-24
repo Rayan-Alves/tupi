@@ -1,262 +1,799 @@
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ChevronLeft, ChevronRight, Plus, Trash2, Check, Save, BookOpen, Tv, CalendarDays, Cake } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, Trash2, Check, Pencil } from 'lucide-react'
 import { useMonth, getCurrentMonthPeriod, navigateMonth, formatMonthLabel } from '../../hooks/useMonth'
 
-// ── Shared UI ──────────────────────────────────────────────────────
+// ── Tokens ─────────────────────────────────────────────────────────
+const T = {
+  green:  '#1A3A1F',
+  amber:  '#C8841A',
+  sand:   '#C4A882',
+  muted:  '#8a7e6e',
+  bg:     '#F5F0E8',
+}
 
-function SaveButton({ status, onClick }) {
-  const styles = { clean: 'bg-zinc-100 text-zinc-400 cursor-default', dirty: 'bg-spirit hover:bg-[#152e4a] text-white cursor-pointer', saving: 'bg-[#3a6490] text-white cursor-wait', saved: 'bg-emerald-500 text-white cursor-default' }
-  const labels = { clean: 'Salvo', dirty: 'Salvar', saving: 'Salvando…', saved: 'Salvo ✓' }
+// ── Auto-growing textarea ──────────────────────────────────────────
+function GhostTextarea({ value, onChange, placeholder, minRows = 2, className = '' }) {
+  const ref = useRef(null)
+  const resize = useCallback(() => {
+    const el = ref.current
+    if (!el) return
+    el.style.height = '1px'
+    el.style.height = el.scrollHeight + 'px'
+  }, [])
+  useLayoutEffect(() => { resize() })
+  useEffect(() => { resize() }, [value, resize])
+
   return (
-    <button onClick={status === 'dirty' ? onClick : undefined} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${styles[status]}`}>
-      {status === 'saved' ? <Check size={11} /> : <Save size={11} />}{labels[status]}
-    </button>
+    <textarea
+      ref={ref}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      rows={minRows}
+      style={{
+        fontFamily: 'Georgia, serif',
+        fontSize: 13,
+        color: T.green,
+        border: 'none',
+        background: 'transparent',
+        outline: 'none',
+        width: '100%',
+        resize: 'none',
+        lineHeight: 1.65,
+        overflowY: 'hidden',
+      }}
+      className={`placeholder-[#8a7e6e] ${className}`}
+    />
   )
 }
 
-function SaveableTextarea({ initialValue, onSave, placeholder }) {
-  const [value, setValue] = useState(initialValue || '')
-  const [status, setStatus] = useState('clean')
-  const ref = useRef(null)
-  const resize = useCallback(() => { const el = ref.current; if (!el) return; el.style.height = '1px'; el.style.height = el.scrollHeight + 'px' }, [])
-  useLayoutEffect(() => { resize() })
-  useEffect(() => { setValue(initialValue || ''); setStatus('clean') }, [initialValue])
-  async function handleSave() { setStatus('saving'); await onSave(value); setStatus('saved'); setTimeout(() => setStatus('clean'), 2500) }
+// ── Saveable ghost textarea (debounced) ────────────────────────────
+function SaveableGhost({ value: initial, onSave, placeholder, minRows = 2 }) {
+  const [val, setVal] = useState(initial || '')
+  const timer = useRef(null)
+
+  useEffect(() => { setVal(initial || '') }, [initial])
+
+  function handleChange(e) {
+    setVal(e.target.value)
+    clearTimeout(timer.current)
+    timer.current = setTimeout(() => { onSave(e.target.value) }, 900)
+  }
+
   return (
-    <div className="space-y-2">
-      <textarea ref={ref} value={value} onChange={e => { setValue(e.target.value); setStatus('dirty') }} placeholder={placeholder} rows={1} className="auto-textarea" />
-      <div className="flex justify-end"><SaveButton status={status} onClick={handleSave} /></div>
-    </div>
+    <GhostTextarea
+      value={val}
+      onChange={handleChange}
+      placeholder={placeholder}
+      minRows={minRows}
+    />
   )
 }
 
 // ── Mini Calendar ──────────────────────────────────────────────────
-
-function MiniCalendar({ period }) {
+function MiniCalendar({ period, events, birthdays, bills }) {
   const [y, m] = period.split('-').map(Number)
   const today = new Date()
   const daysInMonth = new Date(y, m, 0).getDate()
   const firstWeekday = new Date(y, m - 1, 1).getDay()
-  const cells = Array(firstWeekday).fill(null).concat(Array.from({ length: daysInMonth }, (_, i) => i + 1))
-  const isToday = (d) => d === today.getDate() && m === today.getMonth() + 1 && y === today.getFullYear()
-  const isPast = (d) => new Date(y, m - 1, d) < new Date(today.getFullYear(), today.getMonth(), today.getDate())
+  const cells = Array(firstWeekday).fill(null).concat(
+    Array.from({ length: daysInMonth }, (_, i) => i + 1)
+  )
+
+  const isToday = d => d === today.getDate() && m === today.getMonth() + 1 && y === today.getFullYear()
+
+  // Build sets of days with events/bills/birthdays
+  const eventDays = new Set()
+  const billDays  = new Set()
+  const bdayDays  = new Set()
+
+  events.forEach(ev => {
+    if (ev.event_date) eventDays.add(parseInt(ev.event_date.split('-')[2], 10))
+  })
+  bills.forEach(b => {
+    if (b.day_of_month) billDays.add(b.day_of_month)
+  })
+  birthdays.forEach(b => {
+    if (b.birth_date) bdayDays.add(parseInt(b.birth_date.split('-')[2], 10))
+  })
 
   return (
-    <div className="bg-white rounded-2xl border border-zinc-100 shadow-card p-5">
-      <div className="grid grid-cols-7 gap-0.5 mb-2">
-        {['D','S','T','Q','Q','S','S'].map((d, i) => (
-          <div key={i} className="text-center text-[10px] font-semibold text-zinc-400 py-1">{d}</div>
+    <div>
+      {/* Legend */}
+      <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+        {[
+          { color: T.amber,  label: 'eventos' },
+          { color: T.sand,   label: 'contas' },
+          { color: T.green,  label: 'aniversários' },
+        ].map(({ color, label }) => (
+          <span key={label} style={{ fontFamily: 'sans-serif', fontSize: 10, color: T.muted, display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: color, display: 'inline-block' }} />
+            {label}
+          </span>
         ))}
       </div>
-      <div className="grid grid-cols-7 gap-0.5">
-        {cells.map((day, i) => (
-          <div key={i} className={`aspect-square flex items-center justify-center rounded-full text-[12px] font-medium transition-all
-            ${!day ? '' : isToday(day) ? 'bg-spirit text-white' : isPast(day) ? 'text-zinc-400' : 'text-zinc-700 hover:bg-zinc-100'}`}>
-            {day}
-          </div>
+
+      {/* Day labels */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 1, marginBottom: 4 }}>
+        {['D','S','T','Q','Q','S','S'].map((d, i) => (
+          <div key={i} style={{ textAlign: 'center', fontFamily: 'sans-serif', fontSize: 10, color: T.muted, padding: '2px 0', fontWeight: 600 }}>{d}</div>
         ))}
+      </div>
+
+      {/* Days */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 1 }}>
+        {cells.map((day, i) => {
+          if (!day) return <div key={i} />
+          const dots = []
+          if (eventDays.has(day)) dots.push(T.amber)
+          if (billDays.has(day))  dots.push(T.sand)
+          if (bdayDays.has(day))  dots.push(T.green)
+          return (
+            <div key={i} style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', paddingBottom: dots.length ? 8 : 2 }}>
+              <div style={{
+                width: 22, height: 22,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                borderRadius: '50%',
+                fontFamily: 'sans-serif', fontSize: 11, fontWeight: 500,
+                background: isToday(day) ? T.green : 'transparent',
+                color: isToday(day) ? '#F5F0E8' : T.green,
+              }}>
+                {day}
+              </div>
+              {dots.length > 0 && (
+                <div style={{ display: 'flex', gap: 2, position: 'absolute', bottom: 2 }}>
+                  {dots.map((c, di) => (
+                    <span key={di} style={{ width: 3, height: 3, borderRadius: '50%', background: c, display: 'inline-block' }} />
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
     </div>
   )
 }
 
-// ── Section wrapper ────────────────────────────────────────────────
-
-function Section({ title, icon: Icon, color = 'text-zinc-500', onAdd, addLabel, children }) {
+// ── Card wrapper ──────────────────────────────────────────────────
+function Card({ children, style = {} }) {
   return (
-    <div className="bg-white rounded-2xl border border-zinc-100 shadow-card p-5">
-      <div className="flex items-center justify-between mb-4">
-        <div className={`flex items-center gap-2 text-sm font-semibold ${color}`}>
-          {Icon && <Icon size={15} />}{title}
-        </div>
-        {onAdd && (
-          <button onClick={onAdd} className="btn-ghost text-[12px]">
-            <Plus size={12} />{addLabel}
-          </button>
-        )}
-      </div>
+    <div style={{
+      background: '#fff',
+      borderRadius: 14,
+      border: `0.5px solid rgba(26,58,31,0.1)`,
+      padding: '1.25rem 1.5rem',
+      ...style,
+    }}>
       {children}
     </div>
   )
 }
 
-// ── Month Goals ────────────────────────────────────────────────────
+// ── Section header ────────────────────────────────────────────────
+function SectionTitle({ children, onAdd }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+      <span style={{ fontFamily: 'sans-serif', fontSize: 13, fontWeight: 500, color: T.green }}>
+        {children}
+      </span>
+      {onAdd && (
+        <button
+          onClick={onAdd}
+          style={{ fontSize: 18, color: T.sand, cursor: 'pointer', background: 'none', border: 'none', lineHeight: 1, padding: 0 }}
+        >
+          +
+        </button>
+      )}
+    </div>
+  )
+}
 
-function MonthGoalItem({ goal, onUpdate, onDelete, t }) {
-  const [local, setLocal] = useState({ title: goal.title || '', why: goal.why || '' })
-  const [status, setStatus] = useState('clean')
-  const whyRef = useRef(null)
-  const resizeWhy = useCallback(() => { const el = whyRef.current; if (!el) return; el.style.height = '1px'; el.style.height = el.scrollHeight + 'px' }, [])
-  useLayoutEffect(() => { resizeWhy() })
-  useEffect(() => { setLocal({ title: goal.title || '', why: goal.why || '' }) }, [goal.id])
+// ── Label ─────────────────────────────────────────────────────────
+function Label({ children }) {
+  return (
+    <div style={{ fontFamily: 'sans-serif', fontSize: 11, letterSpacing: '0.08em', color: T.muted, textTransform: 'uppercase', marginBottom: 6 }}>
+      {children}
+    </div>
+  )
+}
 
-  async function save() {
-    setStatus('saving')
-    await Promise.all([onUpdate(goal.id, 'title', local.title), onUpdate(goal.id, 'why', local.why)])
-    setStatus('saved'); setTimeout(() => setStatus('clean'), 2500)
-  }
+// ── Divider ───────────────────────────────────────────────────────
+function Divider({ style = {} }) {
+  return <div style={{ height: '0.5px', background: 'rgba(26,58,31,0.08)', margin: '0.75rem 0', ...style }} />
+}
+
+// ── Inline editable list item ─────────────────────────────────────
+function EditableListItem({ value, onChange, onDelete, placeholder, bullet = T.sand }) {
+  return (
+    <div
+      className="group"
+      style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '5px 0', borderBottom: `0.5px solid rgba(26,58,31,0.06)` }}
+    >
+      <span style={{ width: 5, height: 5, borderRadius: '50%', background: bullet, marginTop: 7, flexShrink: 0, display: 'inline-block' }} />
+      <input
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        style={{ flex: 1, fontFamily: 'sans-serif', fontSize: 13, color: T.green, border: 'none', background: 'transparent', outline: 'none', padding: 0 }}
+      />
+      <button
+        onClick={onDelete}
+        className="opacity-0 group-hover:opacity-100 transition-opacity"
+        style={{ color: '#d1d5db', border: 'none', background: 'none', cursor: 'pointer', padding: 0, flexShrink: 0 }}
+        onMouseEnter={e => { e.currentTarget.style.color = '#ef4444' }}
+        onMouseLeave={e => { e.currentTarget.style.color = '#d1d5db' }}
+      >
+        <Trash2 size={12} />
+      </button>
+    </div>
+  )
+}
+
+// ── Add row link ──────────────────────────────────────────────────
+function AddRow({ onClick, label }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{ fontFamily: 'sans-serif', fontSize: 12, color: T.muted, paddingTop: 8, display: 'block', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+      onMouseEnter={e => { e.currentTarget.style.color = T.green }}
+      onMouseLeave={e => { e.currentTarget.style.color = T.muted }}
+    >
+      + {label}
+    </button>
+  )
+}
+
+// ── Stats bar chart ───────────────────────────────────────────────
+function WeekBars({ weekBars }) {
+  const maxCount = Math.max(...weekBars.map(w => w.count), 1)
+  const MAX_H = 48
 
   return (
-    <div className="group border border-zinc-100 rounded-xl p-3 space-y-2 hover:border-zinc-200 transition-colors">
-      <div className="flex items-center gap-2">
-        <input value={local.title} onChange={e => { setLocal(p => ({ ...p, title: e.target.value })); setStatus('dirty') }}
-          placeholder={t('dashboard.month.goalPlaceholder')} className="flex-1 input-inline text-[14px]" />
-        <button onClick={() => onDelete(goal.id)} className="opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-red-500 transition-all"><Trash2 size={13} /></button>
-      </div>
-      <div>
-        <label className="field-label">{t('dashboard.month.why')}</label>
-        <textarea ref={whyRef} value={local.why} onChange={e => { setLocal(p => ({ ...p, why: e.target.value })); setStatus('dirty') }}
-          placeholder={t('dashboard.month.whyPlaceholder')} rows={1} className="auto-textarea" />
-      </div>
-      <div className="flex justify-end"><SaveButton status={status} onClick={save} /></div>
+    <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end', height: 56 }}>
+      {weekBars.map((w, i) => {
+        const h = w.future ? 0 : Math.max(4, Math.round((w.count / maxCount) * MAX_H))
+        const opacity = w.future ? 1 : 0.4 + 0.6 * (w.count / maxCount)
+        return (
+          <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div style={{
+              height: w.future ? 16 : h,
+              width: '100%',
+              background: w.future ? 'rgba(26,58,31,0.06)' : T.green,
+              borderRadius: '3px 3px 0 0',
+              border: w.future ? `0.5px dashed rgba(26,58,31,0.15)` : 'none',
+              opacity: w.future ? 1 : opacity,
+              transition: 'height 0.3s ease',
+            }} />
+            <div style={{ fontFamily: 'sans-serif', fontSize: 10, color: T.muted, textAlign: 'center', marginTop: 4 }}>{w.label}</div>
+          </div>
+        )
+      })}
     </div>
   )
 }
 
 // ── Main component ─────────────────────────────────────────────────
-
 export default function MonthTab() {
   const { t, i18n } = useTranslation()
   const [period, setPeriod] = useState(() => getCurrentMonthPeriod())
+  const [statsMode, setStatsMode] = useState('pct') // 'pct' | 'frac'
+  const [goalsExpanded, setGoalsExpanded] = useState(false)
+  const GOALS_PREVIEW = 3
+
   const {
     profile, saveProfileField,
     goals, addGoal, updateGoal, deleteGoal,
-    tasks, addTask, updateTask, deleteTask,
+    tasks,
     events, addEvent, updateEvent, deleteEvent,
     birthdays, addBirthday, updateBirthday, deleteBirthday,
-    reading, addReading, updateReading, deleteReading,
-    loading,
+    bills, addBill, updateBill, deleteBill,
+    health, addHealth, updateHealth, deleteHealth,
+    largar, addLargar, updateLargar, deleteLargar,
+    explorar, addExplorar, updateExplorar, deleteExplorar,
+    stats, loading,
   } = useMonth(period)
+  const [explorarCat, setExplorarCat] = useState('Livros')
 
   const locale = { pt: 'pt-BR', en: 'en-US', es: 'es-ES' }[i18n.language] || 'pt-BR'
+  const [y, mo] = period.split('-').map(Number)
+  const monthName = new Date(y, mo - 1, 1).toLocaleDateString(locale, { month: 'long' })
+  const monthCapitalized = monthName.charAt(0).toUpperCase() + monthName.slice(1)
+
+  // Stats display
+  const tasksDone  = tasks.filter(t => t.completed).length
+  const tasksTotal = tasks.length
+  const routinesDone = stats.routinesDone
+
+  function statDisplay(done, total) {
+    if (total === 0) return statsMode === 'pct' ? '—' : '0/0'
+    return statsMode === 'pct'
+      ? `${Math.round((done / total) * 100)}%`
+      : `${done}/${total}`
+  }
+
+  const visibleGoals = goalsExpanded ? goals : goals.slice(0, GOALS_PREVIEW)
 
   return (
-    <div className="space-y-5">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+
       {/* Period navigation */}
-      <div className="flex items-center justify-between bg-white rounded-2xl border border-zinc-100 shadow-card px-5 py-3">
-        <button onClick={() => setPeriod(p => navigateMonth(p, -1))} className="p-1.5 hover:bg-zinc-100 rounded-lg transition-colors"><ChevronLeft size={16} /></button>
-        <span className="text-sm font-semibold text-zinc-700 capitalize">{formatMonthLabel(period, locale)}</span>
-        <button onClick={() => setPeriod(p => navigateMonth(p, 1))} className="p-1.5 hover:bg-zinc-100 rounded-lg transition-colors"><ChevronRight size={16} /></button>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#fff', borderRadius: 14, border: '0.5px solid rgba(26,58,31,0.1)', padding: '10px 20px' }}>
+        <button onClick={() => setPeriod(p => navigateMonth(p, -1))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.sand, display: 'flex' }}>
+          <ChevronLeft size={16} />
+        </button>
+        <span style={{ fontFamily: 'Georgia, serif', fontSize: 14, color: T.green, fontWeight: 'normal' }}>
+          {formatMonthLabel(period, locale)}
+        </span>
+        <button onClick={() => setPeriod(p => navigateMonth(p, 1))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.sand, display: 'flex' }}>
+          <ChevronRight size={16} />
+        </button>
       </div>
 
-      {/* Calendar + Questions */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-1">
-          <MiniCalendar period={period} />
-        </div>
-        <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="bg-white rounded-2xl border border-zinc-100 shadow-card p-5">
-            <label className="field-label">{t('dashboard.month.howStart')}</label>
-            <SaveableTextarea initialValue={profile.how_start} onSave={v => saveProfileField('how_start', v)} placeholder={t('dashboard.month.howStartPlaceholder')} />
-          </div>
-          <div className="bg-white rounded-2xl border border-zinc-100 shadow-card p-5 border-l-4 border-l-spirit">
-            <label className="field-label">{t('dashboard.month.howEnd')}</label>
-            <SaveableTextarea initialValue={profile.how_end} onSave={v => saveProfileField('how_end', v)} placeholder={t('dashboard.month.howEndPlaceholder')} />
-          </div>
-        </div>
-      </div>
+      {/* TOP: Abertura + Calendário */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', alignItems: 'start' }}>
 
-      {/* Goals */}
-      <Section title={t('dashboard.month.goal')} onAdd={addGoal} addLabel={t('common.add')}>
-        {loading ? <p className="text-sm text-zinc-400">{t('common.loading')}</p>
-          : goals.length === 0 ? <p className="text-sm text-zinc-400">{t('dashboard.month.noGoals')}</p>
-          : <div className="space-y-2">{goals.map(g => <MonthGoalItem key={g.id} goal={g} onUpdate={updateGoal} onDelete={deleteGoal} t={t} />)}</div>}
-      </Section>
+        {/* Left: Palavra + reflexão + how_start + how_end + Eventos + Aniversários */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <Card>
+            <Label>Palavra do mês</Label>
+            <PalavraField value={profile.palavra_do_mes} onSave={v => saveProfileField('palavra_do_mes', v)} />
 
-      {/* Tasks */}
-      <Section title={t('dashboard.month.tasks')} onAdd={addTask} addLabel={t('common.add')}>
-        {loading ? <p className="text-sm text-zinc-400">{t('common.loading')}</p>
-          : tasks.length === 0 ? <p className="text-sm text-zinc-400">{t('dashboard.month.noItems')}</p>
-          : (
-            <div className="space-y-2">
-              <div className="grid grid-cols-[1fr_auto_auto] gap-2 mb-1">
-                <span className="field-label">{t('dashboard.month.taskWhat')}</span>
-                <span className="field-label text-right">{t('dashboard.month.taskWhen')}</span>
-                <span />
+            <Divider style={{ marginTop: 16 }} />
+
+            <div style={{
+              background: 'rgba(200,132,26,0.06)',
+              borderLeft: `2px solid ${T.amber}`,
+              padding: '10px 14px',
+              fontFamily: 'Georgia, serif',
+              fontSize: 13,
+              color: T.green,
+              lineHeight: 1.6,
+              marginBottom: 12,
+            }}>
+              O que você traz do mês passado?
+              <div style={{ marginTop: 6 }}>
+                <SaveableGhost
+                  value={profile.o_que_traz}
+                  onSave={v => saveProfileField('o_que_traz', v)}
+                  placeholder="Reflexão sobre o mês anterior..."
+                  minRows={2}
+                />
               </div>
-              {tasks.map(task => (
-                <div key={task.id} className="group grid grid-cols-[auto_1fr_auto_auto] items-center gap-2">
-                  <button onClick={() => updateTask(task.id, 'completed', !task.completed)}
-                    className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 ${task.completed ? 'bg-spirit border-spirit' : 'border-zinc-300 hover:border-[#3a6490]'}`}>
-                    {task.completed && <Check size={9} className="text-white" />}
-                  </button>
-                  <input value={task.title} onChange={e => updateTask(task.id, 'title', e.target.value)}
-                    placeholder={t('dashboard.month.taskWhatPlaceholder')}
-                    className={`bg-transparent text-sm border-0 focus:ring-0 p-0 placeholder-zinc-400 w-full ${task.completed ? 'line-through text-zinc-400' : 'text-zinc-800'}`} />
-                  <input type="date" value={task.due_date || ''} onChange={e => updateTask(task.id, 'due_date', e.target.value || null)} className="date-input flex-shrink-0" />
-                  <button onClick={() => deleteTask(task.id)} className="opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-red-500 transition-all"><Trash2 size={13} /></button>
-                </div>
-              ))}
             </div>
-          )}
-      </Section>
 
-      {/* Events + Birthdays side by side */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Events */}
-        <Section title={t('dashboard.month.events')} icon={CalendarDays} color="text-spirit" onAdd={addEvent} addLabel={t('common.add')}>
-          {events.length === 0 ? <p className="text-sm text-zinc-400">{t('dashboard.month.noItems')}</p>
-            : (
-              <div className="space-y-2">
-                {events.map(ev => (
-                  <div key={ev.id} className="group flex items-center gap-2">
-                    <input value={ev.title} onChange={e => updateEvent(ev.id, 'title', e.target.value)}
-                      placeholder={t('dashboard.month.eventPlaceholder')} className="flex-1 bg-transparent text-sm border-0 focus:ring-0 p-0 placeholder-zinc-400 text-zinc-800" />
-                    <input type="date" value={ev.event_date || ''} onChange={e => updateEvent(ev.id, 'event_date', e.target.value || null)} className="date-input flex-shrink-0" />
-                    <button onClick={() => deleteEvent(ev.id)} className="opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-red-500 transition-all"><Trash2 size={13} /></button>
-                  </div>
-                ))}
-              </div>
-            )}
-        </Section>
+            <div style={{ marginTop: 4 }}>
+              <Label>Como você começa {monthCapitalized}?</Label>
+              <SaveableGhost
+                value={profile.how_start}
+                onSave={v => saveProfileField('how_start', v)}
+                placeholder="Intenção, energia, contexto..."
+                minRows={2}
+              />
+            </div>
 
-        {/* Birthdays */}
-        <Section title={t('dashboard.month.birthdays')} icon={Cake} color="text-pink-500" onAdd={addBirthday} addLabel={t('common.add')}>
-          {birthdays.length === 0 ? <p className="text-sm text-zinc-400">{t('dashboard.month.noItems')}</p>
-            : (
-              <div className="space-y-2">
-                {birthdays.map(b => (
-                  <div key={b.id} className="group flex items-center gap-2">
-                    <input value={b.name} onChange={e => updateBirthday(b.id, 'name', e.target.value)}
-                      placeholder={t('dashboard.month.birthdayPlaceholder')} className="flex-1 bg-transparent text-sm border-0 focus:ring-0 p-0 placeholder-zinc-400 text-zinc-800" />
-                    <input type="date" value={b.birth_date || ''} onChange={e => updateBirthday(b.id, 'birth_date', e.target.value || null)} className="date-input flex-shrink-0" />
-                    <button onClick={() => deleteBirthday(b.id)} className="opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-red-500 transition-all"><Trash2 size={13} /></button>
-                  </div>
-                ))}
+            <div style={{ marginTop: 10 }}>
+              <Label>Como você quer terminar {monthCapitalized}?</Label>
+              <SaveableGhost
+                value={profile.how_end}
+                onSave={v => saveProfileField('how_end', v)}
+                placeholder="O que você quer ter realizado..."
+                minRows={2}
+              />
+            </div>
+          </Card>
+
+          {/* Eventos + Aniversários */}
+          <Card>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div>
+                <SectionTitle onAdd={addEvent}>Eventos</SectionTitle>
+                {events.length === 0
+                  ? <p style={{ fontFamily: 'sans-serif', fontSize: 12, color: T.muted }}>Sem eventos</p>
+                  : events.map(ev => (
+                    <div key={ev.id} className="group" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 0', borderBottom: `0.5px solid rgba(26,58,31,0.06)` }}>
+                      <input
+                        value={ev.title}
+                        onChange={e => updateEvent(ev.id, 'title', e.target.value)}
+                        placeholder="Evento"
+                        style={{ flex: 1, fontFamily: 'sans-serif', fontSize: 12, color: T.green, border: 'none', background: 'transparent', outline: 'none', padding: 0 }}
+                      />
+                      <input
+                        type="date"
+                        value={ev.event_date || ''}
+                        onChange={e => updateEvent(ev.id, 'event_date', e.target.value || null)}
+                        style={{ fontFamily: 'sans-serif', fontSize: 11, color: T.muted, border: 'none', background: 'transparent', outline: 'none', width: 90 }}
+                      />
+                      <button onClick={() => deleteEvent(ev.id)} className="opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#d1d5db', padding: 0 }} onMouseEnter={e => e.currentTarget.style.color='#ef4444'} onMouseLeave={e => e.currentTarget.style.color='#d1d5db'}>
+                        <Trash2 size={11} />
+                      </button>
+                    </div>
+                  ))
+                }
               </div>
-            )}
-        </Section>
+              <div>
+                <SectionTitle onAdd={addBirthday}>Aniversários</SectionTitle>
+                {birthdays.length === 0
+                  ? <p style={{ fontFamily: 'sans-serif', fontSize: 12, color: T.muted }}>Nenhum</p>
+                  : birthdays.map(b => (
+                    <div key={b.id} className="group" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 0', borderBottom: `0.5px solid rgba(26,58,31,0.06)` }}>
+                      <input
+                        value={b.name}
+                        onChange={e => updateBirthday(b.id, 'name', e.target.value)}
+                        placeholder="Nome"
+                        style={{ flex: 1, fontFamily: 'sans-serif', fontSize: 12, color: T.green, border: 'none', background: 'transparent', outline: 'none', padding: 0 }}
+                      />
+                      <input
+                        type="date"
+                        value={b.birth_date || ''}
+                        onChange={e => updateBirthday(b.id, 'birth_date', e.target.value || null)}
+                        style={{ fontFamily: 'sans-serif', fontSize: 11, color: T.muted, border: 'none', background: 'transparent', outline: 'none', width: 90 }}
+                      />
+                      <button onClick={() => deleteBirthday(b.id)} className="opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#d1d5db', padding: 0 }} onMouseEnter={e => e.currentTarget.style.color='#ef4444'} onMouseLeave={e => e.currentTarget.style.color='#d1d5db'}>
+                        <Trash2 size={11} />
+                      </button>
+                    </div>
+                  ))
+                }
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Right: Calendar + Explorar */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <Card>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+              <button onClick={() => setPeriod(p => navigateMonth(p, -1))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.sand, fontSize: 16, lineHeight: 1 }}>‹</button>
+              <span style={{ fontFamily: 'Georgia, serif', fontSize: 13, color: T.green }}>{monthCapitalized} {y}</span>
+              <button onClick={() => setPeriod(p => navigateMonth(p, 1))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.sand, fontSize: 16, lineHeight: 1 }}>›</button>
+            </div>
+            <MiniCalendar period={period} events={events} birthdays={birthdays} bills={bills} />
+          </Card>
+
+          {/* Explorar — funcional por categoria */}
+          <Card>
+            <SectionTitle>Explorar</SectionTitle>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 12 }}>
+              {['Livros','Filmes','Podcasts','Lugares','Cursos','Músicas','Eventos'].map(cat => {
+                const active = explorarCat === cat
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => setExplorarCat(cat)}
+                    style={{
+                      fontFamily: 'sans-serif', fontSize: 11, padding: '3px 10px',
+                      borderRadius: 20, border: 'none', cursor: 'pointer',
+                      background: active ? T.amber : 'rgba(200,132,26,0.1)',
+                      color: active ? '#fff' : '#854F0B',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {cat}
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Items da categoria selecionada */}
+            {explorar.filter(e => e.category === explorarCat).map(item => (
+              <div key={item.id} className="group" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', borderBottom: `0.5px solid rgba(26,58,31,0.06)` }}>
+                <span style={{ width: 5, height: 5, borderRadius: '50%', background: T.amber, flexShrink: 0, display: 'inline-block' }} />
+                <input
+                  value={item.title}
+                  onChange={e => updateExplorar(item.id, 'title', e.target.value)}
+                  placeholder={`Adicionar ${explorarCat.toLowerCase()}...`}
+                  style={{ flex: 1, fontFamily: 'sans-serif', fontSize: 13, color: T.green, border: 'none', background: 'transparent', outline: 'none', padding: 0 }}
+                />
+                <button
+                  onClick={() => deleteExplorar(item.id)}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#d1d5db', padding: 0 }}
+                  onMouseEnter={e => e.currentTarget.style.color='#ef4444'}
+                  onMouseLeave={e => e.currentTarget.style.color='#d1d5db'}
+                >
+                  <Trash2 size={12} />
+                </button>
+              </div>
+            ))}
+            <AddRow onClick={() => addExplorar(explorarCat)} label={`adicionar ${explorarCat.toLowerCase()}`} />
+          </Card>
+        </div>
       </div>
 
-      {/* Reading & Watching */}
-      <Section title={t('dashboard.month.reading')} icon={BookOpen} color="text-amber-500"
-        onAdd={null} addLabel={null}>
-        <div className="flex gap-2 mb-4">
-          <button onClick={() => addReading('read')} className="btn-ghost text-[12px]"><BookOpen size={12} />{t('dashboard.month.addRead')}</button>
-          <button onClick={() => addReading('watch')} className="btn-ghost text-[12px]"><Tv size={12} />{t('dashboard.month.addWatch')}</button>
-        </div>
-        {reading.length === 0 ? <p className="text-sm text-zinc-400">{t('dashboard.month.noItems')}</p>
-          : (
-            <div className="space-y-2">
-              {reading.map(item => (
-                <div key={item.id} className="group flex items-center gap-2">
-                  <button onClick={() => updateReading(item.id, 'completed', !item.completed)}
-                    className={`flex-shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${item.completed ? 'bg-amber-500 border-amber-500' : 'border-zinc-300 hover:border-amber-400'}`}>
-                    {item.completed && <Check size={9} className="text-white" />}
-                  </button>
-                  <span className={`flex-shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-md ${item.type === 'read' ? 'bg-[#D4890A]/10 text-mind' : 'bg-spirit/10 text-spirit'}`}>
-                    {item.type === 'read' ? t('dashboard.month.typeRead') : t('dashboard.month.typeWatch')}
-                  </span>
-                  <input value={item.title} onChange={e => updateReading(item.id, 'title', e.target.value)}
-                    placeholder={t('dashboard.month.readingPlaceholder')}
-                    className={`flex-1 bg-transparent text-sm border-0 focus:ring-0 p-0 placeholder-zinc-400 ${item.completed ? 'line-through text-zinc-400' : 'text-zinc-800'}`} />
-                  <button onClick={() => deleteReading(item.id)} className="opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-red-500 transition-all"><Trash2 size={13} /></button>
-                </div>
-              ))}
+      {/* PILARES */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+        {[
+          { key: 'pilar_corpo',    label: 'Corpo',    dot: T.green,  placeholder: 'O que você quer cultivar no corpo este mês...' },
+          { key: 'pilar_mente',   label: 'Mente',    dot: T.amber,  placeholder: 'O que você quer cultivar na mente este mês...' },
+          { key: 'pilar_espirito',label: 'Espírito', dot: T.sand,   placeholder: 'O que você quer cultivar no espírito este mês...' },
+        ].map(({ key, label, dot, placeholder }) => (
+          <Card key={key}>
+            <div style={{ display: 'flex', alignItems: 'center', fontFamily: 'sans-serif', fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: T.muted, marginBottom: 8 }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: dot, display: 'inline-block', marginRight: 6, flexShrink: 0 }} />
+              {label}
             </div>
-          )}
-      </Section>
+            <SaveableGhost
+              value={profile[key]}
+              onSave={v => saveProfileField(key, v)}
+              placeholder={placeholder}
+              minRows={3}
+            />
+          </Card>
+        ))}
+      </div>
+
+      {/* METAS */}
+      <Card>
+        <SectionTitle onAdd={addGoal}>Metas do mês</SectionTitle>
+        {loading
+          ? <p style={{ fontFamily: 'sans-serif', fontSize: 12, color: T.muted }}>Carregando...</p>
+          : goals.length === 0
+            ? <p style={{ fontFamily: 'sans-serif', fontSize: 12, color: T.muted }}>Nenhuma meta ainda</p>
+            : (
+              <>
+                {visibleGoals.map(g => (
+                  <GoalItem key={g.id} goal={g} onUpdate={updateGoal} onDelete={deleteGoal} />
+                ))}
+                {goals.length > GOALS_PREVIEW && (
+                  <button
+                    onClick={() => setGoalsExpanded(e => !e)}
+                    style={{ fontFamily: 'sans-serif', fontSize: 11, color: T.amber, cursor: 'pointer', background: 'none', border: 'none', padding: '4px 0', display: 'block' }}
+                  >
+                    {goalsExpanded ? 'ver menos' : `ver mais (${goals.length - GOALS_PREVIEW})`}
+                  </button>
+                )}
+              </>
+            )
+        }
+      </Card>
+
+      {/* MAPA FINANCEIRO */}
+      <Card>
+        <SectionTitle onAdd={addBill}>Mapa financeiro</SectionTitle>
+        {bills.length === 0 && (
+          <AddRow onClick={addBill} label="adicionar conta" />
+        )}
+        {bills.map(b => (
+          <BillRow key={b.id} bill={b} onUpdate={updateBill} onDelete={deleteBill} />
+        ))}
+        {bills.length > 0 && (
+          <AddRow onClick={addBill} label="adicionar conta" />
+        )}
+      </Card>
+
+      {/* SAÚDE + LARGAR */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+        <Card>
+          <SectionTitle onAdd={addHealth}>Saúde e corpo</SectionTitle>
+          {health.map(h => (
+            <EditableListItem
+              key={h.id}
+              value={h.title}
+              onChange={e => updateHealth(h.id, 'title', e.target.value)}
+              onDelete={() => deleteHealth(h.id)}
+              placeholder="Item de saúde..."
+              bullet={T.sand}
+            />
+          ))}
+          <AddRow onClick={addHealth} label="adicionar" />
+        </Card>
+        <Card>
+          <SectionTitle onAdd={addLargar}>O que quero largar</SectionTitle>
+          {largar.map(l => (
+            <EditableListItem
+              key={l.id}
+              value={l.title}
+              onChange={e => updateLargar(l.id, 'title', e.target.value)}
+              onDelete={() => deleteLargar(l.id)}
+              placeholder="O que soltar..."
+              bullet={T.sand}
+            />
+          ))}
+          <AddRow onClick={addLargar} label="adicionar" />
+        </Card>
+      </div>
+
+      {/* VISÃO GERAL */}
+      <Card>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+          <span style={{ fontFamily: 'sans-serif', fontSize: 13, fontWeight: 500, color: T.green }}>
+            Visão geral de {monthName}
+          </span>
+          {/* % / x/x toggle */}
+          <div style={{ display: 'flex', gap: 4, background: 'rgba(26,58,31,0.06)', borderRadius: 20, padding: 3 }}>
+            {['pct', 'frac'].map(m => (
+              <button
+                key={m}
+                onClick={() => setStatsMode(m)}
+                style={{
+                  fontFamily: 'sans-serif', fontSize: 11,
+                  color: statsMode === m ? T.green : T.muted,
+                  background: statsMode === m ? '#fff' : 'transparent',
+                  border: 'none', borderRadius: 16,
+                  padding: '3px 10px', cursor: 'pointer',
+                  fontWeight: statsMode === m ? 500 : 400,
+                  boxShadow: statsMode === m ? '0 0 0 0.5px rgba(26,58,31,0.15)' : 'none',
+                  transition: 'all 0.2s',
+                }}
+              >
+                {m === 'pct' ? '%' : 'x/x'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Stats row */}
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <StatItem label="rotinas cumpridas" value={routinesDone} total={routinesDone} mode={statsMode} rawValue={`${routinesDone}`} />
+          <StatItem label="tasks concluídas" value={tasksDone} total={tasksTotal} mode={statsMode} />
+          <StatItem label="metas do mês" value={goals.length} total={goals.length} mode={statsMode} rawValue={`${goals.length}`} />
+        </div>
+
+        {/* Week bars */}
+        {stats.weekBars.length > 0 && (
+          <div style={{ marginTop: 20 }}>
+            <Label>Arco do mês · semana a semana</Label>
+            <div style={{ marginTop: 12 }}>
+              <WeekBars weekBars={stats.weekBars} />
+            </div>
+          </div>
+        )}
+      </Card>
+    </div>
+  )
+}
+
+// ── Palavra do mês editable ───────────────────────────────────────
+function PalavraField({ value, onSave }) {
+  const [editing, setEditing] = useState(false)
+  const [local, setLocal] = useState(value || '')
+  const inputRef = useRef(null)
+
+  useEffect(() => { setLocal(value || '') }, [value])
+  useEffect(() => { if (editing && inputRef.current) inputRef.current.focus() }, [editing])
+
+  function commit() {
+    setEditing(false)
+    onSave(local)
+  }
+
+  if (editing) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <input
+          ref={inputRef}
+          value={local}
+          onChange={e => setLocal(e.target.value)}
+          onBlur={commit}
+          onKeyDown={e => { if (e.key === 'Enter') commit() }}
+          placeholder="Palavra do mês..."
+          style={{
+            fontFamily: 'Georgia, serif', fontSize: 28, color: T.green,
+            border: 'none', borderBottom: `1px solid ${T.sand}`, background: 'transparent',
+            outline: 'none', width: '100%',
+          }}
+        />
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, cursor: 'pointer' }} onClick={() => setEditing(true)}>
+      <span style={{ fontFamily: 'Georgia, serif', fontSize: 28, color: T.green, fontWeight: 'normal', letterSpacing: '0.02em' }}>
+        {local || <span style={{ color: T.muted, fontSize: 18 }}>+ palavra do mês</span>}
+      </span>
+      {local && <Pencil size={13} style={{ color: T.sand, flexShrink: 0 }} />}
+    </div>
+  )
+}
+
+// ── Goal item ─────────────────────────────────────────────────────
+function GoalItem({ goal, onUpdate, onDelete }) {
+  const timer = useRef(null)
+
+  function debounceSave(field, value) {
+    clearTimeout(timer.current)
+    timer.current = setTimeout(() => onUpdate(goal.id, field, value), 900)
+  }
+
+  return (
+    <div className="group" style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '6px 0', borderBottom: `0.5px solid rgba(26,58,31,0.06)` }}>
+      <span style={{ width: 5, height: 5, borderRadius: '50%', background: T.green, marginTop: 7, flexShrink: 0, display: 'inline-block' }} />
+      <input
+        defaultValue={goal.title}
+        onChange={e => debounceSave('title', e.target.value)}
+        placeholder="Meta do mês..."
+        style={{ flex: 1, fontFamily: 'sans-serif', fontSize: 13, color: T.green, border: 'none', background: 'transparent', outline: 'none', padding: 0 }}
+      />
+      <button
+        onClick={() => onDelete(goal.id)}
+        className="opacity-0 group-hover:opacity-100 transition-opacity"
+        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#d1d5db', padding: 0, flexShrink: 0 }}
+        onMouseEnter={e => e.currentTarget.style.color='#ef4444'}
+        onMouseLeave={e => e.currentTarget.style.color='#d1d5db'}
+      >
+        <Trash2 size={12} />
+      </button>
+    </div>
+  )
+}
+
+// ── Bill row ──────────────────────────────────────────────────────
+function BillRow({ bill, onUpdate, onDelete }) {
+  const timer = useRef(null)
+  function debounceSave(field, value) {
+    clearTimeout(timer.current)
+    timer.current = setTimeout(() => onUpdate(bill.id, field, value), 700)
+  }
+
+  return (
+    <div className="group" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 0', borderBottom: `0.5px solid rgba(26,58,31,0.06)` }}>
+      <input
+        defaultValue={bill.title}
+        onChange={e => debounceSave('title', e.target.value)}
+        placeholder="Nome da conta..."
+        style={{ flex: 1, fontFamily: 'sans-serif', fontSize: 13, color: T.green, border: 'none', background: 'transparent', outline: 'none', padding: 0 }}
+      />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+        <span style={{ fontFamily: 'sans-serif', fontSize: 11, color: T.muted }}>
+          dia&nbsp;
+          <input
+            defaultValue={bill.day_of_month || ''}
+            onChange={e => debounceSave('day_of_month', parseInt(e.target.value) || null)}
+            type="number"
+            min="1" max="31"
+            style={{ fontFamily: 'sans-serif', fontSize: 11, color: T.muted, border: 'none', background: 'transparent', outline: 'none', width: 28, padding: 0 }}
+            placeholder="—"
+          />
+        </span>
+        <button
+          onClick={() => onUpdate(bill.id, 'recurring', !bill.recurring)}
+          style={{
+            fontFamily: 'sans-serif', fontSize: 10,
+            color: bill.recurring ? '#854F0B' : T.muted,
+            background: bill.recurring ? 'rgba(200,132,26,0.1)' : 'rgba(26,58,31,0.05)',
+            padding: '2px 7px', borderRadius: 10, border: 'none', cursor: 'pointer',
+          }}
+        >
+          recorrente
+        </button>
+        <button
+          onClick={() => onDelete(bill.id)}
+          className="opacity-0 group-hover:opacity-100 transition-opacity"
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#d1d5db', padding: 0 }}
+          onMouseEnter={e => e.currentTarget.style.color='#ef4444'}
+          onMouseLeave={e => e.currentTarget.style.color='#d1d5db'}
+        >
+          <Trash2 size={12} />
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ── Stat item ─────────────────────────────────────────────────────
+function StatItem({ label, value, total, mode, rawValue }) {
+  let display
+  if (rawValue !== undefined) {
+    display = rawValue
+  } else if (total === 0) {
+    display = mode === 'pct' ? '—' : '0/0'
+  } else {
+    display = mode === 'pct'
+      ? `${Math.round((value / total) * 100)}%`
+      : `${value}/${total}`
+  }
+  const pct = total > 0 ? Math.round((value / total) * 100) : 0
+
+  return (
+    <div style={{ flex: 1 }}>
+      <div style={{ fontFamily: 'Georgia, serif', fontSize: 22, color: T.green }}>{display}</div>
+      <div style={{ fontFamily: 'sans-serif', fontSize: 11, color: T.muted, marginTop: 2 }}>{label}</div>
+      <div style={{ height: 4, background: 'rgba(26,58,31,0.08)', borderRadius: 2, marginTop: 6 }}>
+        <div style={{ height: 4, borderRadius: 2, background: T.green, width: `${rawValue !== undefined ? 100 : pct}%`, transition: 'width 0.4s ease' }} />
+      </div>
     </div>
   )
 }

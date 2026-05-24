@@ -70,13 +70,13 @@ export default function AddBookModal({ open, onClose, onAdd }) {
     setCoverPreview(URL.createObjectURL(file))
   }
 
-  function fileToBase64(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onload = e => resolve(e.target.result)
-      reader.onerror = reject
-      reader.readAsDataURL(file)
-    })
+  async function uploadCoverToStorage(file) {
+    const ext  = file.name.split('.').pop()
+    const path = `${user.id}/${Date.now()}.${ext}`
+    const { error } = await supabase.storage.from('book-covers').upload(path, file, { upsert: true })
+    if (error) return null
+    const { data } = supabase.storage.from('book-covers').getPublicUrl(path)
+    return data.publicUrl
   }
 
   useEffect(() => {
@@ -108,9 +108,9 @@ export default function AddBookModal({ open, onClose, onAdd }) {
     setUploading(true)
     let coverUrl = picked.cover_url
 
-    // Convert to base64 — works without any Supabase Storage bucket
     if (coverFile) {
-      try { coverUrl = await fileToBase64(coverFile) } catch {}
+      const uploaded = await uploadCoverToStorage(coverFile)
+      if (uploaded) coverUrl = uploaded
     }
 
     const total   = parseInt(totalPages) || null

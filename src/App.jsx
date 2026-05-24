@@ -1,27 +1,32 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import Layout from './components/layout/Layout'
+import ScrollRestorer from './components/ScrollRestorer'
+
+// Eager — needed immediately for auth flow
 import Login from './pages/auth/Login'
 import Register from './pages/auth/Register'
-import Dashboard from './pages/Dashboard'
-import Spirit from './pages/Spirit'
-import Mind from './pages/Mind'
-import Body from './pages/Body'
-import Profile from './pages/Profile'
-import Projects from './pages/Projects'
-import Jornada from './pages/Jornada'
-import PadraoMental from './pages/PadraoMental'
-import DocList from './pages/DocList'
-import DocEditor from './pages/DocEditor'
-import Library from './pages/Library'
-import BookDetail from './pages/BookDetail'
-import DeepDesires from './pages/DeepDesires'
-import UnoPage from './pages/UnoPage'
-import UnoListPage from './pages/UnoListPage'
 import PrivacyPolicy from './pages/PrivacyPolicy'
-import Rotinas from './pages/Rotinas'
-import ArvoreVida from './pages/ArvoreVida'
-import ScrollRestorer from './components/ScrollRestorer'
+import Jornada from './pages/Jornada'
+
+// Lazy — loaded on demand per route
+const Dashboard   = lazy(() => import('./pages/Dashboard'))
+const Spirit      = lazy(() => import('./pages/Spirit'))
+const Mind        = lazy(() => import('./pages/Mind'))
+const Body        = lazy(() => import('./pages/Body'))
+const Profile     = lazy(() => import('./pages/Profile'))
+const Projects    = lazy(() => import('./pages/Projects'))
+const PadraoMental = lazy(() => import('./pages/PadraoMental'))
+const DocList     = lazy(() => import('./pages/DocList'))
+const DocEditor   = lazy(() => import('./pages/DocEditor'))
+const Library     = lazy(() => import('./pages/Library'))
+const BookDetail  = lazy(() => import('./pages/BookDetail'))
+const DeepDesires = lazy(() => import('./pages/DeepDesires'))
+const UnoPage     = lazy(() => import('./pages/UnoPage'))
+const UnoListPage = lazy(() => import('./pages/UnoListPage'))
+const Rotinas     = lazy(() => import('./pages/Rotinas'))
+const ArvoreVida  = lazy(() => import('./pages/ArvoreVida'))
 
 const PAST = { table: 'past_documents', basePath: '/passado', i18nNs: 'spirit.past', introKey: 'tupi.past.introHidden', introPromptKey: 'spirit.past.prompts.1', pages: 3 }
 const PRESENT = { table: 'present_documents', basePath: '/presente', i18nNs: 'spirit.present', introKey: 'tupi.present.introHidden', introPromptKey: 'spirit.present.prompts.1', pages: 1 }
@@ -54,6 +59,7 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <ScrollRestorer />
+        <Suspense fallback={<LoadingScreen />}>
         <Routes>
           <Route path="/login"    element={<GuestRoute><Login /></GuestRoute>} />
           <Route path="/register" element={<GuestRoute><Register /></GuestRoute>} />
@@ -86,6 +92,7 @@ export default function App() {
 
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
+        </Suspense>
       </BrowserRouter>
     </AuthProvider>
   )
