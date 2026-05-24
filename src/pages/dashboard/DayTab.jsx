@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import AutoTextarea from '../../components/ui/AutoTextarea'
 import { Plus, Check, Trash2, ChevronRight, ChevronLeft } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { format } from 'date-fns'
@@ -231,7 +232,7 @@ function TaskRow({ task, subtasks, onToggle, onTitleChange, onDelete, onAddSub, 
 
   return (
     <div className="group">
-      <div className="flex items-center gap-2 py-2.5 min-w-0">
+      <div className="flex items-start gap-2 py-2.5 min-w-0">
         <CheckCircle done={task.completed} onToggle={() => onToggle(task.id, { completed: !task.completed })} />
         {subtasks.length > 0 && (
           <button
@@ -244,18 +245,15 @@ function TaskRow({ task, subtasks, onToggle, onTitleChange, onDelete, onAddSub, 
             />
           </button>
         )}
-        <input
+        <AutoTextarea
           ref={inputRef}
           value={title}
           onChange={e => { setTitle(e.target.value); dirty.current = true }}
           onBlur={flush}
           data-task-input="true"
-          onKeyDown={e => {
-            if (e.key === 'Enter') {
-              e.preventDefault()
-              flush()
-              if (onEnter) onEnter()
-            }
+          onEnter={() => {
+            flush()
+            if (onEnter) onEnter()
           }}
           placeholder={t('dashboard.day.taskPlaceholder')}
           className={`flex-1 min-w-0 bg-transparent border-0 outline-none text-[14px] ${
@@ -289,13 +287,13 @@ function SubRow({ sub, onToggle, onChange, onDelete, t }) {
   useEffect(() => { setV(sub.title || '') }, [sub.id])
   function flush() { if (dirty.current) { onChange(sub.id, v); dirty.current = false } }
   return (
-    <div className="group flex items-center gap-2 py-1.5 pl-8 min-w-0">
+    <div className="group flex items-start gap-2 py-1.5 pl-8 min-w-0">
       <CheckCircle done={sub.completed} onToggle={() => onToggle(sub.id, { completed: !sub.completed })} size={14} />
-      <input
+      <AutoTextarea
         value={v}
         onChange={e => { setV(e.target.value); dirty.current = true }}
         onBlur={flush}
-        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); flush() } }}
+        onEnter={flush}
         placeholder={t('dashboard.day.subtaskPlaceholder')}
         className={`flex-1 min-w-0 bg-transparent border-0 outline-none text-[12px] ${
           sub.completed ? 'text-zinc-400 line-through' : 'text-zinc-700'

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
+import AutoTextarea from '../../components/ui/AutoTextarea'
 import { useTranslation } from 'react-i18next'
 import {
   ChevronLeft, ChevronRight, Plus, Check, X,
@@ -308,13 +309,14 @@ function AddTaskForm({ dateISO, onSave, onCancel, t }) {
       className="mt-2 p-3 bg-zinc-50 rounded-xl space-y-2.5 border border-zinc-100"
       onClick={e => e.stopPropagation()}
     >
-      <input
+      <AutoTextarea
         ref={inputRef}
         value={title}
         onChange={e => setTitle(e.target.value)}
         placeholder={t('dashboard.week.taskNamePlaceholder')}
         className="w-full bg-transparent border-0 border-b border-zinc-200 outline-none text-[12px] text-zinc-900 placeholder-zinc-400 pb-1.5"
-        onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') onCancel() }}
+        onEnter={save}
+        onEscape={onCancel}
       />
 
       {/* Recurrence chips */}
