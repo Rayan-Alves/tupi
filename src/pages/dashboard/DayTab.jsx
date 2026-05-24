@@ -110,17 +110,6 @@ function CollapsibleTaskSection({ title, counter, done, total, barColor, childre
     return () => ro.disconnect()
   }, [children])
 
-  // Collapse when clicking outside
-  useEffect(() => {
-    if (!expanded) return
-    function onOutside(e) {
-      if (sectionRef.current && !sectionRef.current.contains(e.target)) {
-        setExpanded(false)
-      }
-    }
-    document.addEventListener('mousedown', onOutside)
-    return () => document.removeEventListener('mousedown', onOutside)
-  }, [expanded])
 
   const showGradient = overflows && !expanded
 

@@ -43,17 +43,8 @@ export default function CollapsibleSection({
     return () => ro.disconnect()
   }, [children, collapsedHeight])
 
-  // Auto-collapse on outside click
-  useEffect(() => {
-    if (!expanded) return
-    function onOutside(e) {
-      if (wrapRef.current && !wrapRef.current.contains(e.target)) {
-        setExpanded(false)
-      }
-    }
-    document.addEventListener('mousedown', onOutside)
-    return () => document.removeEventListener('mousedown', onOutside)
-  }, [expanded])
+  // (collapsed manually via "ver menos" button — no auto-collapse on outside click
+  //  to avoid interfering with forms/buttons placed outside this component)
 
   const clamped      = !alwaysExpanded && overflows && !expanded
   const showGradient = clamped
