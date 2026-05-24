@@ -452,7 +452,7 @@ function WeekDayCell({ day, locale, addTasksBulk, onUpdateTask, onDeleteTask, on
       {/* Task list */}
       <div className="flex-1 flex flex-col gap-0.5">
         {day.tasks.map(task => (
-          <div key={task.id} className="flex items-start gap-2 py-1 group/task">
+          <div key={task.id} className="flex items-start gap-2 py-1 group/task min-w-0 overflow-hidden">
             <button
               onClick={() => onUpdateTask(task.id, { completed: !task.completed })}
               className="flex-shrink-0 flex items-center justify-center rounded-full transition-all mt-0.5"
@@ -464,7 +464,7 @@ function WeekDayCell({ day, locale, addTasksBulk, onUpdateTask, onDeleteTask, on
             >
               {task.completed && <Check size={8} strokeWidth={3} color="#fff" />}
             </button>
-            <span className={`flex-1 text-[11px] leading-snug ${task.completed ? 'text-zinc-400 line-through' : 'text-zinc-800'}`}>
+            <span className={`flex-1 min-w-0 text-[11px] leading-snug break-words ${task.completed ? 'text-zinc-400 line-through' : 'text-zinc-800'}`}>
               {task.title || '—'}
             </span>
             <button

@@ -134,8 +134,6 @@ export default function UnoSection({ projects, lockedMessage }) {
           <span className="uno-vortice-dust" aria-hidden="true" />
           <img src="/tupi-logo.png" alt="" className="uno-logo" draggable="false" />
         </button>
-        <h2 className="uno-portal-title">{t('uno.portalTitle')}</h2>
-        <p className="uno-portal-sub">{t('uno.portalSub')}</p>
       </div>
       {projects && projects.length === 0 && lockedMessage && (
         <div style={{ marginTop: 16, fontSize: 13, color: '#8B8378', textAlign: 'center', maxWidth: 320, fontStyle: 'italic', fontFamily: 'Libre Baskerville, Georgia, serif' }}>
